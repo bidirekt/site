@@ -83,7 +83,7 @@ bidirekt create-participant [name]
 ```
 
 ```
-🎭 petstore_api participant created
+petstore_api participant created
 ```
 
 ## create-environment
@@ -93,7 +93,7 @@ bidirekt create-environment [name]
 ```
 
 ```
-🌍 production environment created
+production environment created
 ```
 
 ## publish
@@ -114,7 +114,7 @@ and the content is validated by the broker against the
 [specification](../contracts/spec.md).
 
 ```
-📜 petstore_api contract publish successful
+petstore_api contract publish successful
 ```
 
 ## record-deployment
@@ -129,7 +129,7 @@ bidirekt record-deployment [participant] --version <version> --environment <name
 | `--environment string` | `Target environment name (required)` |
 
 ```
-🎉 petstore_api deployment recorded to production
+petstore_api deployment recorded to production
 ```
 
 ## rename-participant
@@ -154,7 +154,7 @@ you choose, one side is red in between. Renaming a consumer changes nothing
 about what it matches, because matching only looks at the provider's name.
 
 ```
-✏️ petstore_inventory participant renamed to petstore_inventory_v2
+petstore_inventory participant renamed to petstore_inventory_v2
 ```
 
 ## can-i-deploy
@@ -171,7 +171,7 @@ bidirekt can-i-deploy [participant] --version <version> --environment <name>
 Deployable, exit code `0`:
 
 ```
-🚀 petstore_api can be deployed to production
+petstore_api can be deployed to production
 ```
 
 Not deployable, exit code `1`. The report is the command's result, not an

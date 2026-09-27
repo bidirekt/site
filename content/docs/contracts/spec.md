@@ -48,7 +48,7 @@ Published with the CLI, it is accepted as a whole or rejected as a whole:
 
 ```
 $ bidirekt publish petstore_api.yaml --participant petstore_api --version 1.4.0
-📜 petstore_api contract publish successful
+petstore_api contract publish successful
 ```
 
 ## The three top-level keys
@@ -692,7 +692,7 @@ Every file passed to one `bidirekt publish` call becomes part of the same contra
 
 ```
 $ bidirekt publish contracts/*.yaml --participant petstore_api --version 2.1.0
-📜 petstore_api contract publish successful
+petstore_api contract publish successful
 ```
 
 A provider split into an endpoints file and a schemas file:
