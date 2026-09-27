@@ -13,7 +13,7 @@ stands on its own. The commands themselves are documented in the
 
 ```
 bidirekt create-participant petstore_api
-🎭 petstore_api participant created
+petstore_api participant created
 ```
 
 A participant is a named service that publishes contracts. The name is the
@@ -38,7 +38,7 @@ its contract file declares both sides at once.
 
 ```
 bidirekt publish petstore_api.yaml --participant petstore_api --version 1.0.0
-📜 petstore_api contract publish successful
+petstore_api contract publish successful
 ```
 
 A contract is what a participant declares about its integrations: what it
@@ -101,7 +101,7 @@ name a version, and the broker resolves it.
 
 ```
 bidirekt create-environment sandbox
-🌍 sandbox environment created
+sandbox environment created
 ```
 
 An environment is a named place where participants are deployed:
@@ -119,7 +119,7 @@ otherwise. Creating an environment is idempotent: the command answers
 
 ```
 bidirekt record-deployment petstore_api --version 1.0.0 --environment production
-🎉 petstore_api deployment recorded to production
+petstore_api deployment recorded to production
 ```
 
 A deployment is the broker's record that a version of a participant is now
@@ -161,7 +161,7 @@ and to declare what it reads; otherwise the report says so.
 When the answer is yes:
 
 ```
-🚀 petstore_api can be deployed to production
+petstore_api can be deployed to production
 ```
 
 When it is no, the report lists every failing counterpart, with the version
