@@ -134,7 +134,7 @@ Pet:
 ```
 
 ```
-❌ petstore_app cannot be deployed to sandbox
+petstore_app cannot be deployed to sandbox
 
 petstore_api (3.0.0):
   GET /pets/*
@@ -182,7 +182,7 @@ NewPet:
 ```
 
 ```
-❌ petstore_app cannot be deployed to sandbox
+petstore_app cannot be deployed to sandbox
 
 petstore_api (3.0.0):
   POST /pets
@@ -202,7 +202,7 @@ version `2.1.0` deployed to `sandbox`, the provider's own check meets the
 same reader, the same producer and the same two lines:
 
 ```
-❌ petstore_api cannot be deployed to sandbox
+petstore_api cannot be deployed to sandbox
 
 petstore_app (2.1.0):
   POST /pets
@@ -244,7 +244,7 @@ provider that has no owner at all, `$.owner` is tolerated and
 `$.owner.name` is not:
 
 ```
-❌ petstore_app cannot be deployed to sandbox
+petstore_app cannot be deployed to sandbox
 
 petstore_api (3.0.0):
   GET /pets/*
@@ -278,7 +278,7 @@ The consumer declares, under `consumes`, a resource that no published contract o
 The whole report when `petstore_web` is checked before `petstore_api` has published anything:
 
 ```
-❌ petstore_web cannot be deployed to production
+petstore_web cannot be deployed to production
 
 petstore_api:
   POST /pets
@@ -304,7 +304,7 @@ The provider has published the resource, but it has no deployment in the target 
 Once `petstore_api` is deployed to `staging` only, the same check prints the whole report as:
 
 ```
-❌ petstore_web cannot be deployed to production
+petstore_web cannot be deployed to production
 
 petstore_api:
   POST /pets
@@ -326,7 +326,7 @@ Only a provider under check can get this one. The version being checked no longe
 `petstore_api` version `v2` dropped `GET /pets/*` while `petstore_web` version `v1`, which consumes it, is deployed to `production`:
 
 ```
-❌ petstore_api cannot be deployed to production
+petstore_api cannot be deployed to production
 
 petstore_web (v1):
   GET /pets/*

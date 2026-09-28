@@ -72,9 +72,13 @@ a JSON body to the resolved URL. The request is cancelled after 30 seconds.
 | `0` | the command succeeded, or you asked for help or the version |
 | `1` | anything else: a usage error, a file the CLI refused before sending, a broker that could not be reached, a non-success answer from the broker, a publish rejected with violations, or a `can-i-deploy` answer of "not deployable" |
 
-There is no other exit code. Success lines, help and `version` go to stdout;
-lines starting with `❌` go to stderr, except the failing `can-i-deploy`
+There is no other exit code. Success lines, help and `version` go to
+stdout; failure lines go to stderr, except the failing `can-i-deploy`
 report, described under that command.
+
+When the stream is a terminal, the success line is printed in green and the
+failure headline in red (text color only). `NO_COLOR` disables color;
+`CLICOLOR_FORCE=1` forces it when the output is piped.
 
 ## create-participant
 
@@ -183,7 +187,7 @@ a third counterpart, `petstore_inventory`, was compatible and is therefore not
 listed:
 
 ```
-❌ petstore_web cannot be deployed to production
+petstore_web cannot be deployed to production
 
 petstore_api (1.4.0):
   POST /pets

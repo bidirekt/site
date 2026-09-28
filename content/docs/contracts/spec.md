@@ -84,7 +84,7 @@ Two things about that name.
 **It is the provider's participant name.** The broker matches a consumed endpoint to a provided one by participant name, endpoint, method and status. The name is the one the provider was created with (`bidirekt create-participant`). A misspelled name publishes without complaint, because publishing does not check that the named participant exists. It fails later, at `bidirekt can-i-deploy`, where nothing matches:
 
 ```
-❌ petstore_web cannot be deployed to staging
+petstore_web cannot be deployed to staging
 
 petstore_apy:
   GET /pets
@@ -111,7 +111,7 @@ schemas:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - petstore_web.yaml: invalid service name "Petstore-API" at consumes;Petstore-API
       must be snake_case
 ```
@@ -119,7 +119,7 @@ schemas:
 Forgetting the extra level is a common mistake. When `rest` is written directly under `consumes`, the broker reads `rest` as a provider name and then finds an endpoint where it expects `rest`:
 
 ```
-❌ contract validation failed
+contract validation failed
   - petstore_web.yaml: unknown key "/pets" at consumes;rest;/pets
 ```
 
@@ -193,7 +193,7 @@ provides:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - petstore_api.yaml: invalid endpoint "/pets//toys" at provides;rest;/pets//toys
       malformed path
   - petstore_api.yaml: invalid endpoint "pets" at provides;rest;pets
@@ -237,7 +237,7 @@ provides:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - petstore_api.yaml: invalid endpoint "/pets/p*" at provides;rest;/pets/p*
       dynamic path segments must use *
   - petstore_api.yaml: invalid endpoint "/pets/{petId}" at provides;rest;/pets/{petId}
@@ -264,7 +264,7 @@ provides:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - petstore_api.yaml: duplicate resource "provides GET /pets 200", declared twice
 ```
 
@@ -294,7 +294,7 @@ provides:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - petstore_api.yaml: unknown key "GET" at provides;rest;/pets;GET
   - petstore_api.yaml: unknown key "patch" at provides;rest;/pets;patch
 ```
@@ -331,7 +331,7 @@ provides:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - petstore_api.yaml: unknown key "request" at provides;rest;/pets;get;request
   - petstore_api.yaml: unexpected mapping at provides;rest;/pets;post;request, expected string
 ```
@@ -378,7 +378,7 @@ provides:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - petstore_api.yaml: invalid status code "2xx" at provides;rest;/pets;get;responses;2xx
       must be between 100 and 599
   - petstore_api.yaml: invalid status code "600" at provides;rest;/pets;get;responses;600
@@ -462,7 +462,7 @@ schemas:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - petstore_api.yaml: invalid value "number" for "type" at schemas;Pet;properties;weight;type
       expected one of: object, array, string, integer, float, boolean
 ```
@@ -475,7 +475,7 @@ schemas:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - petstore_api.yaml: missing "type" at schemas;Pet
       expected one of: object, array, string, integer, float, boolean
 ```
@@ -511,7 +511,7 @@ schemas:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - petstore_api.yaml: array schema without items at schemas;Pets
 ```
 
@@ -553,7 +553,7 @@ schemas:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - petstore_api.yaml: unresolved ref "Owner" in Pet.owner
   - petstore_api.yaml: unresolved ref "Toy" in Toys[]
 ```
@@ -577,7 +577,7 @@ schemas:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - petstore_api.yaml: unexpected string at schemas;Pet;properties;name;optional, expected boolean
 ```
 
@@ -622,7 +622,7 @@ and, for `Pets`, an array whose items are `Pet`:
 This is why one missing object shows up as several lines: a consumer that reads `owner.name` from `GET /pets/*`, and `photoUrl` from each item of `GET /pets`, against a provider that has neither, gets one break per property:
 
 ```
-❌ petstore_mobile cannot be deployed to staging
+petstore_mobile cannot be deployed to staging
 
 petstore_api (1.6.0):
   GET /pets
@@ -674,7 +674,7 @@ schemas:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - petstore_api.yaml: schema "Owner" is deeper than 10 levels
   - petstore_api.yaml: schema "Pet" is deeper than 10 levels
   - petstore_api.yaml: schema "Pets" is deeper than 10 levels
@@ -756,14 +756,14 @@ schemas:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - schemas_again.yaml: duplicate schema "Pet", also declared in contracts/schemas.yaml
 ```
 
 And a file that names schemas is only valid together with the file that declares them. `contracts/pets.yaml` published alone is rejected:
 
 ```
-❌ contract validation failed
+contract validation failed
   - contracts/pets.yaml: unresolved schema "Pets" referenced by provides GET /pets 200
   - contracts/pets.yaml: unresolved schema "NewPet" referenced by provides POST /pets request
   - contracts/pets.yaml: unresolved schema "Pet" referenced by provides POST /pets 201
@@ -784,7 +784,7 @@ provides:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - pets_again.yaml: duplicate resource "provides GET /pets 200", also declared in contracts/pets.yaml
 ```
 
@@ -841,7 +841,7 @@ schemas:
 Published together, the consumer needs `petId` and `name`, and tolerates a missing `photoUrl`; against a provider that returns only `petId` and `name` it is deployable. Remove `optional: true` from `photoUrl` in `web_card.yaml` and the union now requires it, because one reader does:
 
 ```
-❌ petstore_web cannot be deployed to staging
+petstore_web cannot be deployed to staging
 
 petstore_api (1.6.0):
   GET /pets/*
@@ -852,7 +852,7 @@ petstore_api (1.6.0):
 The request side works the other way round. One module sends `POST /pets` with only `name`, another sends `name` and `tag`; the union sends `tag` optionally, and a provider that requires `tag` rejects the consumer:
 
 ```
-❌ petstore_web cannot be deployed to staging
+petstore_web cannot be deployed to staging
 
 petstore_api (1.6.0):
   POST /pets
@@ -863,7 +863,7 @@ petstore_api (1.6.0):
 The union merges presence, never types. Two fragments that give one property different types are a conflict:
 
 ```
-❌ contract validation failed
+contract validation failed
   - web_list.yaml: conflicting type for property "$.petId" of consumes petstore_api GET /pets/* 200: integer here, string in web_conflict.yaml
 ```
 
@@ -873,7 +873,7 @@ Fragments are identified by the path you typed. Passing a file twice, by hand or
 
 ```
 $ bidirekt publish contracts/pets.yaml contracts/pets.yaml contracts/schemas.yaml --participant petstore_api --version 2.1.1
-❌ contract validation failed
+contract validation failed
   - contracts/pets.yaml: duplicate resource "provides GET /pets 200", declared twice
   - contracts/pets.yaml: duplicate resource "provides POST /pets request", declared twice
   - contracts/pets.yaml: duplicate resource "provides POST /pets 201", declared twice
@@ -895,7 +895,7 @@ provides:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - pets_post_400.yaml: duplicate resource "provides POST /pets request", also declared in contracts/pets.yaml
 ```
 
@@ -933,7 +933,7 @@ provides:
 ```
 
 ```
-❌ contract validation failed
+contract validation failed
   - petstore_api.yaml: unknown key "message" at provides;message
   - petstore_api.yaml: unknown key "patch" at provides;rest;/pets;patch
   - petstore_api.yaml: unknown key "version" at version
@@ -947,7 +947,7 @@ The report lists every violation in the file, keys in alphabetical order at each
 
 ## File format
 
-- The extension must be `.yaml` or `.yml`. The CLI refuses anything else before contacting the broker: `❌ unsupported contract file extension: "petstore_api.txt"`.
+- The extension must be `.yaml` or `.yml`. The CLI refuses anything else before contacting the broker: `unsupported contract file extension: "petstore_api.txt"`.
 - One YAML document per file. A second document after `---` is rejected with `malformed contract file: petstore_api.yaml: multiple documents are not supported`.
 - YAML anchors and aliases are rejected with `malformed contract file: petstore_api.yaml: anchors and aliases are not supported`. To reuse a shape, name it under `schemas` and point to it with `ref`.
 - YAML comments are allowed. They are ignored when the file is parsed.
