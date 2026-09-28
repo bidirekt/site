@@ -168,7 +168,7 @@ When it is no, the report lists every failing counterpart, with the version
 of it that is deployed in the environment:
 
 ```
-❌ petstore_api cannot be deployed to production
+petstore_api cannot be deployed to production
 
 petstore_app (1.0.0):
   GET /pets/*
