@@ -5,7 +5,7 @@ const FOOTER_LINK = 'hover:text-accent'
 export function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-line">
-      <div className="mx-auto flex max-w-[1040px] flex-wrap justify-between gap-4 px-6 py-4 text-[12px] text-muted">
+      <div className="mx-auto flex max-w-[1200px] flex-wrap justify-between gap-4 px-6 py-4 text-[12px] text-muted">
         <span>{VERSION_LINE}</span>
         <div className="flex gap-4">
           <a href="/docs" className={FOOTER_LINK}>

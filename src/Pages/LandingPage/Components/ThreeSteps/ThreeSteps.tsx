@@ -41,7 +41,7 @@ const STEPS: Array<Step> = [
 export function ThreeSteps() {
   return (
     <section className="border-t border-line">
-      <div className="mx-auto grid max-w-[1040px] grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4 px-4 py-8 md:px-6 md:py-12">
+      <div className="mx-auto grid max-w-[1200px] grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4 px-4 py-8 md:px-6 md:py-12">
         {STEPS.map((step) => (
           <Pane
             key={step.title}

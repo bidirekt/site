@@ -13,7 +13,7 @@ const PITCH_AFTER_CODE = ', property by property. Nothing has to be running.'
 
 export function Hero() {
   return (
-    <section className="mx-auto w-full max-w-[1040px] px-4 pt-12 pb-8 md:px-6 md:pt-24 md:pb-16">
+    <section className="mx-auto w-full max-w-[1200px] px-4 pt-12 pb-8 md:px-6 md:pt-24 md:pb-16">
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-8 md:grid-cols-[minmax(0,1fr)_max-content]">
         <div className="min-w-0">
           <Eyebrow className="mb-6">{EYEBROW}</Eyebrow>

@@ -74,7 +74,7 @@ const TONE_CLASS: Record<ContractTone, string | undefined> = {
 export function ContractsComparison() {
   return (
     <section className="border-t border-line">
-      <div className="mx-auto flex max-w-[1040px] flex-col gap-4 px-4 py-8 md:px-6 md:py-12">
+      <div className="mx-auto flex max-w-[1200px] flex-col gap-4 px-4 py-8 md:px-6 md:py-12">
         <div className={`${GRID} items-end`}>
           <div>
             <Eyebrow className="mb-3">── two contracts, one comparison</Eyebrow>
