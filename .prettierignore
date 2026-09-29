@@ -1,0 +1,9 @@
+design_handoff_landing
+content
+dist
+.tanstack
+.output
+.nitro
+node_modules
+package-lock.json
+src/routeTree.gen.ts
