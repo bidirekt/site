@@ -26,10 +26,10 @@ const PHASES: Array<{ phase: HandshakePhase; ticks: number }> = [
 ]
 const CYCLE_TICKS = PHASES.reduce((sum, entry) => sum + entry.ticks, 0)
 const CELL_PX = 7.8
-const STAGE_CELLS = 40
+const STAGE_CELLS = 44
 const STAGE_WIDTH_PX = STAGE_CELLS * CELL_PX
 const STAGE_MID_PX = STAGE_WIDTH_PX / 2
-const HAND_PX = 80
+const HAND_PX = 112
 const GAP_MAX_CELLS = 14
 const OVERLAP_PX = 16
 
@@ -70,9 +70,9 @@ const CAPTION_BY_PHASE: Record<HandshakePhase, Caption> = {
 }
 
 const HAND =
-  'absolute top-1 text-[80px] leading-none transition-[left] duration-100 ease-linear'
+  'absolute top-1 text-[112px] leading-none transition-[left] duration-100 ease-linear'
 const CLASP =
-  'absolute top-1 text-[80px] leading-none transition-transform duration-100 ease-in-out'
+  'absolute top-1 text-[112px] leading-none transition-transform duration-100 ease-in-out'
 const BLANK_ROW = 'h-[1.45em]'
 
 export function handshakeFrame(tick: number): HandshakeFrame {
@@ -164,13 +164,16 @@ export function HandshakePane({ className }: HandshakePaneProps) {
     <div
       className={`max-w-full overflow-hidden p-4 text-[13px] leading-[1.45] ${className ?? ''}`}
     >
-      <div className="mx-auto w-[312px] max-w-full">
+      <div className="mx-auto max-w-full" style={{ width: STAGE_WIDTH_PX }}>
         <div className="flex justify-between text-[12px] whitespace-pre text-muted">
           <span>provider</span>
           <span>consumer</span>
         </div>
         <div className={BLANK_ROW} />
-        <div className="relative h-[88px] w-[312px] max-w-full">
+        <div
+          className="relative h-[124px] max-w-full"
+          style={{ width: STAGE_WIDTH_PX }}
+        >
           {CLASPED[frame.phase] && (
             <span
               className={CLASP}
