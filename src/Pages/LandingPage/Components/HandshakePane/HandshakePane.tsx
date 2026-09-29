@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Button } from '#/Components/Button'
 
 export type HandshakePhase =
   'approach' | 'overlap' | 'shake' | 'success' | 'hold' | 'reset'
@@ -133,32 +132,20 @@ function shakeTransform(frame: HandshakeFrame): string {
   return SHAKE_TRANSFORM[frame.shakeStep]
 }
 
-function playLabel(playing: boolean): string {
-  if (playing) return '[ pause ]'
-  return '[ play ]'
-}
-
 type HandshakePaneProps = { className?: string }
 
 export function HandshakePane({ className }: HandshakePaneProps) {
   const [tick, setTick] = useState(0)
-  const [playing, setPlaying] = useState(true)
   const frame = handshakeFrame(tick)
   const filter = GLOW_FILTER[frame.glow]
 
   useEffect(() => {
-    if (!playing) return
     const interval = setInterval(
       () => setTick((current) => current + 1),
       TICK_MS,
     )
     return () => clearInterval(interval)
-  }, [playing])
-
-  const replay = () => {
-    setTick(0)
-    setPlaying(true)
-  }
+  }, [])
 
   return (
     <div
@@ -203,14 +190,6 @@ export function HandshakePane({ className }: HandshakePaneProps) {
         <div className={BLANK_ROW} />
         <div className={`text-center whitespace-pre ${captionClass(frame)}`}>
           {frame.caption}
-        </div>
-        <div className="mt-4 flex justify-center gap-3">
-          <Button variant="ghost" onClick={() => setPlaying(!playing)}>
-            {playLabel(playing)}
-          </Button>
-          <Button variant="ghost" onClick={replay}>
-            [ replay ]
-          </Button>
         </div>
       </div>
     </div>
