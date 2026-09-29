@@ -56,7 +56,7 @@ export function DocsPage({ page }: DocsPageProps) {
         navOpen={navOpen}
         onToggleNav={() => setNavOpen((previous) => !previous)}
       />
-      <div className="grid grid-cols-1 md:grid-cols-[240px_minmax(0,1fr)_200px] md:items-start">
+      <div className="mx-auto grid w-full max-w-[1200px] grid-cols-1 md:grid-cols-[240px_minmax(0,1fr)_200px] md:items-start">
         <DocsSidebar
           activePath={page.path}
           query={query}

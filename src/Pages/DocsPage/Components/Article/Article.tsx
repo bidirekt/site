@@ -31,7 +31,7 @@ export function Article({ page, html }: ArticleProps) {
 
   return (
     <main className="min-w-0 px-4 pt-6 pb-12 md:px-12 md:pt-8 md:pb-16">
-      <div className="max-w-[72ch]">
+      <div>
         <div className="mb-3 truncate text-[12px] tracking-[0.08em] text-muted uppercase">
           {breadcrumb(page)}
         </div>
