@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import appCss from '#/styles.css?url'
+import { Button } from '#/Components/Button'
+import { Pane } from '#/Components/Pane'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -37,11 +39,10 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function NotFound() {
   return (
-    <main>
-      <section>
-        <p>── not found</p>
-        <a href="/">[ back to / ]</a>
-      </section>
+    <main className="flex min-h-screen items-center justify-center p-4">
+      <Pane title="not found">
+        <Button href="/">[ back to / ]</Button>
+      </Pane>
     </main>
   )
 }
