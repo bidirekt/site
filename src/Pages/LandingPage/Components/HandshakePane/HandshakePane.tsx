@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Button } from '#/Components/Button'
-import { Pane } from '#/Components/Pane'
 
 export type HandshakePhase =
   'approach' | 'overlap' | 'shake' | 'success' | 'hold' | 'reset'
@@ -162,19 +161,8 @@ export function HandshakePane({ className }: HandshakePaneProps) {
   }
 
   return (
-    <Pane
-      className={`max-w-full overflow-hidden ${className ?? ''}`}
-      bodyClassName="p-4 text-[13px] leading-[1.45]"
-      status={
-        <div className="flex gap-3">
-          <Button variant="ghost" onClick={() => setPlaying(!playing)}>
-            {playLabel(playing)}
-          </Button>
-          <Button variant="ghost" onClick={replay}>
-            [ replay ]
-          </Button>
-        </div>
-      }
+    <div
+      className={`max-w-full overflow-hidden p-4 text-[13px] leading-[1.45] ${className ?? ''}`}
     >
       <div className="mx-auto w-[312px] max-w-full">
         <div className="flex justify-between text-[12px] whitespace-pre text-muted">
@@ -213,8 +201,16 @@ export function HandshakePane({ className }: HandshakePaneProps) {
         <div className={`text-center whitespace-pre ${captionClass(frame)}`}>
           {frame.caption}
         </div>
+        <div className="mt-4 flex justify-center gap-3">
+          <Button variant="ghost" onClick={() => setPlaying(!playing)}>
+            {playLabel(playing)}
+          </Button>
+          <Button variant="ghost" onClick={replay}>
+            [ replay ]
+          </Button>
+        </div>
       </div>
-    </Pane>
+    </div>
   )
 }
 
