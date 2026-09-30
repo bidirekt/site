@@ -30,7 +30,7 @@ const STAGE_WIDTH_PX = STAGE_CELLS * CELL_PX
 const STAGE_MID_PX = STAGE_WIDTH_PX / 2
 const HAND_PX = 112
 const GAP_MAX_CELLS = 14
-const OVERLAP_PX = 16
+const OVERLAP_PX = 36
 
 const AMBER_GLOW = 'drop-shadow(0 0 6px #F5A52488)'
 const GREEN_GLOW = 'drop-shadow(0 0 6px #3FB95088)'
