@@ -11,7 +11,7 @@ export function EditFooter({ editUrl }: EditFooterProps) {
       >
         edit this page on GitHub ↗
       </a>
-      <span>bidirekt/docs @ main</span>
+      <span>bidirekt/site @ main</span>
     </div>
   )
 }

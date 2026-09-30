@@ -54,7 +54,7 @@ export function DocsTopBar({
           </span>
         </label>
         <a
-          href="https://github.com/bidirekt/docs"
+          href="https://github.com/bidirekt/site"
           target="_blank"
           rel="noreferrer"
           className="hidden text-[13px] whitespace-nowrap text-secondary hover:text-primary md:block"

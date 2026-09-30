@@ -29,7 +29,7 @@ type NavFields = { label?: unknown; path?: unknown; items?: unknown }
 
 const OVERVIEW_PATH = 'README.md'
 const PLACEHOLDER_BODY = '> Not written yet.'
-const EDIT_BASE_URL = 'https://github.com/bidirekt/docs/edit/main/'
+const EDIT_BASE_URL = 'https://github.com/bidirekt/site/edit/main/content/docs/'
 const GLOB_PREFIX = '../content/docs/'
 
 const rawFiles = import.meta.glob('../content/docs/**/*.md', {
