@@ -25,7 +25,8 @@
     "react-dom": "^19.2.0",
     "tailwind-merge": "^3.6.0",
     "tailwind-variants": "^3.2.2",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "@tanstack/eslint-config": "latest",
