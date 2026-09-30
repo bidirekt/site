@@ -3,7 +3,7 @@ title: Contract testing
 description: The problem two integrating services create for each other, where this project stands among the known approaches, and what bidirectional means here.
 ---
 
-Contract testing checks that the two sides of an integration agree on what they exchange, without running them together. This page explains the problem that contract testing solves, the two approaches you will find in the industry, and the route this project takes: both sides declare what they provide and what they consume, in the same file format, and nothing runs.
+Contract testing checks that the two sides of an integration agree on what they exchange. This page explains the problem that contract testing solves, the two approaches you will find in the industry, and the route this project takes: both sides declare what they provide and what they consume, in the same file format, and nothing runs.
 
 ## The problem
 
