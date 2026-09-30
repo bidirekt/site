@@ -1,5 +1,7 @@
 import { lexer } from 'marked'
+import { parse } from 'yaml'
 import { parseFrontmatter } from '#/frontmatter'
+import navSource from '../content/docs/nav.yaml?raw'
 
 export type DocsNode =
   | { label: string; path: string }
@@ -23,43 +25,12 @@ export type DocsPageContent = {
 type DocsLinkProps =
   { to: '/docs' } | { to: '/docs/$'; params: { _splat: string } }
 
+type NavFields = { label?: unknown; path?: unknown; items?: unknown }
+
 const OVERVIEW_PATH = 'README.md'
 const PLACEHOLDER_BODY = '> Not written yet.'
-const EDIT_BASE_URL = 'https://github.com/bidirekt/docs/edit/main/'
+const EDIT_BASE_URL = 'https://github.com/bidirekt/site/edit/main/content/docs/'
 const GLOB_PREFIX = '../content/docs/'
-
-export const DOCS_TREE: Array<DocsNode> = [
-  { label: 'Overview', path: OVERVIEW_PATH },
-  {
-    label: 'Concepts',
-    items: [
-      { label: 'Contract testing', path: 'concepts/contract-testing.md' },
-      {
-        label: 'How the broker works',
-        path: 'concepts/how-the-broker-works.md',
-      },
-      { label: 'The direction rule', path: 'concepts/direction-rule.md' },
-    ],
-  },
-  {
-    label: 'Contracts',
-    items: [{ label: 'Specification', path: 'contracts/spec.md' }],
-  },
-  {
-    label: 'Reference',
-    items: [{ label: 'CLI reference', path: 'reference/cli.md' }],
-  },
-  {
-    label: 'Guides',
-    items: [
-      { label: 'Installation', path: 'guides/installation.md' },
-      { label: 'Getting started', path: 'guides/getting-started.md' },
-      { label: 'CI integration', path: 'guides/ci-integration.md' },
-    ],
-  },
-]
-
-export const DOCS_ENTRIES: Array<DocsEntry> = DOCS_TREE.flatMap(entriesOf)
 
 const rawFiles = import.meta.glob('../content/docs/**/*.md', {
   query: '?raw',
@@ -67,12 +38,19 @@ const rawFiles = import.meta.glob('../content/docs/**/*.md', {
   eager: true,
 })
 
-const files = new Map(
+const markdownByPath = new Map(
   Object.entries(rawFiles).map(([key, raw]) => [
     key.slice(GLOB_PREFIX.length),
     raw,
   ]),
 )
+
+export const DOCS_TREE: Array<DocsNode> = parseDocsNav(
+  navSource,
+  new Set(markdownByPath.keys()),
+)
+
+export const DOCS_ENTRIES: Array<DocsEntry> = DOCS_TREE.flatMap(entriesOf)
 
 export function docsHref(path: string): string {
   if (path === OVERVIEW_PATH) return '/docs'
@@ -105,7 +83,7 @@ export function resolveDocsLink(fromPath: string, href: string): string {
 export function loadDocsPage(path: string): DocsPageContent | null {
   const index = DOCS_ENTRIES.findIndex((entry) => entry.path === path)
   if (index === -1) return null
-  const raw = files.get(path)
+  const raw = markdownByPath.get(path)
   if (raw === undefined) return null
   const entry = DOCS_ENTRIES[index]
   const { meta, body } = parseFrontmatter(raw)
@@ -121,6 +99,27 @@ export function loadDocsPage(path: string): DocsPageContent | null {
     label: entry.label,
     editUrl: EDIT_BASE_URL + path,
   }
+}
+
+export function parseDocsNav(
+  source: string,
+  files: Set<string>,
+): Array<DocsNode> {
+  const nodes: unknown = parse(source)
+  if (!Array.isArray(nodes)) throw new Error('nav.yaml: needs a list of nodes')
+  const tree = nodes.map((node, index) => navNode(node, `${index + 1}`))
+  const paths = new Set(tree.flatMap(entriesOf).map((entry) => entry.path))
+  for (const path of paths) {
+    if (!files.has(path)) {
+      throw new Error(`nav.yaml: "${path}" has no file under content/docs`)
+    }
+  }
+  for (const file of files) {
+    if (!paths.has(file)) {
+      throw new Error(`content/docs/${file} is not in nav.yaml`)
+    }
+  }
+  return tree
 }
 
 function entriesOf(node: DocsNode): Array<DocsEntry> {
@@ -161,4 +160,36 @@ function firstTopHeadingText(body: string): string | null {
     if (token.type === 'heading' && token.depth === 1) return token.text
   }
   return null
+}
+
+function navNode(value: unknown, id: string): DocsNode {
+  const { label, path, items } = navFields(value)
+  if (typeof label !== 'string') {
+    throw new Error(`nav.yaml: node ${id} needs "label"`)
+  }
+  if (typeof path === 'string') return { label, path }
+  if (!Array.isArray(items)) {
+    throw new Error(`nav.yaml: node ${id} needs "path" or "items"`)
+  }
+  if (items.length === 0) throw new Error(`nav.yaml: node ${id} has no items`)
+  return {
+    label,
+    items: items.map((item, index) => navLeaf(item, `${id}.${index + 1}`)),
+  }
+}
+
+function navLeaf(value: unknown, id: string): { label: string; path: string } {
+  const { label, path } = navFields(value)
+  if (typeof label !== 'string') {
+    throw new Error(`nav.yaml: node ${id} needs "label"`)
+  }
+  if (typeof path !== 'string') {
+    throw new Error(`nav.yaml: node ${id} needs "path"`)
+  }
+  return { label, path }
+}
+
+function navFields(value: unknown): NavFields {
+  if (typeof value !== 'object' || value === null) return {}
+  return value
 }
