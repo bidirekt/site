@@ -53,6 +53,8 @@ const CONSUMER_HIGHLIGHTS: Array<Highlight> = [
   { line: 14, highlight: '# missing in provider' },
 ]
 
+const REPORT_COMMAND =
+  'bidirekt can-i-deploy petstore_web --version 2.3.0 --environment production'
 const REPORT_HEADLINE = 'petstore_web cannot be deployed to production'
 const REPORT_BODY: Array<string> = [
   '',
@@ -102,6 +104,10 @@ export function ContractsComparison() {
           />
         </div>
         <Pane bodyClassName="px-4 py-3 text-[13px] leading-[1.6] whitespace-pre-wrap [overflow-wrap:anywhere]">
+          <div>
+            <span className="text-accent">$ </span>
+            <span className="text-primary">{REPORT_COMMAND}</span>
+          </div>
           <div className="text-failure">{REPORT_HEADLINE}</div>
           {REPORT_BODY.map((line, index) => (
             <div key={index} className="min-h-[1.6em]">
