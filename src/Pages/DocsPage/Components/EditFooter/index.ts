@@ -1,0 +1,1 @@
+export { EditFooter } from './EditFooter'
