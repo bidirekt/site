@@ -103,23 +103,3 @@ A deployment is the broker's record that a version of a participant is now the o
 Each participant has exactly one current version per environment: the most recently recorded one. Recording the version that is already current changes nothing. Recording a version that was current earlier makes it current again; that is how a rollback is recorded, with the same command.
 
 Recording never blocks. The broker takes your word that the deployment happened, whatever a check said; the check is a separate step, and it is your pipeline that decides not to deploy when the check fails.
-
-## The seven terms in one run
-
-The order above is the order of a first run. Two participants, a provider and its consumer, publish a version each, are checked and deployed to production one after the other, and then the provider tries a second version that drops a field the consumer reads:
-
-```
-bidirekt create-environment production
-bidirekt create-participant petstore_api
-bidirekt create-participant petstore_app
-bidirekt publish petstore_api_v1.yaml --participant petstore_api --version 1.0.0
-bidirekt publish petstore_app_v1.yaml --participant petstore_app --version 1.0.0
-bidirekt can-i-deploy petstore_api --version 1.0.0 --environment production
-bidirekt record-deployment petstore_api --version 1.0.0 --environment production
-bidirekt can-i-deploy petstore_app --version 1.0.0 --environment production
-bidirekt record-deployment petstore_app --version 1.0.0 --environment production
-bidirekt publish petstore_api_v2.yaml --participant petstore_api --version 2.0.0
-bidirekt can-i-deploy petstore_api --version 2.0.0 --environment production
-```
-
-Every command up to the last one succeeds. The first check of `petstore_api` passes because no consumer is deployed yet; the check of `petstore_app` passes because the provider it needs is deployed and declares everything it reads. The last check fails with the report shown above, and `petstore_api` version `2.0.0` stays out of production. The contract files are the two shown in [contract testing](contract-testing.md), plus a second provider file without `status`.
