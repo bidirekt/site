@@ -1,4 +1,0 @@
-[submodule "content/docs"]
-	path = content/docs
-	url = https://github.com/bidirekt/docs.git
-	branch = main
