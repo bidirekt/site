@@ -97,35 +97,6 @@ All the files given in one call are published together as one contract version (
 petstore_api contract publish successful
 ```
 
-## record-deployment
-
-```
-bidirekt record-deployment [participant] --version <version> --environment <name>
-```
-
-| Flag | Help text |
-|---|---|
-| `--version string` | `Deployed version, e.g. a commit hash or semver tag (required)` |
-| `--environment string` | `Target environment name (required)` |
-
-```
-petstore_api deployment recorded to production
-```
-
-## rename-participant
-
-```
-bidirekt rename-participant [old] [new]
-```
-
-Only the new name has to be `snake_case`; the old one is looked up as is.
-
-The rename changes only the name: the participant keeps its published versions and recorded deployments. Resources, though, are identified by the provider name they were published under, and a rename never recomputes that identity. A consumer that keeps the old name in `consumes` keeps matching the resources published before the rename and keeps passing `can-i-deploy`. A consumer that switches to the new name matches only the versions the provider publishes after the rename; until one of those is deployed to the environment, its check fails with `no matching resource in provider`. Renaming a provider is therefore a migration: the provider publishes and deploys a new version under the new name, and every consumer switches its `consumes` key; whichever order you choose, one side is red in between. Renaming a consumer changes nothing about what it matches, because matching only looks at the provider's name.
-
-```
-petstore_inventory participant renamed to petstore_inventory_v2
-```
-
 ## can-i-deploy
 
 ```
@@ -171,6 +142,35 @@ One block per counterpart that is **not** deployable; compatible counterparts ar
 Ordering: counterpart blocks in alphabetical order; endpoints in alphabetical order and, within an endpoint, methods in alphabetical order; `request:` always before the response statuses, statuses in ascending order; break lines in the order the broker returned them, which is not sorted.
 
 Which line a break gets, and when, is in the [direction rule](../concepts/direction-rule.md).
+
+## record-deployment
+
+```
+bidirekt record-deployment [participant] --version <version> --environment <name>
+```
+
+| Flag | Help text |
+|---|---|
+| `--version string` | `Deployed version, e.g. a commit hash or semver tag (required)` |
+| `--environment string` | `Target environment name (required)` |
+
+```
+petstore_api deployment recorded to production
+```
+
+## rename-participant
+
+```
+bidirekt rename-participant [old] [new]
+```
+
+Only the new name has to be `snake_case`; the old one is looked up as is.
+
+The rename changes only the name: the participant keeps its published versions and recorded deployments. Resources, though, are identified by the provider name they were published under, and a rename never recomputes that identity. A consumer that keeps the old name in `consumes` keeps matching the resources published before the rename and keeps passing `can-i-deploy`. A consumer that switches to the new name matches only the versions the provider publishes after the rename; until one of those is deployed to the environment, its check fails with `no matching resource in provider`. Renaming a provider is therefore a migration: the provider publishes and deploys a new version under the new name, and every consumer switches its `consumes` key; whichever order you choose, one side is red in between. Renaming a consumer changes nothing about what it matches, because matching only looks at the provider's name.
+
+```
+petstore_inventory participant renamed to petstore_inventory_v2
+```
 
 ## version
 

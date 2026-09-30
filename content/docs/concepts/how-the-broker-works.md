@@ -1,9 +1,9 @@
 ---
 title: How the broker works
-description: The seven terms you meet, in the order you meet them, from participant to can-i-deploy.
+description: The seven terms you meet, in the order you meet them, from participant to deployment.
 ---
 
-Seven words cover everything the broker knows: participant, contract, version, snapshot, environment, deployment and can-i-deploy. This page defines each one in the order the `bidirekt` commands make you meet them, so that every definition stands on its own. The commands themselves are documented in the [CLI reference](../reference/cli.md).
+Seven words cover everything the broker knows: participant, contract, version, snapshot, environment, can-i-deploy and deployment. This page defines each one in the order the `bidirekt` commands make you meet them, so that every definition stands on its own. The commands themselves are documented in the [CLI reference](../reference/cli.md).
 
 ## Participant
 
@@ -44,7 +44,7 @@ A version is the label you attach to a contract when you publish it. It is any s
 - publishing the same version again with the same declarations succeeds and changes nothing;
 - publishing the same version with different declarations is refused with `contract version already exists with different content`.
 
-The broker never orders versions. It does not know that `2.0.0` comes after `1.0.0`, and it never needs to: every question it answers names a version explicitly. A version is what you deploy, what you record, and what you ask about.
+The broker never orders versions. It does not know that `2.0.0` comes after `1.0.0`, and it never needs to: every question it answers names a version explicitly. A version is what you ask about, what you deploy, and what you record.
 
 ## Snapshot
 
@@ -61,20 +61,7 @@ sandbox environment created
 
 An environment is a named place where participants are deployed: `production`, `staging`, or whatever your pipeline calls them. The broker knows nothing about an environment except its name and which version of each participant is currently deployed there. It exists to answer one question: what is running together?
 
-An environment must be created before a deployment is recorded to it or a check is asked about it; both commands answer `environment not found` otherwise. Creating an environment is idempotent: the command answers `environment already exists` and exits 0.
-
-## Deployment
-
-```
-bidirekt record-deployment petstore_api --version 1.0.0 --environment production
-petstore_api deployment recorded to production
-```
-
-A deployment is the broker's record that a version of a participant is now the one running in an environment. You record it after your pipeline has deployed. The version must have been published, or the command answers `version not found`; the environment must exist.
-
-Each participant has exactly one current version per environment: the most recently recorded one. Recording the version that is already current changes nothing. Recording a version that was current earlier makes it current again; that is how a rollback is recorded, with the same command.
-
-Recording never blocks. The broker takes your word that the deployment happened, whatever a check said; the check is a separate step, and it is your pipeline that decides not to deploy when the check fails.
+An environment must be created before a check is asked about it or a deployment is recorded to it; both commands answer `environment not found` otherwise. Creating an environment is idempotent: the command answers `environment already exists` and exits 0.
 
 ## Can I Deploy
 
@@ -106,6 +93,19 @@ petstore_app (1.0.0):
 The command exits 0 on yes and 1 on no, which is what a pipeline gates on. The lines a break can carry, the rule that decides which side is at fault, and what is never compared, are in the [direction rule](direction-rule.md).
 
 Part of the answer is remembered. The comparison of two snapshots is computed once and stored, because two snapshots never change; the checks that depend on deployments, such as whether the provider is deployed in the environment at all, are computed on every call.
+
+## Deployment
+
+```
+bidirekt record-deployment petstore_api --version 1.0.0 --environment production
+petstore_api deployment recorded to production
+```
+
+A deployment is the broker's record that a version of a participant is now the one running in an environment. You record it after your pipeline has deployed. The version must have been published, or the command answers `version not found`; the environment must exist.
+
+Each participant has exactly one current version per environment: the most recently recorded one. Recording the version that is already current changes nothing. Recording a version that was current earlier makes it current again; that is how a rollback is recorded, with the same command.
+
+Recording never blocks. The broker takes your word that the deployment happened, whatever a check said; the check is a separate step, and it is your pipeline that decides not to deploy when the check fails.
 
 ## The seven terms in one run
 
