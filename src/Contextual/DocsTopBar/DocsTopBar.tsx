@@ -33,8 +33,8 @@ export function DocsTopBar({
             href="/"
             className="flex items-center gap-2 text-primary hover:text-accent"
           >
-            <span className="text-[16px] leading-none">🤝</span>
-            <span className="font-medium">bidirekt</span>
+            <span className="text-[22px] leading-none">🤝</span>
+            <span className="text-[20px] font-medium">bidirekt</span>
           </a>
           <a href="/docs" className="text-muted hover:text-primary">
             / docs

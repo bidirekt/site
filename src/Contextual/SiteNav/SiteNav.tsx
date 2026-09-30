@@ -10,8 +10,8 @@ export function SiteNav() {
           href="/"
           className="flex items-center gap-2 whitespace-nowrap text-[14px] text-primary"
         >
-          <span className="text-[16px] leading-none">🤝</span>
-          <span className="font-medium">bidirekt</span>
+          <span className="text-[22px] leading-none">🤝</span>
+          <span className="text-[20px] font-medium">bidirekt</span>
         </a>
         <span className="flex-1" />
         <a
