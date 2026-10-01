@@ -31,7 +31,7 @@ A contract is what a participant declares about its integrations: what it provid
 
 The broker does not keep the contract as a document. At publish time it breaks the file into resources: one request per endpoint and method, and one response per endpoint, method and status code. Each resource carries a flat list of properties, nested ones included, written from the root of the body, such as `$.petId` or `$.tags[].name`, and for each property a type and whether it is optional. Every comparison the broker makes is between two such lists. This is why the schema names in a file, `Pet` or `NewPet`, are for the reader only: the broker sees properties and types.
 
-Publishing validates the file and stores it. Nothing is compared at publish time, and a contract that removes an endpoint publishes fine; whether that removal breaks anyone is answered later, by a check against a specific environment.
+Publishing validates the file and stores it; it compares nothing. A contract that removes an endpoint another participant consumes publishes without an error, because a published version is not in use yet: nothing depends on it until it is deployed. The breaks appear when you run `can-i-deploy` for that version against the environment you intend to deploy it to.
 
 ## Version
 
