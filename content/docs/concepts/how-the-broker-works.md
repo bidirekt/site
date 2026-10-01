@@ -42,7 +42,8 @@ bidirekt publish petstore_api.yaml --participant petstore_api --version 1.0.0
 A version is the label you attach to a contract when you publish it. It is any string; a commit hash or a release tag are the usual choices. Versions are unique within a participant and immutable once published:
 
 - publishing the same version again with the same declarations succeeds and changes nothing;
-- publishing the same version with different declarations is refused with `contract version already exists with different content`.
+- publishing the same version with different declarations is refused with `contract version already exists with different content`;
+- publishing a new version with the same declarations as one already published succeeds and makes the new version an alias: it points at the same [snapshot](#snapshot), and every check treats both versions as the same contract.
 
 The broker never orders versions. It does not know that `2.0.0` comes after `1.0.0`, and it never needs to: every question it answers names a version explicitly. A version is what you ask about, what you deploy, and what you record.
 
