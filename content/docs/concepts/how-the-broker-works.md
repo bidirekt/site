@@ -35,10 +35,6 @@ Publishing validates the file and stores it; it compares nothing. A contract tha
 
 ## Version
 
-```
-bidirekt publish petstore_api.yaml --participant petstore_api --version 1.0.0
-```
-
 A version is the label you attach to a contract when you publish it. It is any string; a commit hash or a release tag are the usual choices. Versions are unique within a participant and immutable once published:
 
 - publishing the same version again with the same declarations succeeds and changes nothing;
