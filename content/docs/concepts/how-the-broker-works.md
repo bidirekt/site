@@ -7,21 +7,11 @@ The broker stores what each service declares it provides and consumes, and befor
 
 ## Participant
 
-```
-$ bidirekt create-participant petstore_api
-petstore_api participant created
-```
-
 A participant is a named service that publishes contracts. The name is the whole identity: it is how the broker files everything the participant publishes, and it is how other participants refer to it. A consumer names the provider it calls with this exact string, so a typo in a name is a contract with a provider that does not exist.
 
 A participant is not "a provider" or "a consumer". The same participant provides endpoints to some services and consumes endpoints from others, and its contract file declares both sides at once.
 
 ## Contract
-
-```
-$ bidirekt publish petstore_api.yaml --participant petstore_api --version 1.0.0
-petstore_api contract publish successful
-```
 
 A contract is what a participant declares about its integrations: the endpoints it provides and the endpoints it consumes, each with the schemas of its bodies. The [specification](../contracts/spec.md) documents the format. The broker compares properties and their types, never files: how a schema becomes the list of properties that are compared is in [the specification](../contracts/spec.md#how-a-schema-becomes-a-list-of-properties).
 
@@ -43,11 +33,6 @@ A snapshot is the stored content of a contract, and it is what a version points 
 Publishing a new version with the same declarations as one already published makes the new version an alias: it points at the same snapshot. The broker compares snapshots, never versions, so the two versions are the same contract for every check. You never name a snapshot yourself; you always name a version, and the broker resolves it.
 
 ## Environment
-
-```
-$ bidirekt create-environment production
-production environment created
-```
 
 An environment is a named place where participants are deployed: `production`, `staging`, or whatever your pipeline calls them. The broker knows nothing about an environment except its name and which version of each participant is currently deployed there. It exists to answer one question: what is running together? It must be created before a check is asked about it or a deployment is recorded to it.
 
@@ -85,11 +70,6 @@ Three breaks come before any property is compared, because there is nothing to c
 - the provider under check no longer declares a resource that a consumer deployed in the environment still consumes.
 
 ## Deployment
-
-```
-$ bidirekt record-deployment petstore_api --version 1.0.0 --environment production
-petstore_api deployment recorded to production
-```
 
 A deployment is the broker's record that a version of a participant is now the one running in an environment. You record it after your pipeline has deployed. The version must have been published and the environment must exist.
 
