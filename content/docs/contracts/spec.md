@@ -96,7 +96,22 @@ provides:
 
 This declares three resources: the request of `POST /pets`, its `201` response and its `500` response. Each one is compared on its own: a break in the `500` does not involve the `201`.
 
-Every status names a schema, even one without a body. A `204` names an object schema with no properties, such as `NoContent` with only `type: object`; a status left without a value is rejected.
+Every status names a schema, even one without a body. A `204` names an object schema with no properties:
+
+```yaml
+provides:
+  rest:
+    /pets/*:
+      delete:
+        responses:
+          204: NoContent
+
+schemas:
+  NoContent:
+    type: object
+```
+
+A status left without a value, such as `204:`, is rejected.
 
 ### Endpoints
 
