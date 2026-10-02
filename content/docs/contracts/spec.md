@@ -154,7 +154,7 @@ schemas:
       ref: Pet
 ```
 
-The consumer declares only what it reads. `petId` is not listed, so the provider is free to drop it. Which side must satisfy which, and what `optional` means on each side, is the subject of [The direction rule](../concepts/direction-rule.md).
+The consumer declares only what it reads. `petId` is not listed, so the provider is free to drop it. Which side must satisfy which, and what `optional` means on each side, is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
 
 ## Endpoints
 
@@ -581,7 +581,7 @@ contract validation failed
   - petstore_api.yaml: unexpected string at schemas;Pet;properties;name;optional, expected boolean
 ```
 
-`optional` on a property whose node is a `ref` marks that property optional, like on any other node. What `optional` means for the comparison depends on who reads and who writes: in a response the consumer reads, in a request the provider reads. The tables are in [The direction rule](../concepts/direction-rule.md).
+`optional` on a property whose node is a `ref` marks that property optional, like on any other node. What `optional` means for the comparison depends on who reads and who writes: in a response the consumer reads, in a request the provider reads. The rule is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
 
 ### How a schema becomes a list of properties
 
@@ -792,7 +792,7 @@ Trailing slashes are removed before this check, so `/pets/` in one file collides
 
 ### 4. Consumer fragments merge by union
 
-A consumer may declare the same resource in several files, because each module of the consumer reads its own subset. The declarations are merged into one resource whose properties are the union of all of them, and the merge follows [The direction rule](../concepts/direction-rule.md):
+A consumer may declare the same resource in several files, because each module of the consumer reads its own subset. The declarations are merged into one resource whose properties are the union of all of them, and the merge follows the side that reads, described in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy):
 
 - **In a response, a property is optional only if every fragment that mentions it allows it.** The consumer reads the response; if one module needs the field, the provider must send it.
 - **In a request, a property is required only if every fragment sends it.** The consumer writes the request; if one module does not send the field, the provider must accept its absence.
@@ -944,6 +944,16 @@ The report lists every violation in the file, keys in alphabetical order at each
 ```
   - petstore_api.yaml: unexpected mapping at provides;rest;/pets;post;request, expected string
 ```
+
+## What is not compared
+
+The grammar has no place for the items below, so a change in any of them never makes `can-i-deploy` fail.
+
+- **Headers.** A provider that starts requiring one, and a consumer that stops sending one, both pass.
+- **Query parameters.** A renamed parameter, a newly required one, or a change in how pagination is requested is not a break.
+- **Nullability.** There is no `null` type and no way to say that a property may be `null`.
+- **Enum values.** A `string` is a `string`: a provider that starts returning a fourth value of `status` is compatible with a consumer that handles three.
+- **Formats.** A `date-time` string, an email and free text are the same `string`.
 
 ## File format
 

@@ -6,8 +6,6 @@
       path: concepts/contract-testing.md
     - label: How the broker works
       path: concepts/how-the-broker-works.md
-    - label: The direction rule
-      path: concepts/direction-rule.md
 - label: Contracts
   items:
     - label: Specification

@@ -114,7 +114,7 @@ schemas:
 
 Before a deployment, `bidirekt can-i-deploy` asks whether one version of one participant can go to one environment. The broker answers by comparing that version's declarations with the declarations of every counterpart deployed in that environment. If the API publishes a version without `status` and asks whether it can go to production while this app is deployed there, the answer is no, and the report names the field.
 
-What this project does **not** do is record the consumer's interactions and replay them against a running provider; that is the consumer-driven mechanism described above, and it is the opposite of what happens here. It also does not treat the provider's document as the only truth. The two declarations meet in the broker, and a single rule decides which side's required fields are the checklist: the [direction rule](direction-rule.md).
+What this project does **not** do is record the consumer's interactions and replay them against a running provider; that is the consumer-driven mechanism described above, and it is the opposite of what happens here. It also does not treat the provider's document as the only truth. The two declarations meet in the broker, and a single rule decides which side's required fields are the checklist, described in [How the broker works](how-the-broker-works.md#can-i-deploy).
 
 The trade-off is stated plainly: the broker trusts the declarations. Nothing proves that a consumer really reads the fields it declares, or that a provider really serves the schema it declares. That proof moves to where the file is produced: written by hand and reviewed in the same pull request as the code, or generated from the code. See the [specification](../contracts/spec.md).
 
@@ -127,5 +127,4 @@ What the broker does is best described as declarative static bidirectional contr
 ## Where to go next
 
 - [How the broker works](how-the-broker-works.md): the seven terms the broker uses.
-- [The direction rule](direction-rule.md): the one sentence that decides every `can-i-deploy`, and what the broker does not compare.
 - [CLI reference](../reference/cli.md): the commands mentioned on this page.
