@@ -8,7 +8,7 @@ The broker stores what each service declares it provides and consumes, and befor
 ## Participant
 
 ```
-bidirekt create-participant petstore_api
+$ bidirekt create-participant petstore_api
 petstore_api participant created
 ```
 
@@ -19,7 +19,7 @@ A participant is not "a provider" or "a consumer". The same participant provides
 ## Contract
 
 ```
-bidirekt publish petstore_api.yaml --participant petstore_api --version 1.0.0
+$ bidirekt publish petstore_api.yaml --participant petstore_api --version 1.0.0
 petstore_api contract publish successful
 ```
 
@@ -45,7 +45,7 @@ Publishing a new version with the same declarations as one already published mak
 ## Environment
 
 ```
-bidirekt create-environment production
+$ bidirekt create-environment production
 production environment created
 ```
 
@@ -53,21 +53,19 @@ An environment is a named place where participants are deployed: `production`, `
 
 ## Can I Deploy
 
-```
-bidirekt can-i-deploy petstore_api --version 2.0.0 --environment production
-```
-
 `can-i-deploy` is the broker's answer to one question: can this version of this participant be deployed to this environment without breaking anything deployed there? To answer it, the broker takes the snapshot behind the version and compares it with every counterpart in the environment: the providers this participant consumes from and the consumers of what it provides, each read as the version currently deployed there.
 
 When the answer is yes:
 
 ```
+$ bidirekt can-i-deploy petstore_api --version 2.0.0 --environment production
 petstore_api can be deployed to production
 ```
 
 When it is no, the report lists every failing counterpart, with the version of it that is deployed in the environment:
 
 ```
+$ bidirekt can-i-deploy petstore_api --version 2.0.0 --environment production
 petstore_api cannot be deployed to production
 
 petstore_app (1.0.0):
@@ -89,7 +87,7 @@ Three breaks come before any property is compared, because there is nothing to c
 ## Deployment
 
 ```
-bidirekt record-deployment petstore_api --version 1.0.0 --environment production
+$ bidirekt record-deployment petstore_api --version 1.0.0 --environment production
 petstore_api deployment recorded to production
 ```
 

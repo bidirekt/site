@@ -66,7 +66,7 @@ async function copyCode(copyButton: Element) {
   const pre = copyButton.closest('[data-code]')?.querySelector('pre')
   if (pre === null || pre === undefined) return
   try {
-    await navigator.clipboard.writeText(pre.textContent)
+    await navigator.clipboard.writeText(copiedText(pre))
   } catch {
     return
   }
@@ -76,4 +76,10 @@ async function copyCode(copyButton: Element) {
     copyButton.textContent = COPY_LABEL
     copyButton.classList.replace('text-accent', 'text-muted')
   }, COPIED_MS)
+}
+
+function copiedText(pre: HTMLPreElement): string {
+  const commands = Array.from(pre.querySelectorAll('[data-command]'))
+  if (commands.length === 0) return pre.textContent
+  return commands.map((command) => command.textContent).join('\n')
 }

@@ -29,8 +29,19 @@ const LINK = 'text-accent hover:text-primary border-b border-accent/33'
 const PRE =
   'px-4 py-3 text-[13px] leading-[1.45] whitespace-pre-wrap [overflow-wrap:anywhere] text-primary'
 const CODE_LINE = 'block min-h-[1.45em]'
-const PROMPT_LINE = 'pl-[2ch] -indent-[2ch] text-muted'
+const PROMPT_LINE = 'pl-[2ch] -indent-[2ch] text-primary'
 const OUTPUT_LINE = 'text-primary'
+const TERMINAL_OUTPUT_LINE = 'text-secondary'
+const VERDICT_LINE: Array<{ pattern: RegExp; classes: string }> = [
+  { pattern: / cannot be deployed to /, classes: 'text-failure' },
+  { pattern: / can be deployed to /, classes: 'text-success' },
+]
+const WORKING_DIRECTORY = 'text-muted'
+const COMMANDS_NAMING_PARTICIPANT = new Set([
+  'create-participant',
+  'can-i-deploy',
+  'record-deployment',
+])
 const NOTE_LABEL = 'text-[12px] uppercase tracking-[0.08em] text-muted mb-2'
 const NOTE_CONTENT =
   'text-[14px] leading-[1.7] text-primary [&_p]:text-primary [&_p:last-child]:mb-0'
@@ -52,11 +63,6 @@ const YAML_TONE_CLASS: Record<YamlTone, string | null> = {
   colon: 'text-muted',
   value: 'text-primary',
   plain: null,
-}
-const SHELL_TONE_CLASS: Record<ShellTone, string | null> = {
-  prompt: 'text-accent',
-  command: null,
-  output: null,
 }
 const SHELL_LANGS = new Set(['', 'sh', 'shell', 'bash', 'console', 'text'])
 const YAML_KEY_LINE = /^(\s*)(-\s+)?("?[^:"]+"?)(:)(.*)$/
@@ -189,17 +195,35 @@ export function shellLine(line: string): Array<Segment<ShellTone>> {
 function renderCodePane(code: string, lang: string): string {
   const slots = pane()
   const lines = code.split('\n')
-  const shell = SHELL_LANGS.has(lang)
-  const title = codeTitle(lang, shell, lines[0])
+  const terminal =
+    SHELL_LANGS.has(lang) && lines.some((line) => line.startsWith('$ '))
   const copy = `<button type="button" data-copy class="${button({ variant: 'ghost' })}">[ copy ]</button>`
-  const header = `<header class="${slots.titleBar()}"><span class="${slots.title()}">── ${escapeHtml(title)}</span><span class="${slots.titleRight()}">${copy}</span></header>`
-  return `<section data-code class="${slots.root({ className: 'my-4' })}">${header}<pre class="${PRE}">${renderCodeLines(lines, lang, shell)}</pre></section>`
+  const header = `<header class="${slots.titleBar()}"><span class="${slots.title()}">── ${escapeHtml(codeTitle(lang, terminal))}</span><span class="${slots.titleRight()} flex items-center gap-4">${terminalDirectory(lines, terminal)}${copy}</span></header>`
+  return `<section data-code class="${slots.root({ className: 'my-4' })}">${header}<pre class="${PRE}">${renderCodeLines(lines, lang, terminal)}</pre></section>`
 }
 
-function codeTitle(lang: string, shell: boolean, firstLine: string): string {
+function codeTitle(lang: string, terminal: boolean): string {
+  if (terminal) return 'terminal'
   if (lang !== '') return lang
-  if (shell && firstLine.startsWith('$ ')) return 'shell'
   return 'text'
+}
+
+function terminalDirectory(lines: Array<string>, terminal: boolean): string {
+  if (!terminal) return ''
+  return `<span class="${WORKING_DIRECTORY}">${escapeHtml(workingDirectory(lines))}</span>`
+}
+
+function workingDirectory(lines: Array<string>): string {
+  const command = lines.find((line) => line.startsWith('$ ')) ?? ''
+  const words = command.slice(2).trim().split(/\s+/)
+  const participantFlag = words.indexOf('--participant')
+  if (participantFlag !== -1 && participantFlag + 1 < words.length) {
+    return `~/${words[participantFlag + 1]}`
+  }
+  if (COMMANDS_NAMING_PARTICIPANT.has(words[1]) && words.length > 2) {
+    return `~/${words[2]}`
+  }
+  return '~'
 }
 
 // The newline lives inside each block span: between block boxes a preserved
@@ -207,38 +231,42 @@ function codeTitle(lang: string, shell: boolean, firstLine: string): string {
 function renderCodeLines(
   lines: Array<string>,
   lang: string,
-  shell: boolean,
+  terminal: boolean,
 ): string {
   const last = lines.length - 1
   return lines
     .map((line, index) => {
-      const { classes, inner } = codeLine(line, lang, shell)
+      const { classes, inner } = codeLine(line, lang, terminal)
       const lineClasses = [CODE_LINE, classes].join(' ').trim()
       return `<span class="${lineClasses}">${inner}${newlineUnlessLast(index, last)}</span>`
     })
     .join('')
 }
 
-function codeLine(line: string, lang: string, shell: boolean): CodeLine {
+function codeLine(line: string, lang: string, terminal: boolean): CodeLine {
   if (lang === 'yaml') {
     const inner = yamlLine(line)
       .map((segment) => toneHtml(segment, YAML_TONE_CLASS))
       .join('')
     return { classes: '', inner }
   }
-  if (shell) {
-    const segments = shellLine(line)
-    const inner = segments
-      .map((segment) => toneHtml(segment, SHELL_TONE_CLASS))
-      .join('')
-    return { classes: shellLineClasses(segments[0].tone), inner }
-  }
+  if (terminal) return terminalLine(line)
   return { classes: OUTPUT_LINE, inner: escapeHtml(line) }
 }
 
-function shellLineClasses(firstTone: ShellTone): string {
-  if (firstTone === 'prompt') return PROMPT_LINE
-  return OUTPUT_LINE
+function terminalLine(line: string): CodeLine {
+  const [first, second] = shellLine(line)
+  if (first.tone === 'prompt') {
+    return {
+      classes: PROMPT_LINE,
+      inner: `<span class="text-accent">${escapeHtml(first.text)}</span><span data-command>${escapeHtml(second.text)}</span>`,
+    }
+  }
+  const verdict = VERDICT_LINE.find(({ pattern }) => pattern.test(line))
+  return {
+    classes: verdict?.classes ?? TERMINAL_OUTPUT_LINE,
+    inner: escapeHtml(line),
+  }
 }
 
 function toneHtml<TTone extends string>(
