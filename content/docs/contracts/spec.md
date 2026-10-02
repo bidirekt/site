@@ -46,7 +46,7 @@ schemas:
         type: string
 ```
 
-The two files have the same shape. `provides` holds what this participant serves, and `consumes` holds, under each provider's name, what it calls. `schemas` holds the bodies both sides name. The consumer declares only what it reads, so the provider is free to drop `petId`.
+The two files have the same shape. `provides` holds what this participant serves, and `consumes` holds, under each provider's name, what it calls. `schemas` holds the bodies both sides name. The consumer declares only what it reads, so the provider is free to drop `petId`. All three keys are optional, and one file may carry both `provides` and `consumes`: a service in the middle of a chain declares both sides in the same contract.
 
 ## Resources
 
@@ -95,6 +95,8 @@ provides:
 ```
 
 This declares three resources: the request of `POST /pets`, its `201` response and its `500` response. Each one is compared on its own: a break in the `500` does not involve the `201`.
+
+Every status names a schema, even one without a body. A `204` names an object schema with no properties, such as `NoContent` with only `type: object`; a status left without a value is rejected.
 
 ### Endpoints
 
@@ -158,6 +160,8 @@ Pet:
 ### References
 
 `ref` gives a node the shape of a named schema, at any depth: as a whole schema, as a member, or as the items of an array, like `Pets` does with `Pet`. Write `ref` on its own, with at most `optional` and `description` beside it. When a node also carries `type`, `properties` or `items`, that shape wins and the `ref` is ignored. A `ref` to a name no schema declares is rejected at publish.
+
+A schema cannot reach itself: a loop such as `Pet` → `Owner` → `Pet` is rejected with `schema "Pet" is deeper than 10 levels`. To describe a recursive body, declare the nested level with only the members that are read, and stop there.
 
 ## Several files
 
