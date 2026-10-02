@@ -40,26 +40,7 @@ An environment is a named place where participants are deployed: `production`, `
 
 `can-i-deploy` is the broker's answer to one question: can this version of this participant be deployed to this environment without breaking anything deployed there? To answer it, the broker takes the snapshot behind the version and compares it with every counterpart in the environment: the providers this participant consumes from and the consumers of what it provides, each read as the version currently deployed there.
 
-When the answer is yes:
-
-```
-$ bidirekt can-i-deploy petstore_api --version 2.0.0 --environment production
-petstore_api can be deployed to production
-```
-
-When it is no, the report lists every failing counterpart, with the version of it that is deployed in the environment:
-
-```
-$ bidirekt can-i-deploy petstore_api --version 2.0.0 --environment production
-petstore_api cannot be deployed to production
-
-petstore_app (1.0.0):
-  GET /pets/*
-    response 200:
-      - property "$.status" is missing in provider
-```
-
-The command exits 0 on yes and 1 on no, which is what a pipeline gates on. The answer is yes only if every counterpart is compatible; nothing to check means yes, so a participant that only provides, with no consumer of it deployed in the environment, passes. Every line a break can carry is listed in the [CLI reference](../reference/cli.md#can-i-deploy).
+The answer is yes only if every counterpart is compatible; nothing to check means yes, so a participant that only provides, with no consumer of it deployed in the environment, passes. When the answer is no, it names every failing counterpart, with the version of it deployed in the environment, and each break: the endpoint, the method, the request or response status, and the reason. A pipeline gates its deployment on this answer. The report and every line a break can carry are in the [CLI reference](../reference/cli.md#can-i-deploy).
 
 Every comparison follows one rule: the side that reads a body decides what must be in it. In a response the provider produces the body and the consumer reads it; in a request the consumer produces it and the provider reads it. A property the reader requires must be declared by the producer, required too and with the same type. A property the reader marks optional may be absent, but if both sides declare it the types must match. A property the reader does not declare is not checked.
 
