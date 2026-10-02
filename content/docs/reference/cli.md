@@ -66,6 +66,8 @@ When the stream is a terminal, the success line is printed in green and the fail
 bidirekt create-participant [name]
 ```
 
+The name must be `snake_case`: lowercase letters, digits and underscores, with no empty word between underscores.
+
 ```
 petstore_api participant created
 ```
