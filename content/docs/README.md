@@ -9,11 +9,11 @@ No server, local or remote, needs to be running to answer `can-i-deploy`. Both s
 ## Concepts
 
 - [Contract testing](concepts/contract-testing.md) — what problem contract testing solves, the two known approaches, why this project is neither, and what bidirectional means here.
-- [How the broker works](concepts/how-the-broker-works.md) — participant, contract, version, snapshot, environment, can-i-deploy and deployment, in the order you meet them.
+- [How the broker works](concepts/how-the-broker-works.md) — what the broker stores, what it compares before a deployment, and the seven terms it uses: participant, contract, version, snapshot, environment, can-i-deploy and deployment.
 
 ## Contracts
 
-- [Specification](contracts/spec.md) — the contract file: its three top-level keys, the endpoints under `rest`, the schemas they name, and how several files publish as one contract.
+- [Specification](contracts/spec.md) — the contract file: the resources a participant provides or consumes, the schemas of their bodies, and how several files publish as one contract.
 
 ## Reference
 
