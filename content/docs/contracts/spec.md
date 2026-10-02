@@ -136,8 +136,7 @@ provides:
 
 ```
 contract validation failed
-  - petstore_api.yaml: invalid endpoint "/pets/{petId}" at provides;rest;/pets/{petId}
-      dynamic path segments must use *
+  - petstore_api.yaml: invalid endpoint "/pets/{petId}" at provides rest, dynamic path segments must use *
 ```
 
 Written with `*`, it publishes, and it matches a consumer that also writes `/pets/*`:
