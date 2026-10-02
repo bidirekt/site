@@ -13,7 +13,7 @@ A participant is not "a provider" or "a consumer". The same participant provides
 
 ## Contract
 
-A contract is what a participant declares about its integrations: the endpoints it provides and the endpoints it consumes, each with the schemas of its bodies. The [specification](../contracts/spec.md) documents the format. The broker compares properties and their types, never files: how a schema becomes the list of properties that are compared is in [the specification](../contracts/spec.md#how-a-schema-becomes-a-list-of-properties).
+A contract is what a participant declares about its integrations: the endpoints it provides and the endpoints it consumes, each with the schemas of its bodies. The [specification](../contracts/spec.md) documents the format. The broker compares properties and their types, never files.
 
 Publishing validates the file and stores it; it compares nothing. A contract that removes an endpoint another participant consumes publishes without an error, because a published version is not in use yet: nothing depends on it until it is deployed. The breaks appear when you run `can-i-deploy` for that version against the environment you intend to deploy it to.
 

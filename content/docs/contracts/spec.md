@@ -159,27 +159,6 @@ Pet:
 
 `ref` gives a node the shape of a named schema, at any depth: as a whole schema, as a member, or as the items of an array, like `Pets` does with `Pet`. Write `ref` on its own, with at most `optional` and `description` beside it. When a node also carries `type`, `properties` or `items`, that shape wins and the `ref` is ignored. A `ref` to a name no schema declares is rejected at publish.
 
-### How a schema becomes a list of properties
-
-The broker does not compare schema trees. At publish, every schema named by a resource is flattened into a list of properties, each with a type and an optional flag, and two resources are compared property by property:
-
-- the root of the body is `$`;
-- an object member appends `.name`;
-- an array element appends `[]`;
-- a `ref` adds nothing, because the named schema is expanded in place.
-
-`Pets` above flattens to:
-
-| Property | Type | Optional |
-|---|---|---|
-| `$` | `array` | no |
-| `$[]` | `object` | no |
-| `$[].petId` | `integer` | no |
-| `$[].name` | `string` | no |
-| `$[].nickname` | `string` | yes |
-
-These are the names a break line shows, and a missing object produces one line for each of its properties.
-
 ## Several files
 
 `bidirekt publish` takes any number of files, and all the files of one publish are one contract. The order does not matter, and the shell expands globs such as `contracts/*.yaml`. Reports name each file by the path you typed.

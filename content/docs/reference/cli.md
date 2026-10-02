@@ -156,7 +156,7 @@ Every break line is one of these:
 | `provider is not deployed in "<environment>" (deployed in: <environments>)` | the provider is not deployed in the target environment; the parenthesis is left out when it is deployed nowhere |
 | `resource removed but still consumed` | the provider under check dropped a resource that a consumer deployed in the environment still consumes |
 
-A property gets at most one line: a type mismatch replaces the optional or required line. Which side reads, and so which side's required properties count, is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
+`<property>` is written from the root of the body: `$.owner.name` for a member, `$[].photoUrl` for a member of each array item. A property gets at most one line: a type mismatch replaces the optional or required line. Which side reads, and so which side's required properties count, is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
 
 ## record-deployment
 
