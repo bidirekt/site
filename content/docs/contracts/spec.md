@@ -123,6 +123,33 @@ The endpoint is part of a resource's identity, so a consumer's endpoint matches 
 - A trailing slash is removed: `/pets/` is `/pets`, and a provider that writes both has declared the same resources twice.
 - The methods are `get`, `post`, `put` and `delete`, in lowercase. Any other key under an endpoint is rejected.
 
+An endpoint copied from an OpenAPI document keeps its named parameter and is rejected:
+
+```yaml
+provides:
+  rest:
+    /pets/{petId}:
+      get:
+        responses:
+          200: Pet
+```
+
+```
+contract validation failed
+  - petstore_api.yaml: invalid endpoint "/pets/{petId}" at provides rest, dynamic path segments must use *
+```
+
+Written with `*`, it publishes, and it matches a consumer that also writes `/pets/*`:
+
+```yaml
+provides:
+  rest:
+    /pets/*:
+      get:
+        responses:
+          200: Pet
+```
+
 ## Schemas
 
 ```yaml
@@ -174,9 +201,42 @@ Pet:
 
 ### References
 
-`ref` gives a node the shape of a named schema, at any depth: as a whole schema, as a member, or as the items of an array, like `Pets` does with `Pet`. Write `ref` on its own, with at most `optional` and `description` beside it. When a node also carries `type`, `properties` or `items`, that shape wins and the `ref` is ignored. A `ref` to a name no schema declares is rejected at publish.
+`ref` gives a node the shape of a named schema, at any depth: as a whole schema, as a member, or as the items of an array, like `Pets` does with `Pet`. Write `ref` on its own, with at most `optional` and `description` beside it. When a node also carries `type`, `properties` or `items`, that shape wins and the `ref` is ignored, without a violation:
 
-A schema cannot reach itself: a loop such as `Pet` → `Owner` → `Pet` is rejected with `schema "Pet" is deeper than 10 levels`. To describe a recursive body, declare the nested level with only the members that are read, and stop there.
+```yaml
+Pet:
+  type: object
+  properties:
+    owner:
+      type: string
+      ref: Owner
+```
+
+Here `owner` is a `string`, and `Owner` is never read. A `ref` to a name no schema declares is rejected at publish.
+
+A schema cannot reach itself: a loop such as `Pet` → `Owner` → `Pet` is rejected with `schema "Pet" is deeper than 10 levels`. To describe a recursive body, declare the nested level with only the members that are read, and stop there:
+
+```yaml
+Pet:
+  type: object
+  properties:
+    name:
+      type: string
+    owner:
+      ref: Owner
+Owner:
+  type: object
+  properties:
+    name:
+      type: string
+    favorite:
+      type: object
+      properties:
+        name:
+          type: string
+```
+
+`Owner.favorite` is a pet, but it is declared inline with the one member the reader uses, instead of a `ref` back to `Pet`.
 
 ## Several files
 
@@ -185,6 +245,81 @@ A schema cannot reach itself: a loop such as `Pet` → `Owner` → `Pet` is reje
 - **One schema namespace.** A schema declared in one file can be named from any other. The same name declared twice is a duplicate. A file that names schemas declared elsewhere is valid only when published together with that file.
 - **A provider declares each resource once.** Files may split the endpoints, the methods or even the statuses of one method between them, but the same resource in two files is a duplicate. So is the same file passed twice. A request has no status, so the `request` of an endpoint and method belongs in exactly one file, even when its responses are spread over several.
 - **A consumer merges by union.** Each module of a consumer may declare the resources it reads in its own file. Fragments of the same resource merge: in a response, a property is optional only if every fragment allows it; in a request, it is required only if every fragment sends it. Two fragments that give one property different types are rejected.
+
+A provider that keeps the `201` of `POST /pets` in one file and its `400` in another writes `request` in only one of them:
+
+```yaml
+# pets.yaml
+provides:
+  rest:
+    /pets:
+      post:
+        request: NewPet
+        responses:
+          201: Pet
+```
+
+```yaml
+# pets_errors.yaml
+provides:
+  rest:
+    /pets:
+      post:
+        responses:
+          400: Error
+```
+
+Writing `request: NewPet` in `pets_errors.yaml` too declares the request of `POST /pets` twice:
+
+```
+contract validation failed
+  - pets_errors.yaml: duplicate resource "provides POST /pets request", also declared in pets.yaml
+```
+
+Two modules of the consumer `petstore_web` read the same `GET /pets/*`, each its own subset:
+
+```yaml
+# web_list.yaml
+consumes:
+  petstore_api:
+    rest:
+      /pets/*:
+        get:
+          responses:
+            200: PetRow
+
+schemas:
+  PetRow:
+    type: object
+    properties:
+      petId:
+        type: integer
+      name:
+        type: string
+```
+
+```yaml
+# web_card.yaml
+consumes:
+  petstore_api:
+    rest:
+      /pets/*:
+        get:
+          responses:
+            200: PetCard
+
+schemas:
+  PetCard:
+    type: object
+    properties:
+      petId:
+        type: integer
+      photoUrl:
+        type: string
+        optional: true
+```
+
+Published together, `petstore_web` reads `petId` and `name` as required and `photoUrl` as optional, so a provider that returns only `petId` and `name` is compatible. Remove `optional: true` from `web_card.yaml` and `photoUrl` becomes required, because one reader needs it.
 
 ## What is not compared
 
