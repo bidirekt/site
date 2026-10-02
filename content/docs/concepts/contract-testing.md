@@ -13,7 +13,7 @@ One day the API team renames `status` to `state`. Their code compiles, their tes
 
 Nothing in the usual test pyramid catches this in time:
 
-- **Unit tests never call the real API.** The app's tests run against a fake API that answers with `status`, because that is what the app believed when the fake was written. When the real API changes, the fake does not, and the tests stay green.
+- **Unit tests never call the real API.** The app's tests run against a fake API that answers with `status`, because that is what the app believed when the fake API was written. When the real API changes, the fake does not, and the tests stay green.
 - **End-to-end tests run both sides together, but not the right versions.** They run in a shared environment, such as staging, against whatever was deployed there last. That pair of versions is rarely the pair that will meet in production. The suite is slow and the environment is shared, so it runs late and not often. When it fails, it says that something is broken, not which two versions disagree on which field.
 
 The sentence nobody gets is the useful one: _the version you are about to deploy removes a field that a deployed consumer still reads._ Producing that sentence before the deployment is what contract testing is for.
