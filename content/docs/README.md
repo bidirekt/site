@@ -10,7 +10,6 @@ No server, local or remote, needs to be running to answer `can-i-deploy`. Both s
 
 - [Contract testing](concepts/contract-testing.md) — what problem contract testing solves, the two known approaches, why this project is neither, and what bidirectional means here.
 - [How the broker works](concepts/how-the-broker-works.md) — participant, contract, version, snapshot, environment, can-i-deploy and deployment, in the order you meet them.
-- [The direction rule](concepts/direction-rule.md) — the one sentence that decides every `can-i-deploy`, the optional and required tables for each direction, the checks that come before it, and what is never compared.
 
 ## Contracts
 

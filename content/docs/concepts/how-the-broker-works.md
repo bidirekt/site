@@ -70,6 +70,14 @@ bidirekt can-i-deploy petstore_api --version 2.0.0 --environment production
 
 The answer comes per counterpart: compatible, or a list of breaks, each naming the endpoint, the method, the request or the response status, and a reason. The answer for the whole question is yes only if every counterpart is compatible. Nothing to check means yes: a participant that only provides, with no consumer of it deployed in the environment, passes. A participant that consumes needs each provider it names to be deployed in that environment and to declare what it reads; otherwise the report says so.
 
+Every comparison follows one rule: the side that reads a body decides what must be in it. In a response the provider produces the body and the consumer reads it; in a request the consumer produces it and the provider reads it. A property the reader requires must be declared by the producer, required too and with the same type. A property the reader marks optional may be absent, but if both sides declare it the types must match. A property the reader does not declare is not checked.
+
+Three breaks come before any property is compared, because there is nothing to compare yet:
+
+- the consumer names an endpoint, method or status that no published contract of the provider declares, or a provider that does not exist;
+- the provider has published the resource but is not deployed in the environment;
+- the provider under check no longer declares a resource that a consumer deployed in the environment still consumes.
+
 When the answer is yes:
 
 ```
@@ -87,7 +95,7 @@ petstore_app (1.0.0):
       - property "$.status" is missing in provider
 ```
 
-The command exits 0 on yes and 1 on no, which is what a pipeline gates on. The lines a break can carry, the rule that decides which side is at fault, and what is never compared, are in the [direction rule](direction-rule.md).
+The command exits 0 on yes and 1 on no, which is what a pipeline gates on. Every line a break can carry is listed in the [CLI reference](../reference/cli.md#can-i-deploy).
 
 Part of the answer is remembered. The comparison of two snapshots is computed once and stored, because two snapshots never change; the checks that depend on deployments, such as whether the provider is deployed in the environment at all, are computed on every call.
 

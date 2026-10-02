@@ -141,7 +141,20 @@ One block per counterpart that is **not** deployable; compatible counterparts ar
 
 Ordering: counterpart blocks in alphabetical order; endpoints in alphabetical order and, within an endpoint, methods in alphabetical order; `request:` always before the response statuses, statuses in ascending order; break lines in the order the broker returned them, which is not sorted.
 
-Which line a break gets, and when, is in the [direction rule](../concepts/direction-rule.md).
+Every break line is one of these:
+
+| Line | When |
+|---|---|
+| `property "<property>" is missing in provider` | response: the consumer requires a property the provider does not declare |
+| `property "<property>" is optional in provider but required in consumer` | response: the consumer requires a property the provider marks optional |
+| `property "<property>" is missing in consumer` | request: the provider requires a property the consumer does not send |
+| `property "<property>" is optional in consumer but required in provider` | request: the provider requires a property the consumer marks optional |
+| `property "<property>" type mismatch — consumer has <type>, provider has <type>` | both sides declare the property with different types; an array prints its item type, such as `array<object>` |
+| `no matching resource in provider` | the consumer names an endpoint, method or status that no published contract of the provider declares, or a provider that does not exist |
+| `provider is not deployed in "<environment>" (deployed in: <environments>)` | the provider is not deployed in the target environment; the parenthesis is left out when it is deployed nowhere |
+| `resource removed but still consumed` | the provider under check dropped a resource that a consumer deployed in the environment still consumes |
+
+A property gets at most one line: a type mismatch replaces the optional or required line. Which side reads, and so which side's required properties count, is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
 
 ## record-deployment
 
