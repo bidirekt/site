@@ -25,7 +25,7 @@ const STEPS: Array<Step> = [
       'bidirekt can-i-deploy petstore_api',
       '--version 1.5.0 --environment production',
     ],
-    success: 'petstore_api can be deployed to production',
+    success: 'petstore_api 1.5.0 can be deployed to production',
   },
   {
     title: '3 · record-deployment',

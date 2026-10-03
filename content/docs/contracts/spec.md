@@ -52,7 +52,7 @@ The two files have the same shape. `provides` holds what this participant serves
 
 A resource is one body the two sides exchange: the request of an endpoint and method, or one response of an endpoint, method and status. A provider declares its resources under `provides`, in a `rest` block. A consumer writes the same `rest` block under `consumes`, one level deeper, under the name of the provider it calls.
 
-That name is the provider's participant name, in snake_case: lowercase letters, digits and single underscores. It is not checked against existing participants at publish, so a misspelled name publishes fine and fails at `can-i-deploy` with `no matching resource in provider`.
+That name is the provider's participant name, in snake_case: lowercase letters, digits and single underscores. It is not checked against existing participants at publish, so a misspelled name, such as `petstore_apl` for `petstore_api`, publishes fine and fails at `can-i-deploy` with `petstore_web calls GET /pets/*, but petstore_apl doesn't provide it → stop calling it, or wait until petstore_apl publishes it`.
 
 Each name on the right of `request` and `responses` is a schema name declared under `schemas`, never an inline schema.
 
