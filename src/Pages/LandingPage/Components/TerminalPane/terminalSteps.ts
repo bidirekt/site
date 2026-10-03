@@ -40,7 +40,7 @@ export const TERMINAL_STEPS: Array<Step> = [
     output: [
       { text: '# Pet.weight  string → integer', tone: 'muted' },
       {
-        text: '# Pet.status  removed — petstore_api never produced it',
+        text: "# Pet.status  removed — petstore_api doesn't provide it",
         tone: 'muted',
       },
       BLANK,
