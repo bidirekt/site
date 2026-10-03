@@ -54,7 +54,7 @@ contract validation failed
 
 ```
 $ bidirekt can-i-deploy petstore_web --version 2.3.0 --environment production
-petstore_web can be deployed to production
+petstore_web 2.3.0 can be deployed to production
 ```
 
 - `participant`: the participant you are about to deploy.
@@ -65,34 +65,41 @@ It exits `0` when the answer is yes and `1` when it is no; the report goes to st
 
 ```
 $ bidirekt can-i-deploy petstore_web --version 2.3.0 --environment production
-petstore_web cannot be deployed to production
+petstore_web 2.3.0 cannot be deployed to production
 
-petstore_api (1.4.0):
+petstore_api (1.4.0, deployed):
   GET /pets/*
     response 200:
-      - property "$.status" is missing in provider
-      - property "$.weight" type mismatch — consumer has string, provider has integer
+      - petstore_web reads "$.status", but petstore_api doesn't provide it → stop reading it, or mark it optional
+      - petstore_web reads "$.weight" as string, but petstore_api provides integer → read it as integer
 
 petstore_reviews:
   GET /reviews/summary
     response 200:
-      - no matching resource in provider
+      - petstore_web calls GET /reviews/summary, but petstore_reviews doesn't provide it → stop calling it, or wait until petstore_reviews publishes it
 ```
 
-One block per counterpart that is not compatible, with the version of it deployed in the environment; the version is left out when it is not deployed there. Every line a break can carry:
+One block per counterpart that is not compatible, with the version of it deployed in the environment; the version is left out when it is not deployed there. Every line a break can carry, written from the side of `<participant>`, the participant under check, against `<counterpart>`, the counterpart it breaks:
 
 | Line | When |
 |---|---|
-| `property "<property>" is missing in provider` | response: the consumer requires a property the provider does not declare |
-| `property "<property>" is optional in provider but required in consumer` | response: the consumer requires a property the provider marks optional |
-| `property "<property>" is missing in consumer` | request: the provider requires a property the consumer does not send |
-| `property "<property>" is optional in consumer but required in provider` | request: the provider requires a property the consumer marks optional |
-| `property "<property>" type mismatch — consumer has <type>, provider has <type>` | both sides declare the property with different types; an array prints its item type, such as `array<object>` |
-| `no matching resource in provider` | the consumer names an endpoint, method or status that no published contract of the provider declares, or a provider that does not exist |
-| `provider is not deployed in "<environment>" (deployed in: <environments>)` | the provider is not deployed in the target environment; the parenthesis is left out when it is deployed nowhere |
-| `resource removed but still consumed` | the provider under check dropped a resource that a consumer deployed in the environment still consumes |
+| `<participant> reads "<property>", but <counterpart> doesn't provide it → stop reading it, or mark it optional` | response: the participant requires a property the provider does not declare |
+| `<participant> doesn't provide "<property>", but <counterpart> reads it → keep providing it` | response: the consumer requires a property the participant does not declare |
+| `<participant> requires "<property>", but <counterpart> only sometimes provides it → mark it optional` | response: the participant requires a property the provider marks optional |
+| `<participant> provides "<property>" only sometimes, but <counterpart> requires it → keep it required` | response: the consumer requires a property the participant marks optional |
+| `<participant> doesn't send "<property>", but <counterpart> requires it → send it` | request: the provider requires a property the participant does not send |
+| `<participant> requires "<property>", but <counterpart> doesn't send it → make it optional` | request: the participant requires a property the consumer does not send |
+| `<participant> sends "<property>" only sometimes, but <counterpart> requires it → always send it` | request: the provider requires a property the participant marks optional |
+| `<participant> requires "<property>", but <counterpart> sends it only sometimes → make it optional` | request: the participant requires a property the consumer marks optional |
+| `<participant> reads "<property>" as <type>, but <counterpart> provides <counterpart type> → read it as <counterpart type>` | response: the participant reads the property with a different type than the provider declares |
+| `<participant> provides "<property>" as <type>, but <counterpart> reads <counterpart type> → provide <counterpart type>` | response: the participant declares the property with a different type than the consumer reads |
+| `<participant> sends "<property>" as <type>, but <counterpart> expects <counterpart type> → send <counterpart type>` | request: the participant sends the property with a different type than the provider declares |
+| `<participant> expects "<property>" as <type>, but <counterpart> sends <counterpart type> → accept <counterpart type>` | request: the participant declares the property with a different type than the consumer sends |
+| `<participant> calls <METHOD> <endpoint>, but <counterpart> doesn't provide it → stop calling it, or wait until <counterpart> publishes it` | the participant names an endpoint, method or status that no published contract of the provider declares, or a provider that does not exist |
+| `<participant> calls <METHOD> <endpoint>, but <counterpart> is not deployed in <environment> (deployed in: <environments>) → deploy <counterpart> first` | the provider is not deployed in the target environment; the parenthesis is left out when it is deployed nowhere |
+| `<participant> removed <METHOD> <endpoint>, but <counterpart> still calls it → keep it until <counterpart> stops calling it` | the participant dropped a resource that a consumer deployed in the environment still consumes |
 
-`<property>` is written from the root of the body: `$.owner.name` for a member, `$[].photoUrl` for a member of each array item. Which side's required properties count is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
+`<property>` is written from the root of the body: `$.owner.name` for a member, `$[].photoUrl` for a member of each array item. An array type prints its item type, such as `array<object>`. Which side's required properties count is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
 
 ## record-deployment
 
@@ -123,7 +130,7 @@ The participant keeps its versions and deployments, but a provider's published r
 2. Publish and deploy a new version of the provider, so its resources carry the new name.
 3. Switch every consumer's `consumes` key to the new name.
 
-Between steps 2 and 3 one side fails with `no matching resource in provider`: consumers still on the old name stop matching once the new version is deployed, and consumers already on the new name fail until it is. Renaming a consumer needs none of this.
+Between steps 2 and 3 one side fails with a line such as `petstore_web calls GET /stock/*, but petstore_inventory doesn't provide it → stop calling it, or wait until petstore_inventory publishes it`: consumers still on the old name stop matching once the new version is deployed, and consumers already on the new name fail until it is. Renaming a consumer needs none of this.
 
 ## version
 

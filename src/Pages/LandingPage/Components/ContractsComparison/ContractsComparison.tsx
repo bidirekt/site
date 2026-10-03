@@ -47,22 +47,22 @@ schemas:
       petId: { type: integer }
       name: { type: string }
       weight: { type: string }
-      status: { type: string }  # missing in provider`
+      status: { type: string }  # petstore_api doesn't provide it`
 const CONSUMER_HIGHLIGHTS: Array<Highlight> = [
   { line: 13, highlight: 'string' },
-  { line: 14, highlight: '# missing in provider' },
+  { line: 14, highlight: "# petstore_api doesn't provide it" },
 ]
 
 const REPORT_COMMAND =
   'bidirekt can-i-deploy petstore_web --version 2.3.0 --environment production'
-const REPORT_HEADLINE = 'petstore_web cannot be deployed to production'
+const REPORT_HEADLINE = 'petstore_web 2.3.0 cannot be deployed to production'
 const REPORT_BODY: Array<string> = [
   '',
-  'petstore_api (1.4.0):',
+  'petstore_api (1.4.0, deployed):',
   '  GET /pets/*',
   '    response 200:',
-  '      - property "$.status" is missing in provider',
-  '      - property "$.weight" type mismatch — consumer has string, provider has integer',
+  '      - petstore_web reads "$.status", but petstore_api doesn\'t provide it → stop reading it, or mark it optional',
+  '      - petstore_web reads "$.weight" as string, but petstore_api provides integer → read it as integer',
 ]
 
 const TONE_CLASS: Record<ContractTone, string | undefined> = {

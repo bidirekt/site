@@ -15,19 +15,19 @@ export const TERMINAL_STEPS: Array<Step> = [
       'bidirekt can-i-deploy petstore_web --version 2.3.0 --environment production',
     output: [
       {
-        text: 'petstore_web cannot be deployed to production',
+        text: 'petstore_web 2.3.0 cannot be deployed to production',
         tone: 'failure',
       },
       BLANK,
-      { text: 'petstore_api (1.4.0):', tone: 'primary' },
+      { text: 'petstore_api (1.4.0, deployed):', tone: 'primary' },
       { text: '  GET /pets/*', tone: 'primary' },
       { text: '    response 200:', tone: 'primary' },
       {
-        text: '      - property "$.status" is missing in provider',
+        text: '      - petstore_web reads "$.status", but petstore_api doesn\'t provide it → stop reading it, or mark it optional',
         tone: 'primary',
       },
       {
-        text: '      - property "$.weight" type mismatch — consumer has string, provider has integer',
+        text: '      - petstore_web reads "$.weight" as string, but petstore_api provides integer → read it as integer',
         tone: 'primary',
       },
       BLANK,
@@ -62,7 +62,10 @@ export const TERMINAL_STEPS: Array<Step> = [
     command:
       'bidirekt can-i-deploy petstore_web --version 2.3.1 --environment production',
     output: [
-      { text: 'petstore_web can be deployed to production', tone: 'success' },
+      {
+        text: 'petstore_web 2.3.1 can be deployed to production',
+        tone: 'success',
+      },
       BLANK,
     ],
     running: 'comparing 2.3.1 against production…',
