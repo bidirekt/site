@@ -1,9 +1,136 @@
 ---
 title: CLI reference
-description: Every bidirekt command, flag, output and exit code.
+description: Every bidirekt command with an example, its arguments, and the mistakes worth knowing about.
 ---
 
-`bidirekt` is the command-line client of the broker. This page lists the six commands and `version`: flags with their help text, what each prints, how the broker address is resolved, and the exit codes.
+`bidirekt` is the command-line client of the broker. One section per command, in the order a pipeline uses them; the global flags, the broker address and the exit codes are in [Overview](#overview) at the end.
+
+## create-participant
+
+```
+$ bidirekt create-participant petstore_api
+petstore_api participant created
+```
+
+- `name`: the participant's name, in `snake_case` (lowercase letters, digits and single underscores). Anything else fails with `participant name must be snake_case`.
+
+Running it again for an existing name prints `petstore_api participant already exists` and exits `0`, so a pipeline can run it on every build.
+
+## create-environment
+
+```
+$ bidirekt create-environment production
+production environment created
+```
+
+- `name`: the environment's name, such as `production` or `staging`.
+
+Running it again prints `production environment already exists` and exits `0`.
+
+## publish
+
+```
+$ bidirekt publish contracts/*.yaml --participant petstore_api --version 1.4.0
+petstore_api contract publish successful
+```
+
+- `file...`: one or more contract files, `.yaml` or `.yml`. All of them publish together as one contract ([Several files](../contracts/spec.md#several-files)); the shell expands globs.
+- `--participant`: the participant the contract belongs to. It must exist, or the publish fails with `contract participant not found`.
+- `--version`: any label, usually a commit hash or a release tag.
+
+Publishing the same version again with different content fails with `contract version already exists with different content`; a version never changes once published.
+
+A file that breaks the [specification](../contracts/spec.md) is rejected as a whole, with one line per violation:
+
+```
+$ bidirekt publish petstore_api.yaml --participant petstore_api --version 1.4.0
+contract validation failed
+  - petstore_api.yaml: invalid endpoint "/pets/{petId}" at provides rest, dynamic path segments must use *
+```
+
+## can-i-deploy
+
+```
+$ bidirekt can-i-deploy petstore_web --version 2.3.0 --environment production
+petstore_web can be deployed to production
+```
+
+- `participant`: the participant you are about to deploy.
+- `--version`: the published version you are about to deploy.
+- `--environment`: where you are about to deploy it.
+
+It exits `0` when the answer is yes and `1` when it is no; the report goes to stdout either way. Errors that stop the check go to stderr: a version that was never published fails with `contract not found`, an environment that does not exist with `environment not found`, and an unknown participant with `participant not found`.
+
+```
+$ bidirekt can-i-deploy petstore_web --version 2.3.0 --environment production
+petstore_web cannot be deployed to production
+
+petstore_api (1.4.0):
+  GET /pets/*
+    response 200:
+      - property "$.status" is missing in provider
+      - property "$.weight" type mismatch — consumer has string, provider has integer
+
+petstore_reviews:
+  GET /reviews/summary
+    response 200:
+      - no matching resource in provider
+```
+
+One block per counterpart that is not compatible, with the version of it deployed in the environment; the version is left out when it is not deployed there. Every line a break can carry:
+
+| Line | When |
+|---|---|
+| `property "<property>" is missing in provider` | response: the consumer requires a property the provider does not declare |
+| `property "<property>" is optional in provider but required in consumer` | response: the consumer requires a property the provider marks optional |
+| `property "<property>" is missing in consumer` | request: the provider requires a property the consumer does not send |
+| `property "<property>" is optional in consumer but required in provider` | request: the provider requires a property the consumer marks optional |
+| `property "<property>" type mismatch — consumer has <type>, provider has <type>` | both sides declare the property with different types; an array prints its item type, such as `array<object>` |
+| `no matching resource in provider` | the consumer names an endpoint, method or status that no published contract of the provider declares, or a provider that does not exist |
+| `provider is not deployed in "<environment>" (deployed in: <environments>)` | the provider is not deployed in the target environment; the parenthesis is left out when it is deployed nowhere |
+| `resource removed but still consumed` | the provider under check dropped a resource that a consumer deployed in the environment still consumes |
+
+`<property>` is written from the root of the body: `$.owner.name` for a member, `$[].photoUrl` for a member of each array item. Which side's required properties count is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
+
+## record-deployment
+
+```
+$ bidirekt record-deployment petstore_web --version 2.3.0 --environment production
+petstore_web deployment recorded to production
+```
+
+- `participant`: the participant you deployed.
+- `--version`: the version you deployed. It must be published, or the command fails with `version not found`.
+- `--environment`: where you deployed it. It must exist, or the command fails with `environment not found`.
+
+Run it after the deployment succeeds. It never checks compatibility and never blocks; recording an earlier version again is how a rollback is recorded.
+
+## rename-participant
+
+```
+$ bidirekt rename-participant petstore_inventory petstore_stock
+petstore_inventory participant renamed to petstore_stock
+```
+
+- `old`: the current name.
+- `new`: the new name, in `snake_case`. A name that is already taken fails with `participant already exists` and exits `1`; unlike `create-participant`, renaming is not idempotent.
+
+The participant keeps its versions and deployments, but a provider's published resources keep the old name. Renaming a provider is a migration:
+
+1. Rename the participant.
+2. Publish and deploy a new version of the provider, so its resources carry the new name.
+3. Switch every consumer's `consumes` key to the new name.
+
+Between steps 2 and 3 one side fails with `no matching resource in provider`: consumers still on the old name stop matching once the new version is deployed, and consumers already on the new name fail until it is. Renaming a consumer needs none of this.
+
+## version
+
+```
+$ bidirekt version
+bidirekt version dev
+```
+
+`bidirekt --version` and `bidirekt -v` print the same. `dev` is what a binary built without a version prints; a release prints its own.
 
 ## Overview
 
@@ -33,173 +160,15 @@ Flags:
 Use "bidirekt [command] --help" for more information about a command.
 ```
 
-`help` and `completion` are the standard help and shell-completion commands. Every command accepts `-h, --help` and the global `--broker-url`. Every command that talks to the broker prints one line on success; `create-participant` and `create-environment` given a name that already exists print `… already exists` instead and still exit `0`.
-
-## Broker address
-
-The broker base URL is resolved once per run, in this order:
-
-1. `--broker-url <url>`, a global flag accepted before or after the command (`bidirekt --broker-url http://broker:8080 publish ...` and `bidirekt publish ... --broker-url http://broker:8080` are equivalent);
-2. the `BIDIREKT_BROKER_URL` environment variable;
-3. `http://localhost:8080`.
-
-Before reading the environment, `bidirekt` loads a `.env` file from the current working directory, if there is one. A variable already set in the process environment is never overridden by the file, so a `BIDIREKT_BROKER_URL` exported in the shell beats the same key in `.env`, and the flag beats both. A missing `.env` is silently ignored. The file is looked up where you run `bidirekt`, not where the contract files live.
-
-The help text shows the value that will actually be used: with `BIDIREKT_BROKER_URL=http://127.0.0.1:2` in `.env`, `bidirekt --help` prints `--broker-url string   Broker base URL (default "http://127.0.0.1:2")`.
-
-Every command that talks to the broker sends exactly one `POST` request with a JSON body to the resolved URL. The request is cancelled after 30 seconds.
-
-## Exit codes and output streams
-
-| Exit code | When |
-|---|---|
-| `0` | the command succeeded, or you asked for help or the version |
-| `1` | anything else: a usage error, a file the CLI refused before sending, a broker that could not be reached, a non-success answer from the broker, a publish rejected with violations, or a `can-i-deploy` answer of "not deployable" |
-
-There is no other exit code. Success lines, help and `version` go to stdout; failure lines go to stderr, except the failing `can-i-deploy` report, described under that command.
-
-When the stream is a terminal, the success line is printed in green and the failure headline in red (text color only). `NO_COLOR` disables color; `CLICOLOR_FORCE=1` forces it when the output is piped.
-
-## create-participant
+**Broker address.** The first of these wins: `--broker-url`, then the `BIDIREKT_BROKER_URL` environment variable, then `http://localhost:8080`. The flag goes before or after the command, and the variable suits a pipeline:
 
 ```
-bidirekt create-participant [name]
+$ bidirekt --broker-url https://broker.example.com publish contracts/*.yaml --participant petstore_api --version 1.4.0
+$ BIDIREKT_BROKER_URL=https://broker.example.com bidirekt can-i-deploy petstore_api --version 1.4.0 --environment production
 ```
 
-The name must be `snake_case`: lowercase letters, digits and underscores, with no empty word between underscores.
+A `.env` file in the current directory is read too, but never overrides a variable already set in the shell. A request that gets no answer is cancelled after 30 seconds.
 
-```
-petstore_api participant created
-```
+**Exit codes.** `0` on success, help and version; `1` for everything else, including a refused publish and a `can-i-deploy` answer of no.
 
-## create-environment
-
-```
-bidirekt create-environment [name]
-```
-
-```
-production environment created
-```
-
-## publish
-
-```
-bidirekt publish [file...] --participant <name> --version <version>
-```
-
-| Flag | Help text |
-|---|---|
-| `--participant string` | `Participant name (required)` |
-| `--version string` | `Contract version, e.g. a commit hash or semver tag (required)` |
-
-All the files given in one call are published together as one contract version ([Several files](../contracts/spec.md#several-files)); globs are expanded by the shell. The extension of each file must be `.yaml` or `.yml`, and the content is validated by the broker against the [specification](../contracts/spec.md).
-
-```
-petstore_api contract publish successful
-```
-
-## can-i-deploy
-
-```
-bidirekt can-i-deploy [participant] --version <version> --environment <name>
-```
-
-| Flag | Help text |
-|---|---|
-| `--version string` | `Version to check, e.g. a commit hash or semver tag (required)` |
-| `--environment string` | `Target environment name (required)` |
-
-Deployable, exit code `0`:
-
-```
-petstore_api can be deployed to production
-```
-
-Not deployable, exit code `1`. The report is the command's result, not an error, so it goes to **stdout**; a pipeline that captures only stderr sees nothing when a deployment is refused. This is real output for a consumer `petstore_web` whose contract disagrees with the deployed `petstore_api` and consumes a `petstore_reviews` that never published anything; a third counterpart, `petstore_inventory`, was compatible and is therefore not listed:
-
-```
-petstore_web cannot be deployed to production
-
-petstore_api (1.4.0):
-  POST /pets
-    request:
-      - property "$.name" is missing in consumer
-    response 201:
-      - property "$.weight" type mismatch — consumer has string, provider has integer
-      - property "$.status" is missing in provider
-  GET /pets/*
-    response 200:
-      - property "$.status" is missing in provider
-      - property "$.weight" type mismatch — consumer has string, provider has integer
-
-petstore_reviews:
-  GET /reviews/summary
-    response 200:
-      - no matching resource in provider
-```
-
-One block per counterpart that is **not** deployable; compatible counterparts are omitted. The version in parentheses is the one deployed to the environment, and it is omitted when the counterpart is not deployed there, whether it published nothing at all or is deployed only to other environments.
-
-Ordering: counterpart blocks in alphabetical order; endpoints in alphabetical order and, within an endpoint, methods in alphabetical order; `request:` always before the response statuses, statuses in ascending order; break lines in the order the broker returned them, which is not sorted.
-
-Every break line is one of these:
-
-| Line | When |
-|---|---|
-| `property "<property>" is missing in provider` | response: the consumer requires a property the provider does not declare |
-| `property "<property>" is optional in provider but required in consumer` | response: the consumer requires a property the provider marks optional |
-| `property "<property>" is missing in consumer` | request: the provider requires a property the consumer does not send |
-| `property "<property>" is optional in consumer but required in provider` | request: the provider requires a property the consumer marks optional |
-| `property "<property>" type mismatch — consumer has <type>, provider has <type>` | both sides declare the property with different types; an array prints its item type, such as `array<object>` |
-| `no matching resource in provider` | the consumer names an endpoint, method or status that no published contract of the provider declares, or a provider that does not exist |
-| `provider is not deployed in "<environment>" (deployed in: <environments>)` | the provider is not deployed in the target environment; the parenthesis is left out when it is deployed nowhere |
-| `resource removed but still consumed` | the provider under check dropped a resource that a consumer deployed in the environment still consumes |
-
-`<property>` is written from the root of the body: `$.owner.name` for a member, `$[].photoUrl` for a member of each array item. A property gets at most one line: a type mismatch replaces the optional or required line. Which side reads, and so which side's required properties count, is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
-
-## record-deployment
-
-```
-bidirekt record-deployment [participant] --version <version> --environment <name>
-```
-
-| Flag | Help text |
-|---|---|
-| `--version string` | `Deployed version, e.g. a commit hash or semver tag (required)` |
-| `--environment string` | `Target environment name (required)` |
-
-```
-petstore_api deployment recorded to production
-```
-
-## rename-participant
-
-```
-bidirekt rename-participant [old] [new]
-```
-
-Only the new name has to be `snake_case`; the old one is looked up as is.
-
-The rename changes only the name: the participant keeps its published versions and recorded deployments. Resources, though, are identified by the provider name they were published under, and a rename never recomputes that identity. A consumer that keeps the old name in `consumes` keeps matching the resources published before the rename and keeps passing `can-i-deploy`. A consumer that switches to the new name matches only the versions the provider publishes after the rename; until one of those is deployed to the environment, its check fails with `no matching resource in provider`. Renaming a provider is therefore a migration: the provider publishes and deploys a new version under the new name, and every consumer switches its `consumes` key; whichever order you choose, one side is red in between. Renaming a consumer changes nothing about what it matches, because matching only looks at the provider's name.
-
-```
-petstore_inventory participant renamed to petstore_inventory_v2
-```
-
-## version
-
-```
-bidirekt version
-```
-
-```
-$ bidirekt version
-bidirekt version dev
-$ bidirekt --version
-bidirekt version dev
-$ bidirekt -v
-bidirekt version dev
-```
-
-All three print to stdout and exit with `0`. `dev` is the value of a binary built without a version injected at build time; release builds inject theirs.
+**Output.** Success lines go to stdout and failures to stderr, except the `can-i-deploy` report, which always goes to stdout. In a terminal, success is green and failures are red; `NO_COLOR` turns color off and `CLICOLOR_FORCE=1` keeps it on when the output is piped.
