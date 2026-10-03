@@ -27,7 +27,7 @@ export function DocsTopBar({
 
   return (
     <header className="sticky top-0 z-10 border-b border-line bg-page px-4">
-      <div className="mx-auto flex h-11 w-full max-w-[1200px] items-center gap-4">
+      <div className="mx-auto flex h-11 w-full max-w-[1360px] items-center gap-4">
         <div className="flex items-center gap-2 text-[14px] whitespace-nowrap">
           <a
             href="/"
