@@ -3,7 +3,9 @@ title: CLI reference
 description: Every bidirekt command with an example, its arguments, and the mistakes worth knowing about.
 ---
 
-`bidirekt` is the command-line client of the broker. One section per command, in the order a pipeline uses them; the global flags, the broker address and the exit codes are in [Overview](#overview) at the end.
+`bidirekt` is the command-line client of the broker. One section per command, in the order a pipeline uses them; the help output, exit codes and output streams are in [Overview](#overview) at the end.
+
+Every command talks to the broker at `http://localhost:8080` unless you pass `--broker-url` or set `BIDIREKT_BROKER_URL`; see [Broker address](#overview) for examples.
 
 ## create-participant
 
