@@ -5,7 +5,30 @@ description: Every bidirekt command with an example, its arguments, and the mist
 
 `bidirekt` is the command-line client of the broker. One section per command, in the order a pipeline uses them; the help output, exit codes and output streams are in [Overview](#overview) at the end.
 
-Every command talks to the broker at `http://localhost:8080` unless you pass `--broker-url` or set `BIDIREKT_BROKER_URL`; see [Broker address](#overview) for examples.
+Every command that talks to the broker needs to know which broker: there is no default. Save it once with [`configure`](#configure), or pass it with `--broker-url` or `BIDIREKT_BROKER_URL`; see [Broker address](#overview) for the order that wins.
+
+## configure
+
+```
+$ bidirekt configure
+Broker URL: https://broker.example.com
+```
+
+- `--profile`: the profile to save into. Without it, `BIDIREKT_PROFILE`, then `default`.
+- `--broker-url`: saves this URL without asking, which is how a script or a pipeline configures a profile.
+
+The URL must start with `http://` or `https://` followed by a host; `http://localhost:8080` is valid. Anything else is asked again, or with `--broker-url` fails with `invalid broker URL "broker.example.com" (from --broker-url) — use http:// or https:// followed by a host`, and nothing is saved.
+
+A profile is one broker. A company with one broker only needs `default`. A group of companies, or a freelancer working for several clients, keeps one profile per broker, such as `acme` and `globex`. Environments such as `production` and `staging` live inside a broker, so they are never profiles.
+
+Running it again for a profile that already has a URL shows it, and Enter keeps it:
+
+```
+$ bidirekt configure --profile acme
+Broker URL [https://broker.acme.example]:
+```
+
+Without `--broker-url` and outside a terminal, it fails with `no terminal to ask for the broker URL — pass --broker-url`. `BIDIREKT_BROKER_URL` is ignored here: `configure` only writes the config file.
 
 ## create-participant
 
@@ -153,6 +176,7 @@ Usage:
 Available Commands:
   can-i-deploy       Check whether a participant version can be deployed to an environment
   completion         Generate the autocompletion script for the specified shell
+  configure          Save the broker URL of a profile in the config file
   create-environment Create a new environment on the broker
   create-participant Create a new participant on the broker
   help               Help about any command
@@ -162,21 +186,51 @@ Available Commands:
   version            Print the bidirekt version
 
 Flags:
-      --broker-url string   Broker base URL (default "http://localhost:8080")
+      --broker-url string   Broker base URL
   -h, --help                help for bidirekt
+      --profile string      Profile in the config file (falls back to BIDIREKT_PROFILE, then "default")
   -v, --version             version for bidirekt
 
 Use "bidirekt [command] --help" for more information about a command.
 ```
 
-**Broker address.** The first of these wins: `--broker-url`, then the `BIDIREKT_BROKER_URL` environment variable, then `http://localhost:8080`. The flag goes before or after the command, and the variable suits a pipeline:
+**Broker address.** The first of these wins: `--broker-url`, then the `BIDIREKT_BROKER_URL` environment variable, then the URL saved in the active profile. The active profile is `--profile`, then `BIDIREKT_PROFILE`, then `default`. The flags go before or after the command, and the variables suit a pipeline:
 
 ```
 $ bidirekt --broker-url https://broker.example.com publish contracts/*.yaml --participant petstore_api --version 1.4.0
 $ BIDIREKT_BROKER_URL=https://broker.example.com bidirekt can-i-deploy petstore_api --version 1.4.0 --environment production
+$ bidirekt record-deployment petstore_api --version 1.4.0 --environment production --profile acme
 ```
 
-A `.env` file in the current directory is read too, but never overrides a variable already set in the shell. A request that gets no answer is cancelled after 30 seconds.
+Before calling the broker, each command prints which broker it uses and where that came from, on stderr; a password in the URL shows as `xxxxx`:
+
+```
+Broker: https://broker.example.com (profile: default)
+Broker: https://broker.example.com (from BIDIREKT_BROKER_URL)
+Broker: https://broker.example.com (from --broker-url)
+```
+
+When none of them has a URL, a terminal asks `Broker URL:` and saves the answer to the active profile, so the next run does not ask. Outside a terminal, as in a pipeline, the command fails without calling anything:
+
+```
+no broker configured — pass --broker-url, set BIDIREKT_BROKER_URL, or run "bidirekt configure"
+```
+
+A profile named with `--profile` or `BIDIREKT_PROFILE` that is not in the config file fails the same way with `profile "acme" not found in <path>`. An invalid URL fails wherever it comes from, naming the source: `invalid broker URL "broker.example.com" (from BIDIREKT_BROKER_URL) — use http:// or https:// followed by a host`.
+
+**Config file.** Profiles live in `~/.config/bidirekt/config.json` (`$XDG_CONFIG_HOME/bidirekt/config.json` when `XDG_CONFIG_HOME` is set, `%AppData%\bidirekt\config.json` on Windows), or in the file `BIDIREKT_CONFIG_FILE` names. `configure` creates it readable only by you:
+
+```json
+{
+  "profiles": {
+    "default": { "brokerUrl": "https://broker.example.com" },
+    "acme": { "brokerUrl": "https://broker.acme.example" },
+    "globex": { "brokerUrl": "https://broker.globex.example" }
+  }
+}
+```
+
+A `.env` file in the current directory is not read. A request that gets no answer is cancelled after 30 seconds.
 
 **Exit codes.** `0` on success, help and version; `1` for everything else, including a refused publish and a `can-i-deploy` answer of no.
 
