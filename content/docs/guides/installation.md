@@ -103,28 +103,17 @@ $ docker run -d --name bidirekt-broker --restart unless-stopped \
 
 ### Postgres on the same VPS
 
-This compose file is `docker-compose.prod.yaml` in https://github.com/bidirekt/broker:
-
-```yaml
-services:
-  broker:
-    image: ghcr.io/bidirekt/broker:0.1.0
-    restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"   # Postgres no mesmo host do VPS
-    environment:
-      BIDIREKT_DATABASE_URL: ${BIDIREKT_DATABASE_URL:?set BIDIREKT_DATABASE_URL}
-    ports:
-      - "127.0.0.1:8080:8080"
-```
+Inside the container, `localhost` is the container itself, not the VPS. `--add-host` makes `host.docker.internal` point at the VPS:
 
 ```
-$ BIDIREKT_DATABASE_URL='postgres://bidirekt:<password>@host.docker.internal:5432/bidirekt' docker compose -f docker-compose.prod.yaml up -d
+$ docker run -d --name bidirekt-broker --restart unless-stopped \
+    -p 127.0.0.1:8080:8080 \
+    --add-host host.docker.internal:host-gateway \
+    -e BIDIREKT_DATABASE_URL='postgres://bidirekt:<password>@host.docker.internal:5432/bidirekt' \
+    ghcr.io/bidirekt/broker:0.1.0
 ```
 
-Without `BIDIREKT_DATABASE_URL`, compose refuses to start with `set BIDIREKT_DATABASE_URL`.
-
-Inside the container, `localhost` is the container itself, not the VPS. `host.docker.internal` is the VPS, through the `extra_hosts` line. Postgres must listen on the Docker bridge, not only on `127.0.0.1`: add the bridge address to `listen_addresses` in `postgresql.conf` (for example `listen_addresses = 'localhost,172.17.0.1'`), and allow the Docker network in `pg_hba.conf` (for example `host bidirekt bidirekt 172.16.0.0/12 scram-sha-256`).
+Postgres must listen on the Docker bridge, not only on `127.0.0.1`: add the bridge address to `listen_addresses` in `postgresql.conf` (for example `listen_addresses = 'localhost,172.17.0.1'`), and allow the Docker network in `pg_hba.conf` (for example `host bidirekt bidirekt 172.16.0.0/12 scram-sha-256`).
 
 ### Health
 
@@ -147,7 +136,7 @@ For TLS, put a reverse proxy of your choice in front of it, such as Caddy or Ngi
 
 Nothing here is required. These are the choices worth making:
 
-- Postgres 17, the version both compose files run.
+- Postgres 17 or newer: the local compose runs 17, and the broker's tests run on 18.
 - `sslmode=require` in the URL whenever the database is on another machine.
 - A dedicated user with a strong password, owning only the broker's database.
 - Port `5432` never exposed to the internet.
