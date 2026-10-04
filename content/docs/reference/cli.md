@@ -19,11 +19,13 @@ Broker URL: https://broker.example.com
 
 The URL must start with `http://` or `https://` followed by a host; `http://localhost:8080` is valid. Anything else is asked again, or with `--broker-url` fails with `invalid broker URL "broker.example.com" (from --broker-url) — use http:// or https:// followed by a host`, and nothing is saved.
 
+A profile is one broker. A company with one broker only needs `default`. A group of companies, or a freelancer working for several clients, keeps one profile per broker, such as `acme` and `globex`. Environments such as `production` and `staging` live inside a broker, so they are never profiles.
+
 Running it again for a profile that already has a URL shows it, and Enter keeps it:
 
 ```
-$ bidirekt configure --profile staging
-Broker URL [http://localhost:8080]:
+$ bidirekt configure --profile acme
+Broker URL [https://broker.acme.example]:
 ```
 
 Without `--broker-url` and outside a terminal, it fails with `no terminal to ask for the broker URL — pass --broker-url`. `BIDIREKT_BROKER_URL` is ignored here: `configure` only writes the config file.
@@ -197,7 +199,7 @@ Use "bidirekt [command] --help" for more information about a command.
 ```
 $ bidirekt --broker-url https://broker.example.com publish contracts/*.yaml --participant petstore_api --version 1.4.0
 $ BIDIREKT_BROKER_URL=https://broker.example.com bidirekt can-i-deploy petstore_api --version 1.4.0 --environment production
-$ bidirekt record-deployment petstore_api --version 1.4.0 --environment staging --profile staging
+$ bidirekt record-deployment petstore_api --version 1.4.0 --environment production --profile acme
 ```
 
 Before calling the broker, each command prints which broker it uses and where that came from, on stderr; a password in the URL shows as `xxxxx`:
@@ -214,7 +216,7 @@ When none of them has a URL, a terminal asks `Broker URL:` and saves the answer 
 no broker configured — pass --broker-url, set BIDIREKT_BROKER_URL, or run "bidirekt configure"
 ```
 
-A profile named with `--profile` or `BIDIREKT_PROFILE` that is not in the config file fails the same way with `profile "staging" not found in <path>`. An invalid URL fails wherever it comes from, naming the source: `invalid broker URL "broker.example.com" (from BIDIREKT_BROKER_URL) — use http:// or https:// followed by a host`.
+A profile named with `--profile` or `BIDIREKT_PROFILE` that is not in the config file fails the same way with `profile "acme" not found in <path>`. An invalid URL fails wherever it comes from, naming the source: `invalid broker URL "broker.example.com" (from BIDIREKT_BROKER_URL) — use http:// or https:// followed by a host`.
 
 **Config file.** Profiles live in `~/.config/bidirekt/config.json` (`$XDG_CONFIG_HOME/bidirekt/config.json` when `XDG_CONFIG_HOME` is set, `%AppData%\bidirekt\config.json` on Windows), or in the file `BIDIREKT_CONFIG_FILE` names. `configure` creates it readable only by you:
 
@@ -222,7 +224,8 @@ A profile named with `--profile` or `BIDIREKT_PROFILE` that is not in the config
 {
   "profiles": {
     "default": { "brokerUrl": "https://broker.example.com" },
-    "staging": { "brokerUrl": "http://localhost:8080" }
+    "acme": { "brokerUrl": "https://broker.acme.example" },
+    "globex": { "brokerUrl": "https://broker.globex.example" }
   }
 }
 ```
