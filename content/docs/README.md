@@ -21,6 +21,6 @@ No server, local or remote, needs to be running to answer `can-i-deploy`. Both s
 
 ## Guides
 
-- [Installation](guides/installation.md) — how to install the `bidirekt` CLI and run the broker. *(not written yet)*
+- [Installation](guides/installation.md) — how to install the `bidirekt` CLI and run the broker.
 - [Getting started](guides/getting-started.md) — from an empty broker to a first `can-i-deploy`. *(not written yet)*
 - [CI integration](guides/ci-integration.md) — publishing contracts and gating deployments from a pipeline. *(not written yet)*
