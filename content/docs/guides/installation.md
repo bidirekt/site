@@ -64,13 +64,13 @@ The first of these wins: `--broker-url`, then `BIDIREKT_BROKER_URL`, then the ac
 Broker: https://broker.acme.example (profile: acme)
 ```
 
-**In a pipeline.** There is no terminal to ask in, so a command without a broker fails instead of asking, without calling anything:
+**Without a broker.** A command that has no broker fails without calling anything, on your machine and in a pipeline alike; it never asks:
 
 ```
 no broker configured — pass --broker-url, set BIDIREKT_BROKER_URL, or run "bidirekt configure"
 ```
 
-Set `BIDIREKT_BROKER_URL` in the pipeline, or write a profile with `bidirekt configure --broker-url <url>`, which never asks. Every option is in the [CLI reference](../reference/cli.md#overview).
+On your machine, run `bidirekt configure`. In a pipeline, set `BIDIREKT_BROKER_URL`, or write a profile with `bidirekt configure --broker-url <url>`, which never asks. Every option is in the [CLI reference](../reference/cli.md#overview).
 
 ## Broker
 
