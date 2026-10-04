@@ -16,17 +16,17 @@ bidirekt 0.1.0 installed to /home/you/.local/bin/bidirekt
 
 The script downloads the latest release for your system, checks it against the release's `checksums.txt` and installs it in `~/.local/bin`, without `sudo`. A checksum that does not match stops it before anything is installed. When the directory is not on your `PATH`, it prints the line to add to your shell profile.
 
-`-b` picks the directory and a tag picks the version:
+`-b` picks the directory and a tag picks the version. A directory owned by root, such as `/usr/local/bin`, needs `sudo` on the `sh`:
 
 ```
-$ curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/main/install.sh | sh -s -- -b /usr/local/bin v0.1.0
+$ curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/main/install.sh | sudo sh -s -- -b /usr/local/bin v0.1.0
 ```
 
-The script supports Linux and macOS, on `x86_64` and `arm64`. On Windows, download the archive by hand.
+The CLI is built for Linux and macOS, on `x86_64` and `arm64`.
 
 ### From the GitHub Release
 
-Every release at https://github.com/bidirekt/cli/releases has one archive per system, named `bidirekt_<version>_<os>_<arch>`: `linux` and `darwin` in `amd64` and `arm64` as `.tar.gz`, and `windows_amd64` as `.zip`. Check the archive against `checksums.txt` before extracting it:
+Every release at https://github.com/bidirekt/cli/releases has one archive per system, named `bidirekt_<version>_<os>_<arch>`: `linux` and `darwin` in `amd64` and `arm64`, as `.tar.gz`. Check the archive against `checksums.txt` before extracting it:
 
 ```
 $ curl -sSfLO https://github.com/bidirekt/cli/releases/download/v0.1.0/bidirekt_0.1.0_linux_amd64.tar.gz
@@ -49,7 +49,7 @@ $ bidirekt configure
 Broker URL: https://broker.example.com
 ```
 
-It goes into the `default` profile of `~/.config/bidirekt/config.json` (`$XDG_CONFIG_HOME/bidirekt/config.json` when that is set, `%AppData%\bidirekt\config.json` on Windows, or the file `BIDIREKT_CONFIG_FILE` names). A profile is one broker: a group of companies, or a freelancer working for several clients, keeps one profile per broker and picks it with `--profile` or `BIDIREKT_PROFILE`:
+It goes into the `default` profile of `~/.config/bidirekt/config.json` (`$XDG_CONFIG_HOME/bidirekt/config.json` when that is set, or the file `BIDIREKT_CONFIG_FILE` names). A profile is one broker: a group of companies, or a freelancer working for several clients, keeps one profile per broker and picks it with `--profile` or `BIDIREKT_PROFILE`:
 
 ```
 $ bidirekt configure --profile acme --broker-url https://broker.acme.example

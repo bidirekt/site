@@ -218,7 +218,7 @@ no broker configured — pass --broker-url, set BIDIREKT_BROKER_URL, or run "bid
 
 A profile named with `--profile` or `BIDIREKT_PROFILE` that is not in the config file fails the same way with `profile "acme" not found in <path>`. An invalid URL fails wherever it comes from, naming the source: `invalid broker URL "broker.example.com" (from BIDIREKT_BROKER_URL) — use http:// or https:// followed by a host`.
 
-**Config file.** Profiles live in `~/.config/bidirekt/config.json` (`$XDG_CONFIG_HOME/bidirekt/config.json` when `XDG_CONFIG_HOME` is set, `%AppData%\bidirekt\config.json` on Windows), or in the file `BIDIREKT_CONFIG_FILE` names. `configure` creates it readable only by you:
+**Config file.** Profiles live in `~/.config/bidirekt/config.json` (`$XDG_CONFIG_HOME/bidirekt/config.json` when `XDG_CONFIG_HOME` is set), or in the file `BIDIREKT_CONFIG_FILE` names. `configure` creates it readable only by you:
 
 ```json
 {
