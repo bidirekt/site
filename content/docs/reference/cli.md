@@ -210,7 +210,7 @@ Broker: https://broker.example.com (from BIDIREKT_BROKER_URL)
 Broker: https://broker.example.com (from --broker-url)
 ```
 
-When none of them has a URL, a terminal asks `Broker URL:` and saves the answer to the active profile, so the next run does not ask. Outside a terminal, as in a pipeline, the command fails without calling anything:
+When none of them has a URL, the command fails without calling anything, in a terminal or in a pipeline alike; it never asks. Run `configure` once, then run the command again:
 
 ```
 no broker configured — pass --broker-url, set BIDIREKT_BROKER_URL, or run "bidirekt configure"
