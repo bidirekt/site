@@ -1,5 +1,6 @@
 import type { MouseEvent } from 'react'
 import { useRouter } from '@tanstack/react-router'
+import { docsMarkdownHref } from '#/docs'
 import type { DocsPageContent } from '#/docs'
 import { PrevNext } from '../PrevNext'
 import { EditFooter } from '../EditFooter'
@@ -51,7 +52,10 @@ export function Article({ page, html }: ArticleProps) {
           />
         )}
         <PrevNext prev={page.prev} next={page.next} />
-        <EditFooter editUrl={page.editUrl} />
+        <EditFooter
+          editUrl={page.editUrl}
+          markdownHref={docsMarkdownHref(page.path)}
+        />
       </div>
     </main>
   )
