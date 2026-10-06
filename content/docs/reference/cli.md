@@ -52,6 +52,39 @@ production environment created
 
 Running it again prints `production environment already exists` and exits `0`.
 
+## validate
+
+```
+$ bidirekt validate contracts/*.yaml --participant petstore_web --environment production
+petstore_web local contract can be deployed to production
+```
+
+- `file...`: one or more contract files, `.yaml` or `.yml`, the same files `publish` takes.
+- `--participant`: the participant the files belong to.
+- `--environment`: the environment to check against.
+
+It answers, before you commit, what `can-i-deploy` would answer after a publish: the files are checked as `publish` checks them, then compared with every counterpart deployed in the environment. Nothing is stored: no version, no check.
+
+It exits `0` when the answer is yes and `1` when it is no; the report goes to stdout either way, with the same lines as [`can-i-deploy`](#can-i-deploy):
+
+```
+$ bidirekt validate contracts/*.yaml --participant petstore_web --environment production
+petstore_web local contract cannot be deployed to production
+
+petstore_api (1.4.0, deployed):
+  GET /pets/*
+    response 200:
+      - petstore_web reads "$.status", but petstore_api doesn't provide it → stop reading it, or mark it optional
+      - petstore_web reads "$.weight" as string, but petstore_api provides integer → read it as integer
+
+petstore_reviews:
+  GET /reviews/summary
+    response 200:
+      - petstore_web calls GET /reviews/summary, but petstore_reviews doesn't provide it → stop calling it, or wait until petstore_reviews publishes it
+```
+
+Errors that stop the check go to stderr: an unknown participant fails with `participant not found`, an environment that does not exist with `environment not found`, and a file that breaks the [specification](../contracts/spec.md) prints its violations as [`publish`](#publish) does.
+
 ## publish
 
 ```
@@ -183,6 +216,7 @@ Available Commands:
   publish            Publish one or more contract YAML files to the broker
   record-deployment  Record a deployment of a participant version to an environment
   rename-participant Rename an existing participant on the broker
+  validate           Validate contract YAML files against an environment without publishing them
   version            Print the bidirekt version
 
 Flags:
@@ -234,4 +268,4 @@ A `.env` file in the current directory is not read. A request that gets no answe
 
 **Exit codes.** `0` on success, help and version; `1` for everything else, including a refused publish and a `can-i-deploy` answer of no.
 
-**Output.** Success lines go to stdout and failures to stderr, except the `can-i-deploy` report, which always goes to stdout. In a terminal, success is green and failures are red; `NO_COLOR` turns color off and `CLICOLOR_FORCE=1` keeps it on when the output is piped.
+**Output.** Success lines go to stdout and failures to stderr, except the `can-i-deploy` and `validate` reports, which always go to stdout. In a terminal, success is green and failures are red; `NO_COLOR` turns color off and `CLICOLOR_FORCE=1` keeps it on when the output is piped.
