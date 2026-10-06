@@ -1,4 +1,5 @@
-import { lexer } from 'marked'
+import { lexer, walkTokens } from 'marked'
+import type { Token } from 'marked'
 import { parse } from 'yaml'
 import { parseFrontmatter } from '#/frontmatter'
 import navSource from '../content/docs/nav.yaml?raw'
@@ -26,6 +27,8 @@ type DocsLinkProps =
   { to: '/docs' } | { to: '/docs/$'; params: { _splat: string } }
 
 type NavFields = { label?: unknown; path?: unknown; items?: unknown }
+
+export const SITE_URL = 'https://bidirekt.com'
 
 const OVERVIEW_PATH = 'README.md'
 const PLACEHOLDER_BODY = '> Not written yet.'
@@ -73,11 +76,24 @@ export function docsPathFromSplat(splat: string | undefined): string | null {
 
 export function resolveDocsLink(fromPath: string, href: string): string {
   if (href.startsWith('#') || href.startsWith('http')) return href
-  const hashIndex = href.indexOf('#')
-  if (hashIndex === -1) return docsHref(resolveRelativePath(fromPath, href))
-  const target = href.slice(0, hashIndex)
-  const hash = href.slice(hashIndex)
-  return docsHref(resolveRelativePath(fromPath, target)) + hash
+  const { target, anchor } = targetAndAnchorFromHref(href)
+  return docsHref(resolveRelativePath(fromPath, target)) + anchor
+}
+
+export function docsMarkdownHref(path: string): string {
+  return `/docs/${path}`
+}
+
+export function docsMarkdownUrl(path: string): string {
+  return SITE_URL + docsMarkdownHref(path)
+}
+
+export function docsMarkdownFromPath(path: string): string | null {
+  const page = loadDocsPage(path)
+  if (page === null) return null
+  const body = markdownWithAbsoluteDocsLinks(path, page.body)
+  if (firstTopHeadingText(page.body) !== null) return body
+  return `${markdownHeaderFromPage(page)}\n\n${body.trimStart()}`
 }
 
 export function loadDocsPage(path: string): DocsPageContent | null {
@@ -153,6 +169,71 @@ function resolveRelativePath(fromPath: string, relative: string): string {
     segments.push(segment)
   }
   return segments.join('/')
+}
+
+function targetAndAnchorFromHref(href: string): {
+  target: string
+  anchor: string
+} {
+  const hashIndex = href.indexOf('#')
+  if (hashIndex === -1) return { target: href, anchor: '' }
+  return { target: href.slice(0, hashIndex), anchor: href.slice(hashIndex) }
+}
+
+function markdownHeaderFromPage(page: DocsPageContent): string {
+  if (page.description === null) return `# ${page.title}`
+  return `# ${page.title}\n\n> ${page.description}`
+}
+
+function markdownWithAbsoluteDocsLinks(pagePath: string, body: string): string {
+  let rewritten = ''
+  let cursor = 0
+  for (const token of linkAndCodeTokensFromMarkdown(body)) {
+    const start = body.indexOf(token.raw, cursor)
+    if (start === -1) continue
+    rewritten += body.slice(cursor, start) + sourceFromToken(pagePath, token)
+    cursor = start + token.raw.length
+  }
+  return rewritten + body.slice(cursor)
+}
+
+// Code tokens are collected only to move the cursor past them, so text inside
+// code that repeats a link is never rewritten.
+function linkAndCodeTokensFromMarkdown(body: string): Array<Token> {
+  const found: Array<Token> = []
+  const insideLink = new Set<Token>()
+  walkTokens(lexer(body), (token) => {
+    if (insideLink.has(token)) return
+    if (token.type === 'link') {
+      walkTokens(token.tokens ?? [], (child) => {
+        insideLink.add(child)
+      })
+    }
+    if (['link', 'code', 'codespan'].includes(token.type)) found.push(token)
+  })
+  return found
+}
+
+function sourceFromToken(pagePath: string, token: Token): string {
+  if (token.type !== 'link') return token.raw
+  if (!isRelativeDocsPageHref(token.href)) return token.raw
+  const hrefIndex = token.raw.lastIndexOf(token.href)
+  if (hrefIndex === -1) return token.raw
+  return (
+    token.raw.slice(0, hrefIndex) +
+    docsMarkdownUrlFromHref(pagePath, token.href) +
+    token.raw.slice(hrefIndex + token.href.length)
+  )
+}
+
+function isRelativeDocsPageHref(href: string): boolean {
+  if (href.startsWith('#') || href.startsWith('http')) return false
+  return href.endsWith('.md') || href.includes('.md#')
+}
+
+function docsMarkdownUrlFromHref(pagePath: string, href: string): string {
+  const { target, anchor } = targetAndAnchorFromHref(href)
+  return docsMarkdownUrl(resolveRelativePath(pagePath, target)) + anchor
 }
 
 function firstTopHeadingText(body: string): string | null {
