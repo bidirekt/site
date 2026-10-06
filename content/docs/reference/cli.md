@@ -188,6 +188,27 @@ The participant keeps its versions and deployments, but a provider's published r
 
 Between steps 2 and 3 one side fails with a line such as `petstore_web calls GET /stock/*, but petstore_inventory doesn't provide it → stop calling it, or wait until petstore_inventory publishes it`: consumers still on the old name stop matching once the new version is deployed, and consumers already on the new name fail until it is. Renaming a consumer needs none of this.
 
+## list-participants
+
+```
+$ bidirekt list-participants
+petstore_api
+petstore_reviews
+petstore_web
+```
+
+One name per line, in alphabetical order. Use it to check a participant's exact name before writing it under `consumes` or passing it to a command. With no participants it prints nothing and exits `0`.
+
+## list-environments
+
+```
+$ bidirekt list-environments
+production
+staging
+```
+
+One name per line, in alphabetical order. Use it to check an environment's exact name before passing it to `--environment`. With no environments it prints nothing and exits `0`.
+
 ## version
 
 ```
@@ -213,6 +234,8 @@ Available Commands:
   create-environment Create a new environment on the broker
   create-participant Create a new participant on the broker
   help               Help about any command
+  list-environments  List the environments on the broker
+  list-participants  List the participants on the broker
   publish            Publish one or more contract YAML files to the broker
   record-deployment  Record a deployment of a participant version to an environment
   rename-participant Rename an existing participant on the broker

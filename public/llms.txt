@@ -90,6 +90,8 @@ Every broker command needs a broker URL; there is no default. Resolution: `--bro
 - `bidirekt can-i-deploy <participant> --version <v> --environment <env>` — exit 0 = yes, exit 1 = no; the report goes to stdout either way. Errors: `contract not found` (version never published), `environment not found`, `participant not found`.
 - `bidirekt record-deployment <participant> --version <v> --environment <env>` — run after a successful deploy. Never blocks. Re-recording an earlier version records a rollback.
 - `bidirekt rename-participant <old> <new>` — not idempotent (`participant already exists`). Renaming a provider is a migration: rename → publish and deploy the provider → switch every consumer's `consumes` key.
+- `bidirekt list-participants` — prints every participant name, one per line on stdout, in alphabetical order; nothing when there are none, exit 0. Check names here before writing `consumes`.
+- `bidirekt list-environments` — prints every environment name, one per line on stdout, in alphabetical order; nothing when there are none, exit 0. Check names here before passing `--environment`.
 - `bidirekt version` (or `--version`, `-v`).
 
 Exit codes: 0 on success, help and version; 1 for everything else. Success goes to stdout, failures to stderr, except the `can-i-deploy` and `validate` reports (always stdout).
