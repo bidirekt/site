@@ -33,8 +33,14 @@ const PROMPT_LINE = 'pl-[2ch] -indent-[2ch] text-primary'
 const OUTPUT_LINE = 'text-primary'
 const TERMINAL_OUTPUT_LINE = 'text-secondary'
 const VERDICT_LINE: Array<{ pattern: RegExp; classes: string }> = [
-  { pattern: /^\S+ \S+ cannot be deployed to \S+$/, classes: 'text-failure' },
-  { pattern: /^\S+ \S+ can be deployed to \S+$/, classes: 'text-success' },
+  {
+    pattern: /^\S+ (\S+|local contract) cannot be deployed to \S+$/,
+    classes: 'text-failure',
+  },
+  {
+    pattern: /^\S+ (\S+|local contract) can be deployed to \S+$/,
+    classes: 'text-success',
+  },
 ]
 const WORKING_DIRECTORY = 'text-muted'
 const COMMANDS_NAMING_PARTICIPANT = new Set([

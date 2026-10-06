@@ -2,7 +2,7 @@
 
 > Bidirekt is a static, bidirectional contract testing tool. Each participant (provider or consumer) writes a YAML contract declaring what it provides and what it consumes, publishes it to a broker with the `bidirekt` CLI, and asks `can-i-deploy` before deploying. Nothing is run: the broker compares declarations.
 
-Workflow per participant, in this order: `create-participant` (once) → `publish` (every build) → `can-i-deploy` (before deploy) → deploy → `record-deployment` (after deploy succeeds).
+Workflow per participant, in this order: `create-participant` (once) → `validate` (before commit) → `publish` (every build) → `can-i-deploy` (before deploy) → deploy → `record-deployment` (after deploy succeeds).
 
 ## Contract file
 
@@ -81,6 +81,7 @@ Every broker command needs a broker URL; there is no default. Resolution: `--bro
 - `bidirekt configure [--profile <name>] [--broker-url <url>]` — saves the URL in `~/.config/bidirekt/config.json` (or `$XDG_CONFIG_HOME/bidirekt/config.json`, or `BIDIREKT_CONFIG_FILE`). Without `--broker-url` it prompts; outside a terminal it fails. URL must be `http://` or `https://` plus a host. One profile per broker (account), never per environment.
 - `bidirekt create-participant <name>` — name in snake_case (`participant name must be snake_case`). Idempotent: `already exists` exits 0.
 - `bidirekt create-environment <name>` — e.g. `production`. Idempotent.
+- `bidirekt validate <file>... --participant <name> --environment <env>` — checks the local files as `publish` does, then compares them with every counterpart deployed in `<env>`, as `can-i-deploy` does. Nothing is stored. Exit 0 = yes, exit 1 = no; the report goes to stdout either way, starts with `<participant> local contract can be deployed to <env>` or `<participant> local contract cannot be deployed to <env>`, and carries the same break lines as `can-i-deploy` (see `## Fixing can-i-deploy breaks`). Violations print as in `publish`. Errors: `participant not found`, `environment not found`.
 - `bidirekt publish <file>... --participant <name> --version <label>` — all files publish together as one contract. Participant must exist (`contract participant not found`). Same version with different content fails (`contract version already exists with different content`); versions are immutable. Any spec violation rejects the whole publish and prints every violation:
   ```
   contract validation failed
@@ -91,7 +92,7 @@ Every broker command needs a broker URL; there is no default. Resolution: `--bro
 - `bidirekt rename-participant <old> <new>` — not idempotent (`participant already exists`). Renaming a provider is a migration: rename → publish and deploy the provider → switch every consumer's `consumes` key.
 - `bidirekt version` (or `--version`, `-v`).
 
-Exit codes: 0 on success, help and version; 1 for everything else. Success goes to stdout, failures to stderr, except the `can-i-deploy` report (always stdout).
+Exit codes: 0 on success, help and version; 1 for everything else. Success goes to stdout, failures to stderr, except the `can-i-deploy` and `validate` reports (always stdout).
 
 ## Fixing can-i-deploy breaks
 
