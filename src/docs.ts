@@ -96,13 +96,6 @@ export function docsMarkdownFromPath(path: string): string | null {
   return `${markdownHeaderFromPage(page)}\n\n${body.trimStart()}`
 }
 
-export function llmsTxtFromDocsTree(tree: Array<DocsNode>): string {
-  const sections = tree
-    .map(llmsTxtSectionFromNode)
-    .filter((section) => section !== null)
-  return [...llmsTxtHeaderLines(), ...sections].join('\n\n') + '\n'
-}
-
 export function loadDocsPage(path: string): DocsPageContent | null {
   const index = DOCS_ENTRIES.findIndex((entry) => entry.path === path)
   if (index === -1) return null
@@ -248,41 +241,6 @@ function firstTopHeadingText(body: string): string | null {
     if (token.type === 'heading' && token.depth === 1) return token.text
   }
   return null
-}
-
-function llmsTxtHeaderLines(): Array<string> {
-  const overview = loadDocsPage(OVERVIEW_PATH)
-  if (overview === null) return []
-  const summary = firstParagraphAfterTitle(overview.body)
-  if (summary === null) return [`# ${overview.title}`]
-  return [`# ${overview.title}`, `> ${summary}`]
-}
-
-function firstParagraphAfterTitle(body: string): string | null {
-  const tokens = lexer(body)
-  const titleIndex = tokens.findIndex(
-    (token) => token.type === 'heading' && token.depth === 1,
-  )
-  for (const token of tokens.slice(titleIndex + 1)) {
-    if (token.type === 'paragraph') return token.text
-  }
-  return null
-}
-
-function llmsTxtSectionFromNode(node: DocsNode): string | null {
-  const items = entriesOf(node)
-    .map(llmsTxtItemFromEntry)
-    .filter((item) => item !== null)
-  if (items.length === 0) return null
-  return `## ${node.label}\n\n${items.join('\n')}`
-}
-
-function llmsTxtItemFromEntry(entry: DocsEntry): string | null {
-  const page = loadDocsPage(entry.path)
-  if (page === null || page.isPlaceholder) return null
-  const item = `- [${entry.label}](${docsMarkdownUrl(entry.path)})`
-  if (page.description === null) return item
-  return `${item}: ${page.description}`
 }
 
 function navNode(value: unknown, id: string): DocsNode {

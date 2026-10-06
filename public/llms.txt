@@ -1,0 +1,124 @@
+# Bidirekt
+
+> Bidirekt is a static, bidirectional contract testing tool. Each participant (provider or consumer) writes a YAML contract declaring what it provides and what it consumes, publishes it to a broker with the `bidirekt` CLI, and asks `can-i-deploy` before deploying. Nothing is run: the broker compares declarations.
+
+Workflow per participant, in this order: `create-participant` (once) → `publish` (every build) → `can-i-deploy` (before deploy) → deploy → `record-deployment` (after deploy succeeds).
+
+## Contract file
+
+YAML, extension `.yaml` or `.yml`, one document per file. Three optional top-level keys, nothing else: `provides`, `consumes`, `schemas`. Participant name and version are CLI flags, never keys in the file. One file may carry both `provides` and `consumes`.
+
+```yaml
+# provider petstore_api
+provides:
+  rest:
+    /pets/*:
+      get:
+        responses:
+          200: Pet
+    /pets:
+      post:
+        request: NewPet
+        responses:
+          201: Pet
+          400: Error
+
+# consumer petstore_web: same rest block, nested under the provider's participant name
+consumes:
+  petstore_api:
+    rest:
+      /pets/*:
+        get:
+          responses:
+            200: Pet
+
+schemas:
+  Pet:
+    type: object
+    properties:
+      petId:
+        type: integer
+      name:
+        type: string
+      nickname:
+        type: string
+        optional: true
+  Pets:
+    type: array
+    items:
+      ref: Pet
+```
+
+Rules:
+
+- Resource = one body: the request of (endpoint, method), or one response of (endpoint, method, status). Each is compared on its own.
+- Methods: `get`, `post`, `put`, `delete`, lowercase only. `request` only on `post` and `put`. A method may have only `request`, only `responses`, or both.
+- `request` and each status in `responses` name a schema declared under `schemas`. Never an inline schema. A status without a value (`204:`) is rejected; for an empty body use `type: object` with no properties.
+- Status: integer 100–599, quoted or not. No patterns (`2xx` rejected).
+- Endpoint: starts with `/`, no empty segment. Dynamic segment = `*`, one per segment, unnamed (`/owners/*/pets/*`). `{petId}` and `p*` are rejected; `:petId` is a literal segment that matches nothing. Trailing slash is removed (`/pets/` = `/pets`). Consumer and provider endpoints match only when written identically.
+- Consumer key under `consumes` = the provider's participant name, snake_case. Not checked at publish: a typo publishes and fails at `can-i-deploy` with "doesn't provide it".
+- Schema node `type`: `object`, `array`, `string`, `integer`, `float`, `boolean`. No `number`, no `null`, no enums, no formats. `integer` ≠ `float`.
+- `object` uses `properties`; `array` needs `items`. `type` may be omitted when `properties` or `items` is present.
+- Properties are required unless `optional: true`. There is no `required` list.
+- `ref: <SchemaName>` reuses a named schema at any depth; allowed beside it: only `optional`, `description`. If the node also has `type`/`properties`/`items`, the `ref` is silently ignored. Unknown `ref` is rejected.
+- No recursion: a `ref` loop fails with `schema "Pet" is deeper than 10 levels`. Declare the nested level inline with only the members read.
+- `description` is allowed on any node and ignored.
+- Every unknown key at any level is a violation (`patch`, `GET`, top-level `version`). YAML anchors/aliases are rejected; comments are allowed.
+- Declare only what you use: a consumer lists only the properties it reads or sends; the provider may drop anything else.
+
+Several files: all files of one `publish` are one contract, order irrelevant.
+
+- Schema names are one namespace across files; the same name twice is a duplicate.
+- Provider: each resource declared in exactly one file (endpoints, methods or statuses may be split across files, but the `request` of an endpoint+method lives in one file only). The same file passed twice is a duplicate.
+- Consumer: fragments of the same resource merge. Response: a property is optional only if every fragment marks it optional. Request: required only if every fragment sends it. Different types for one property are rejected.
+
+Not compared (never breaks): headers, query parameters, nullability, enum values, string formats.
+
+## CLI
+
+Every broker command needs a broker URL; there is no default. Resolution: `--broker-url` → `BIDIREKT_BROKER_URL` → the active profile's saved URL. Active profile: `--profile` → `BIDIREKT_PROFILE` → `default`. With none: `no broker configured — pass --broker-url, set BIDIREKT_BROKER_URL, or run "bidirekt configure"`. Global flags go before or after the command. In CI, use `BIDIREKT_BROKER_URL`.
+
+- `bidirekt configure [--profile <name>] [--broker-url <url>]` — saves the URL in `~/.config/bidirekt/config.json` (or `$XDG_CONFIG_HOME/bidirekt/config.json`, or `BIDIREKT_CONFIG_FILE`). Without `--broker-url` it prompts; outside a terminal it fails. URL must be `http://` or `https://` plus a host. One profile per broker (account), never per environment.
+- `bidirekt create-participant <name>` — name in snake_case (`participant name must be snake_case`). Idempotent: `already exists` exits 0.
+- `bidirekt create-environment <name>` — e.g. `production`. Idempotent.
+- `bidirekt publish <file>... --participant <name> --version <label>` — all files publish together as one contract. Participant must exist (`contract participant not found`). Same version with different content fails (`contract version already exists with different content`); versions are immutable. Any spec violation rejects the whole publish and prints every violation:
+  ```
+  contract validation failed
+    - petstore_api.yaml: invalid endpoint "/pets/{petId}" at provides rest, dynamic path segments must use *
+  ```
+- `bidirekt can-i-deploy <participant> --version <v> --environment <env>` — exit 0 = yes, exit 1 = no; the report goes to stdout either way. Errors: `contract not found` (version never published), `environment not found`, `participant not found`.
+- `bidirekt record-deployment <participant> --version <v> --environment <env>` — run after a successful deploy. Never blocks. Re-recording an earlier version records a rollback.
+- `bidirekt rename-participant <old> <new>` — not idempotent (`participant already exists`). Renaming a provider is a migration: rename → publish and deploy the provider → switch every consumer's `consumes` key.
+- `bidirekt version` (or `--version`, `-v`).
+
+Exit codes: 0 on success, help and version; 1 for everything else. Success goes to stdout, failures to stderr, except the `can-i-deploy` report (always stdout).
+
+## Fixing can-i-deploy breaks
+
+Report shape: `<participant> <version> cannot be deployed to <env>`, then one block per incompatible counterpart → endpoint → `request` / `response <status>` → one line per break. `<property>` is a path from the body root: `$.owner.name`, `$[].photoUrl`. Each line ends with `→ <fix>`. Lines and what to change in the contract of the participant under check (or ask the counterpart to change theirs):
+
+- `reads "<p>", but <c> doesn't provide it` → stop reading it, or mark it `optional: true`.
+- `doesn't provide "<p>", but <c> reads it` → keep providing it.
+- `requires "<p>", but <c> only sometimes provides it` → mark it optional.
+- `provides "<p>" only sometimes, but <c> requires it` → keep it required.
+- `doesn't send "<p>", but <c> requires it` → send it.
+- `requires "<p>", but <c> doesn't send it` → make it optional.
+- `sends "<p>" only sometimes, but <c> requires it` → always send it.
+- `requires "<p>", but <c> sends it only sometimes` → make it optional.
+- `reads "<p>" as <t>, but <c> provides <t2>` → read it as `<t2>` (same for provides / sends / expects: align the type).
+- `calls <METHOD> <endpoint>, but <c> doesn't provide it` → stop calling it, or wait until the provider publishes it. Check endpoint spelling (`*` segments), method, status and the provider name under `consumes`.
+- `calls <METHOD> <endpoint>, but <c> is not deployed in <env>` → deploy the provider first.
+- `removed <METHOD> <endpoint>, but <c> still calls it` → keep it until the consumer stops calling it.
+
+Core rule: the side that reads a body decides what must be in it. Response: provider produces, consumer reads. Request: consumer produces, provider reads. A property the reader requires must be declared by the producer, required too, with the same type. A property the reader marks optional may be absent, but if both declare it the types must match. A property the reader does not declare is not checked.
+
+## Docs
+
+- [Specification](https://bidirekt.com/docs/contracts/spec.md): the contract file in full, with examples.
+- [CLI reference](https://bidirekt.com/docs/reference/cli.md): every command, flag, output and error.
+
+## Optional
+
+- [Installation](https://bidirekt.com/docs/guides/installation.md): install the CLI and run the broker.
+- [How the broker works](https://bidirekt.com/docs/concepts/how-the-broker-works.md): what the broker stores and compares.
+- [Contract testing](https://bidirekt.com/docs/concepts/contract-testing.md): why bidirectional, static contracts.
