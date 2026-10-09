@@ -47,6 +47,7 @@ export function Article({ page, html }: ArticleProps) {
         {page.isPlaceholder && <NotWrittenYet page={page} />}
         {!page.isPlaceholder && (
           <article
+            data-pagefind-body
             onClick={onArticleClick}
             dangerouslySetInnerHTML={{ __html: html }}
           />

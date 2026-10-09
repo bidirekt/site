@@ -3,7 +3,6 @@ import { DOCS_TREE, docsLinkProps } from '#/docs'
 
 type DocsSidebarProps = {
   activePath: string
-  query: string
   collapsed: Record<string, boolean>
   onToggleGroup: (label: string) => void
   open: boolean
@@ -24,7 +23,6 @@ const COLLAPSED_SUFFIX = '  ▸'
 
 export function DocsSidebar({
   activePath,
-  query,
   collapsed,
   onToggleGroup,
   open,
@@ -36,7 +34,7 @@ export function DocsSidebar({
       <div className="px-3 pt-1 pb-2 text-[12px] tracking-[0.08em] whitespace-nowrap text-muted uppercase">
         ── pages
       </div>
-      {sidebarRows(query, collapsed).map((row) => (
+      {sidebarRows(collapsed).map((row) => (
         <SidebarRowView
           key={row.label}
           row={row}
@@ -86,25 +84,15 @@ function SidebarRowView({
   )
 }
 
-function sidebarRows(
-  query: string,
-  collapsed: Record<string, boolean>,
-): Array<SidebarRow> {
-  const needle = query.trim().toLowerCase()
+function sidebarRows(collapsed: Record<string, boolean>): Array<SidebarRow> {
   const rows: Array<SidebarRow> = []
   DOCS_TREE.forEach((node, index) => {
     const position = positionOf(index, DOCS_TREE.length)
     const prefix = BRANCH[position]
     if (!('items' in node)) {
-      if (matches(node.label, needle)) {
-        rows.push({ kind: 'page', label: node.label, prefix, path: node.path })
-      }
+      rows.push({ kind: 'page', label: node.label, prefix, path: node.path })
       return
     }
-    const matchingItems = node.items.filter((item) =>
-      matches(item.label, needle),
-    )
-    if (needle !== '' && matchingItems.length === 0) return
     const isCollapsed = collapsed[node.label] === true
     rows.push({
       kind: 'group',
@@ -112,9 +100,8 @@ function sidebarRows(
       prefix,
       collapsed: isCollapsed,
     })
-    if (isCollapsed && needle === '') return
+    if (isCollapsed) return
     node.items.forEach((item, itemIndex) => {
-      if (!matches(item.label, needle)) return
       const childPosition = positionOf(itemIndex, node.items.length)
       rows.push({
         kind: 'page',
@@ -130,10 +117,6 @@ function sidebarRows(
 function positionOf(index: number, length: number): Position {
   if (index === length - 1) return 'last'
   return 'middle'
-}
-
-function matches(label: string, needle: string): boolean {
-  return label.toLowerCase().includes(needle)
 }
 
 function pageColor(active: boolean): string {

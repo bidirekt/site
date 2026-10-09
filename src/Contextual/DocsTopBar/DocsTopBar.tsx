@@ -1,30 +1,11 @@
-import { useEffect, useRef } from 'react'
+import { DocsSearch } from './Components/DocsSearch'
 
 type DocsTopBarProps = {
-  query: string
-  onQueryChange: (query: string) => void
   navOpen: boolean
   onToggleNav: () => void
 }
 
-export function DocsTopBar({
-  query,
-  onQueryChange,
-  navOpen,
-  onToggleNav,
-}: DocsTopBarProps) {
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    function focusSearchOnSlash(event: KeyboardEvent) {
-      if (event.key !== '/' || isTextField(event.target)) return
-      event.preventDefault()
-      inputRef.current?.focus()
-    }
-    window.addEventListener('keydown', focusSearchOnSlash)
-    return () => window.removeEventListener('keydown', focusSearchOnSlash)
-  }, [])
-
+export function DocsTopBar({ navOpen, onToggleNav }: DocsTopBarProps) {
   return (
     <header className="sticky top-0 z-10 border-b border-line bg-page px-4">
       <div className="mx-auto flex h-11 w-full max-w-[1360px] items-center gap-4">
@@ -40,19 +21,7 @@ export function DocsTopBar({
             / docs
           </a>
         </div>
-        <label className="flex min-w-0 flex-1 justify-center">
-          <span className="flex h-7 w-full max-w-[420px] cursor-text items-center gap-2 rounded-[2px] border border-line bg-pane px-2.5 focus-within:border-accent">
-            <span className="text-accent">❯</span>
-            <input
-              ref={inputRef}
-              value={query}
-              onChange={(event) => onQueryChange(event.target.value)}
-              placeholder="search docs"
-              className="min-w-0 flex-1 bg-transparent text-[13px] text-primary outline-none placeholder:text-muted"
-            />
-            <span className="hidden text-[12px] text-muted md:block">/</span>
-          </span>
-        </label>
+        <DocsSearch />
         <a
           href="https://github.com/bidirekt/site"
           target="_blank"
@@ -70,12 +39,6 @@ export function DocsTopBar({
         </button>
       </div>
     </header>
-  )
-}
-
-function isTextField(target: EventTarget | null): boolean {
-  return (
-    target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement
   )
 }
 
