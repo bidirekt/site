@@ -2,6 +2,7 @@ import { lexer, walkTokens } from 'marked'
 import type { Token } from 'marked'
 import { parse } from 'yaml'
 import { parseFrontmatter } from '#/frontmatter'
+import { SITE_URL } from '#/site'
 import navSource from '../content/docs/nav.yaml?raw'
 
 export type DocsNode =
@@ -27,8 +28,6 @@ type DocsLinkProps =
   { to: '/docs' } | { to: '/docs/$'; params: { _splat: string } }
 
 type NavFields = { label?: unknown; path?: unknown; items?: unknown }
-
-export const SITE_URL = 'https://bidirekt.com'
 
 const OVERVIEW_PATH = 'README.md'
 const PLACEHOLDER_BODY = '> Not written yet.'
