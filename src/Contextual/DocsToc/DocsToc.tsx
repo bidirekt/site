@@ -10,7 +10,7 @@ export function DocsToc({ toc }: DocsTocProps) {
   return (
     <aside className="hidden pt-8 pr-4 pb-6 md:sticky md:top-11 md:block md:max-h-[calc(100vh-44px)] md:overflow-y-auto">
       <div className="mb-2 text-[12px] tracking-[0.08em] whitespace-nowrap text-muted uppercase">
-        ── on this page
+        on this page
       </div>
       {toc.map((entry) => (
         <a

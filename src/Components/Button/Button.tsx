@@ -7,9 +7,9 @@ export const button = tv({
   variants: {
     variant: {
       primary:
-        'rounded-[2px] border border-accent px-3 py-1.5 text-[13px] leading-[1.45] text-accent hover:bg-hover hover:text-primary focus-visible:border-accent',
+        'border border-accent px-3 py-1.5 text-[13px] leading-[1.45] text-accent hover:bg-hover hover:text-primary focus-visible:border-accent',
       secondary:
-        'rounded-[2px] border border-line px-3 py-1.5 text-[13px] leading-[1.45] text-primary hover:border-secondary hover:bg-hover focus-visible:border-accent',
+        'border border-line px-3 py-1.5 text-[13px] leading-[1.45] text-primary hover:border-secondary hover:bg-hover focus-visible:border-accent',
       ghost:
         'bg-transparent p-0 text-[12px] text-muted hover:text-accent focus-visible:text-accent',
     },

@@ -32,7 +32,7 @@ export function DocsSidebar({
       className={`${visibility(open)} bg-page pt-4 pb-6 md:sticky md:top-11 md:max-h-[calc(100vh-44px)] md:overflow-x-hidden md:overflow-y-auto`}
     >
       <div className="px-3 pt-1 pb-2 text-[12px] tracking-[0.08em] whitespace-nowrap text-muted uppercase">
-        ── pages
+        pages
       </div>
       {sidebarRows(collapsed).map((row) => (
         <SidebarRowView

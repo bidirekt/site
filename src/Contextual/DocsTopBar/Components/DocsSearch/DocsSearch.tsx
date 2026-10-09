@@ -100,7 +100,7 @@ export function DocsSearch() {
   return (
     <div className="flex min-w-0 flex-1 justify-center">
       <div className="w-full max-w-[420px] md:relative">
-        <label className="flex h-7 cursor-text items-center gap-2 rounded-[2px] border border-line bg-pane px-2.5 focus-within:border-accent">
+        <label className="flex h-7 cursor-text items-center gap-2 border border-line bg-pane px-2.5 focus-within:border-accent">
           <span className="text-accent">❯</span>
           <input
             ref={inputRef}
@@ -119,10 +119,7 @@ export function DocsSearch() {
             onMouseDown={keepInputFocused}
             className="absolute inset-x-0 top-full md:mt-1"
           >
-            <Pane
-              title="search"
-              bodyClassName="max-h-[60vh] overflow-y-auto p-0 py-1"
-            >
+            <Pane bodyClassName="max-h-[60vh] overflow-y-auto p-0 py-1">
               {message !== null && (
                 <div className="px-3 py-1 text-[12px] leading-[1.6] text-muted">
                   {message}

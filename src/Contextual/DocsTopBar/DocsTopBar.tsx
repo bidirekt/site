@@ -39,7 +39,7 @@ export function DocsTopBar({ navOpen, onToggleNav }: DocsTopBarProps) {
         <button
           type="button"
           onClick={onToggleNav}
-          className="cursor-pointer rounded-[2px] border border-line px-2 py-[3px] text-[13px] text-secondary hover:bg-hover hover:text-primary md:hidden"
+          className="cursor-pointer border border-line px-2 py-[3px] text-[13px] text-secondary hover:bg-hover hover:text-primary md:hidden"
         >
           {navToggleLabel(navOpen)}
         </button>

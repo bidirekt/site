@@ -53,22 +53,19 @@ export function ContractsComparison() {
         <p>{INTRO_RIGHT}</p>
       </div>
       <div className={`${GRID} gap-3.5`}>
-        <ContractPanel title="provider" yaml={PROVIDER_YAML} />
-        <ContractPanel title="consumer" yaml={CONSUMER_YAML} />
+        <ContractPanel yaml={PROVIDER_YAML} />
+        <ContractPanel yaml={CONSUMER_YAML} />
       </div>
     </section>
   )
 }
 
-function ContractPanel({ title, yaml }: { title: string; yaml: string }) {
+function ContractPanel({ yaml }: { yaml: string }) {
   return (
-    <div className="flex min-w-0 flex-col rounded-[10px] border border-[#262626] bg-pane">
-      <div className="px-[18px] pt-4 text-[13px]">{title}</div>
-      <div className="flex-1 overflow-x-auto pt-3 pb-4 text-[12.5px] leading-[1.75]">
-        {yaml.split('\n').map((line, index) => (
-          <YamlLine key={index} line={line} />
-        ))}
-      </div>
+    <div className="min-w-0 overflow-x-auto border border-[#262626] bg-pane py-4 text-[12.5px] leading-[1.75]">
+      {yaml.split('\n').map((line, index) => (
+        <YamlLine key={index} line={line} />
+      ))}
     </div>
   )
 }
