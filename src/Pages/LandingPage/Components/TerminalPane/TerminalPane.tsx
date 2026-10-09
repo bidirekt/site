@@ -24,7 +24,7 @@ export function TerminalPane() {
 
   return (
     <section aria-label="Terminal demo" className="pb-[88px]">
-      <div className="min-w-0 overflow-hidden rounded-[10px] border border-[#262626] bg-pane shadow-[0_20px_50px_rgba(0,0,0,0.55)]">
+      <div className="min-w-0 overflow-hidden border border-[#262626] bg-pane shadow-[0_20px_50px_rgba(0,0,0,0.55)]">
         <div
           className="flex gap-[7px] border-b border-[#222] bg-[#161616] px-3.5 py-2.5"
           aria-hidden="true"

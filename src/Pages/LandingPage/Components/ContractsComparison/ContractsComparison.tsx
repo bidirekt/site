@@ -62,7 +62,7 @@ export function ContractsComparison() {
 
 function ContractPanel({ title, yaml }: { title: string; yaml: string }) {
   return (
-    <div className="flex min-w-0 flex-col rounded-[10px] border border-[#262626] bg-pane">
+    <div className="flex min-w-0 flex-col border border-[#262626] bg-pane">
       <div className="px-[18px] pt-4 text-[13px]">{title}</div>
       <div className="flex-1 overflow-x-auto pt-3 pb-4 text-[12.5px] leading-[1.75]">
         {yaml.split('\n').map((line, index) => (

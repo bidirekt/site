@@ -3,7 +3,7 @@ import { tv } from 'tailwind-variants'
 
 export const pane = tv({
   slots: {
-    root: 'flex min-w-0 flex-col rounded-[2px] border border-line bg-pane',
+    root: 'flex min-w-0 flex-col border border-line bg-pane',
     titleBar:
       'flex items-center gap-2 border-b border-line px-3 py-1.5 text-[12px] leading-[1.6] tracking-[0.08em] text-muted',
     title: 'uppercase',
@@ -36,7 +36,7 @@ export function Pane({
     <section className={slots.root({ className })}>
       {title !== undefined && (
         <header className={slots.titleBar()}>
-          <span className={slots.title()}>── {title}</span>
+          <span className={slots.title()}>{title}</span>
           {titleRight !== undefined && (
             <span className={slots.titleRight()}>{titleRight}</span>
           )}

@@ -100,7 +100,7 @@ export function DocsSearch() {
   return (
     <div className="flex min-w-0 flex-1 justify-center">
       <div className="w-full max-w-[420px] md:relative">
-        <label className="flex h-7 cursor-text items-center gap-2 rounded-[2px] border border-line bg-pane px-2.5 focus-within:border-accent">
+        <label className="flex h-7 cursor-text items-center gap-2 border border-line bg-pane px-2.5 focus-within:border-accent">
           <span className="text-accent">❯</span>
           <input
             ref={inputRef}

@@ -22,7 +22,7 @@ const HEADING_BY_DEPTH: Partial<Record<number, string>> = {
 const HEADING_DEEPER = 'mt-8 mb-3 text-[14px]'
 const PARAGRAPH = 'mb-4 text-[14px] leading-[1.7] text-secondary text-pretty'
 const CODESPAN =
-  'rounded-[2px] border border-line bg-hover px-[5px] py-px text-[0.92em] [overflow-wrap:anywhere] text-primary'
+  'border border-line bg-hover px-[5px] py-px text-[0.92em] [overflow-wrap:anywhere] text-primary'
 const STRONG = 'font-semibold text-primary'
 const EM = 'italic text-secondary'
 const LINK = 'text-accent hover:text-primary border-b border-accent/33'
@@ -204,7 +204,7 @@ function renderCodePane(code: string, lang: string): string {
   const terminal =
     SHELL_LANGS.has(lang) && lines.some((line) => line.startsWith('$ '))
   const copy = `<button type="button" data-copy data-pagefind-ignore class="${button({ variant: 'ghost' })}">[ copy ]</button>`
-  const header = `<header class="${slots.titleBar()}"><span class="${slots.title()}">── ${escapeHtml(codeTitle(lang, terminal))}</span><span class="${slots.titleRight()} flex items-center gap-4">${terminalDirectory(lines, terminal)}${copy}</span></header>`
+  const header = `<header class="${slots.titleBar()}"><span class="${slots.title()}">${escapeHtml(codeTitle(lang, terminal))}</span><span class="${slots.titleRight()} flex items-center gap-4">${terminalDirectory(lines, terminal)}${copy}</span></header>`
   return `<section data-code class="${slots.root({ className: 'my-4' })}">${header}<pre class="${PRE}">${renderCodeLines(lines, lang, terminal)}</pre></section>`
 }
 

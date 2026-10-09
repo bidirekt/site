@@ -5,7 +5,7 @@ import { docsLinkProps } from '#/docs'
 type PrevNextProps = { prev: DocsEntry | null; next: DocsEntry | null }
 
 const SIDE =
-  'flex min-w-[200px] flex-1 flex-col gap-1 rounded-[2px] border border-line px-3 py-2.5 hover:border-accent hover:bg-hover'
+  'flex min-w-[200px] flex-1 flex-col gap-1 border border-line px-3 py-2.5 hover:border-accent hover:bg-hover'
 const LABEL = 'text-[12px] tracking-[0.08em] text-muted uppercase'
 const NAME = 'text-[13px] text-primary'
 

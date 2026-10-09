@@ -24,7 +24,7 @@ export function ThreeSteps() {
       {STEPS.map((step) => (
         <div
           key={step.command}
-          className="flex flex-col gap-2.5 rounded-[10px] border border-[#262626] bg-pane px-[18px] pt-5 pb-[22px]"
+          className="flex flex-col gap-2.5 border border-[#262626] bg-pane px-[18px] pt-5 pb-[22px]"
         >
           <div className="text-[13px] text-[#6a6a6a]">
             {step.number} · <span className="text-primary">{step.command}</span>
