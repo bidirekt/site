@@ -3,6 +3,7 @@ import { Eyebrow } from '#/Components/Eyebrow'
 import { Pane } from '#/Components/Pane'
 import { SiteFooter } from '#/Contextual/SiteFooter'
 import { SiteNav } from '#/Contextual/SiteNav'
+import { pageHead } from '#/site'
 
 const TITLE = 'contact'
 const DESCRIPTION =
@@ -14,12 +15,7 @@ const BROKER_RELEASES_URL = 'https://github.com/bidirekt/broker/releases'
 const PANE_TEXT = 'text-[13px] leading-[1.7] text-secondary text-pretty'
 
 export function contactPageHead() {
-  return {
-    meta: [
-      { title: `${TITLE} · bidirekt` },
-      { name: 'description', content: DESCRIPTION },
-    ],
-  }
+  return pageHead('/contact', `${TITLE} · bidirekt`, DESCRIPTION)
 }
 
 export function ContactPage() {

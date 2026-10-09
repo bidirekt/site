@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { docsMarkdownUrl } from '#/docs'
+import { docsHref, docsMarkdownUrl } from '#/docs'
 import type { DocsPageContent } from '#/docs'
 import { renderDocsMarkdown } from '#/markdown'
+import { pageHead } from '#/site'
 import { DocsTopBar } from '#/Contextual/DocsTopBar'
 import { DocsSidebar } from '#/Contextual/DocsSidebar'
 import { DocsToc } from '#/Contextual/DocsToc'
@@ -9,24 +10,19 @@ import { Article } from './Components/Article'
 
 type DocsPageProps = { page: DocsPageContent }
 
-type HeadMeta = { title?: string; name?: string; content?: string }
-
-type HeadLink = { rel: string; type: string; href: string }
-
 export function docsPageHead(page: DocsPageContent | undefined) {
   if (page === undefined) return {}
-  const meta: Array<HeadMeta> = [{ title: `${page.title} · bidirekt docs` }]
-  if (page.description !== null) {
-    meta.push({ name: 'description', content: page.description })
-  }
-  const links: Array<HeadLink> = [
-    {
-      rel: 'alternate',
-      type: 'text/markdown',
-      href: docsMarkdownUrl(page.path),
-    },
-  ]
-  return { meta, links }
+  const head = pageHead(
+    docsHref(page.path),
+    `${page.title} · bidirekt docs`,
+    page.description,
+  )
+  head.links.push({
+    rel: 'alternate',
+    type: 'text/markdown',
+    href: docsMarkdownUrl(page.path),
+  })
+  return head
 }
 
 export function DocsPage({ page }: DocsPageProps) {
