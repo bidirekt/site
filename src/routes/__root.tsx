@@ -45,7 +45,7 @@ function RootShell({ children }: { children: ReactNode }) {
 export function NotFound() {
   return (
     <main className="flex min-h-screen items-center justify-center p-4">
-      <Pane title="not found">
+      <Pane label="not found">
         <Button href="/">[ back to / ]</Button>
       </Pane>
     </main>

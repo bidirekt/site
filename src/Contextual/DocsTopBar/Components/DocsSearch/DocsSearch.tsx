@@ -119,10 +119,7 @@ export function DocsSearch() {
             onMouseDown={keepInputFocused}
             className="absolute inset-x-0 top-full md:mt-1"
           >
-            <Pane
-              title="search"
-              bodyClassName="max-h-[60vh] overflow-y-auto p-0 py-1"
-            >
+            <Pane bodyClassName="max-h-[60vh] overflow-y-auto p-0 py-1">
               {message !== null && (
                 <div className="px-3 py-1 text-[12px] leading-[1.6] text-muted">
                   {message}

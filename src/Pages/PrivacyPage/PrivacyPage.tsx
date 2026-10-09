@@ -38,7 +38,7 @@ export function PrivacyPage() {
           No cookies until you accept.
         </h1>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
-          <Pane title="controller" bodyClassName="flex flex-1 flex-col gap-3">
+          <Pane label="controller" bodyClassName="flex flex-1 flex-col gap-3">
             <p className={PANE_TEXT}>
               Bidirekt and this site are run by Alef Araujo Castelo, the
               controller of the personal data described here. For any privacy
@@ -50,7 +50,7 @@ export function PrivacyPage() {
               </Button>
             </div>
           </Pane>
-          <Pane title="analytics" bodyClassName="flex flex-1 flex-col gap-3">
+          <Pane label="analytics" bodyClassName="flex flex-1 flex-col gap-3">
             <p className={PANE_TEXT}>
               The site uses Google Analytics 4 to count visits and see where
               they come from, such as a YouTube video, a search engine or
@@ -63,7 +63,7 @@ export function PrivacyPage() {
               pings, such as the time, your browser and the page you came from.
             </p>
           </Pane>
-          <Pane title="cookies" bodyClassName="flex flex-1 flex-col gap-3">
+          <Pane label="cookies" bodyClassName="flex flex-1 flex-col gap-3">
             <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-[13px] leading-[1.7] text-secondary">
               {COOKIES.map((cookie) => (
                 <div key={cookie.name} className="contents">
@@ -80,7 +80,7 @@ export function PrivacyPage() {
               site's Google Analytics ID.
             </p>
           </Pane>
-          <Pane title="your data" bodyClassName="flex flex-1 flex-col gap-3">
+          <Pane label="your data" bodyClassName="flex flex-1 flex-col gap-3">
             <p className={PANE_TEXT}>
               The site has no forms and keeps no personal data. Your cookie
               choice is saved only in your browser.
@@ -91,7 +91,7 @@ export function PrivacyPage() {
               logs for security.
             </p>
           </Pane>
-          <Pane title="your choice" bodyClassName="flex flex-1 flex-col gap-3">
+          <Pane label="your choice" bodyClassName="flex flex-1 flex-col gap-3">
             <p className={PANE_TEXT}>
               Change your choice at any time with cookie settings, here or in
               the footer: the banner opens again and the new choice applies at
@@ -102,7 +102,7 @@ export function PrivacyPage() {
               [ cookie settings ]
             </CookieSettingsButton>
           </Pane>
-          <Pane title="your rights" bodyClassName="flex flex-1 flex-col gap-3">
+          <Pane label="your rights" bodyClassName="flex flex-1 flex-col gap-3">
             <p className={PANE_TEXT}>
               Under Brazil's LGPD and the EU's GDPR you can ask whether and how
               your data is processed, get a copy, have it corrected or deleted,

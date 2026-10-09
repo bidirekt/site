@@ -204,8 +204,8 @@ function renderCodePane(code: string, lang: string): string {
   const terminal =
     SHELL_LANGS.has(lang) && lines.some((line) => line.startsWith('$ '))
   const copy = `<button type="button" data-copy data-pagefind-ignore class="${button({ variant: 'ghost' })}">[ copy ]</button>`
-  const header = `<header class="${slots.titleBar()}"><span class="${slots.title()}">${escapeHtml(codeTitle(lang, terminal))}</span><span class="${slots.titleRight()} flex items-center gap-4">${terminalDirectory(lines, terminal)}${copy}</span></header>`
-  return `<section data-code class="${slots.root({ className: 'my-4' })}">${header}<pre class="${PRE}">${renderCodeLines(lines, lang, terminal)}</pre></section>`
+  const label = `<header class="${slots.labelRow()}"><span>${escapeHtml(codeTitle(lang, terminal))}</span><span class="${slots.labelRight()} flex items-center gap-4">${terminalDirectory(lines, terminal)}${copy}</span></header>`
+  return `<section data-code class="${slots.frame({ className: 'my-4' })}">${label}<div class="${slots.root()}"><pre class="${PRE}">${renderCodeLines(lines, lang, terminal)}</pre></div></section>`
 }
 
 function codeTitle(lang: string, terminal: boolean): string {

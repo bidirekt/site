@@ -28,7 +28,6 @@ export function CookieBanner() {
   if (!open) return null
   return (
     <Pane
-      title="cookies"
       className="fixed inset-x-4 bottom-4 z-20 mx-auto max-w-[720px]"
       bodyClassName="flex flex-wrap items-center gap-x-4 gap-y-3"
     >

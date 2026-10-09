@@ -10,7 +10,7 @@ const LINK = 'text-accent hover:text-primary'
 
 export function NotWrittenYet({ page }: NotWrittenYetProps) {
   return (
-    <Pane title="not written yet" className="mt-8" bodyClassName="p-0">
+    <Pane label="not written yet" className="mt-8" bodyClassName="p-0">
       <div className="p-4 text-[13px] leading-[1.7] text-secondary">
         <div>
           <span className="text-accent">$</span> cat {page.path}

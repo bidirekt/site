@@ -3,11 +3,10 @@ import { tv } from 'tailwind-variants'
 
 export const pane = tv({
   slots: {
+    frame: 'flex min-w-0 flex-col gap-2',
+    labelRow: 'flex items-center gap-2 text-[13px] leading-[1.6]',
+    labelRight: 'ml-auto text-[12px] text-muted',
     root: 'flex min-w-0 flex-col border border-line bg-pane',
-    titleBar:
-      'flex items-center gap-2 border-b border-line px-3 py-1.5 text-[12px] leading-[1.6] tracking-[0.08em] text-muted',
-    title: 'uppercase',
-    titleRight: 'ml-auto normal-case tracking-normal',
     body: 'p-4',
     statusBar:
       'flex items-center gap-2 border-t border-line px-3 py-1.5 text-[12px] leading-[1.6] text-muted',
@@ -15,8 +14,7 @@ export const pane = tv({
 })
 
 type PaneProps = {
-  title?: string
-  titleRight?: ReactNode
+  label?: string
   status?: ReactNode
   className?: string
   bodyClassName?: string
@@ -24,24 +22,43 @@ type PaneProps = {
 }
 
 export function Pane({
-  title,
-  titleRight,
+  label,
   status,
   className,
   bodyClassName,
   children,
 }: PaneProps) {
   const slots = pane()
+  if (label === undefined) {
+    return (
+      <PaneBox
+        className={className}
+        bodyClassName={bodyClassName}
+        status={status}
+      >
+        {children}
+      </PaneBox>
+    )
+  }
+  return (
+    <div className={slots.frame({ className })}>
+      <div className={slots.labelRow()}>{label}</div>
+      <PaneBox className="flex-1" bodyClassName={bodyClassName} status={status}>
+        {children}
+      </PaneBox>
+    </div>
+  )
+}
+
+function PaneBox({
+  status,
+  className,
+  bodyClassName,
+  children,
+}: Omit<PaneProps, 'label'>) {
+  const slots = pane()
   return (
     <section className={slots.root({ className })}>
-      {title !== undefined && (
-        <header className={slots.titleBar()}>
-          <span className={slots.title()}>{title}</span>
-          {titleRight !== undefined && (
-            <span className={slots.titleRight()}>{titleRight}</span>
-          )}
-        </header>
-      )}
       <div className={slots.body({ className: bodyClassName })}>{children}</div>
       {status !== undefined && (
         <footer className={slots.statusBar()}>{status}</footer>
