@@ -8,20 +8,11 @@ import { NotWrittenYet } from '../NotWrittenYet'
 
 type ArticleProps = { page: DocsPageContent; html: string }
 
-const COPY_LABEL = '[ copy ]'
-const COPIED_LABEL = '[ copied ]'
-const COPIED_MS = 1200
-
 export function Article({ page, html }: ArticleProps) {
   const router = useRouter()
 
   function onArticleClick(event: MouseEvent<HTMLElement>) {
     if (!(event.target instanceof Element)) return
-    const copyButton = event.target.closest('[data-copy]')
-    if (copyButton !== null) {
-      void copyCode(copyButton)
-      return
-    }
     const anchor = event.target.closest('a')
     if (anchor === null) return
     const href = anchor.getAttribute('href')
@@ -65,26 +56,4 @@ export function Article({ page, html }: ArticleProps) {
 function breadcrumb(page: DocsPageContent): string {
   if (page.group === null) return `docs / ${page.label}`
   return `${page.group} / ${page.label}`
-}
-
-async function copyCode(copyButton: Element) {
-  const pre = copyButton.closest('[data-code]')?.querySelector('pre')
-  if (pre === null || pre === undefined) return
-  try {
-    await navigator.clipboard.writeText(copiedText(pre))
-  } catch {
-    return
-  }
-  copyButton.textContent = COPIED_LABEL
-  copyButton.classList.replace('text-muted', 'text-accent')
-  setTimeout(() => {
-    copyButton.textContent = COPY_LABEL
-    copyButton.classList.replace('text-accent', 'text-muted')
-  }, COPIED_MS)
-}
-
-function copiedText(pre: HTMLPreElement): string {
-  const commands = Array.from(pre.querySelectorAll('[data-command]'))
-  if (commands.length === 0) return pre.textContent
-  return commands.map((command) => command.textContent).join('\n')
 }

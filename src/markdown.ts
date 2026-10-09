@@ -1,6 +1,5 @@
 import { Marked } from 'marked'
 import type { Tokens } from 'marked'
-import { button } from '#/Components/Button'
 import { pane } from '#/Components/Pane'
 import { resolveDocsLink } from '#/docs'
 
@@ -42,13 +41,6 @@ const VERDICT_LINE: Array<{ pattern: RegExp; classes: string }> = [
     classes: 'text-success',
   },
 ]
-const WORKING_DIRECTORY = 'text-muted'
-const COMMANDS_NAMING_PARTICIPANT = new Set([
-  'create-participant',
-  'can-i-deploy',
-  'record-deployment',
-])
-const NOTE_LABEL = 'text-[12px] uppercase tracking-[0.08em] text-muted mb-2'
 const NOTE_CONTENT =
   'text-[14px] leading-[1.7] text-primary [&_p]:text-primary [&_p:last-child]:mb-0'
 const TABLE = 'w-full text-[13px] leading-[1.45]'
@@ -129,7 +121,7 @@ export function renderDocsMarkdown(
         const root = pane().root({
           className: 'my-4 border-l-2 border-l-accent',
         })
-        return `<blockquote class="${root}"><div class="px-4 py-3"><div class="${NOTE_LABEL}">&gt; note</div><div class="${NOTE_CONTENT}">${this.parser.parse(tokens)}</div></div></blockquote>`
+        return `<blockquote class="${root}"><div class="px-4 py-3"><div class="${NOTE_CONTENT}">${this.parser.parse(tokens)}</div></div></blockquote>`
       },
       table(token) {
         const root = pane().root({ className: 'my-4 overflow-x-auto' })
@@ -199,31 +191,10 @@ export function shellLine(line: string): Array<Segment<ShellTone>> {
 }
 
 function renderCodePane(code: string, lang: string): string {
-  const slots = pane()
   const lines = code.split('\n')
   const terminal =
     SHELL_LANGS.has(lang) && lines.some((line) => line.startsWith('$ '))
-  const copy = `<button type="button" data-copy data-pagefind-ignore class="${button({ variant: 'ghost' })}">[ copy ]</button>`
-  const toolbar = `<header class="flex items-center justify-end gap-4 text-[12px] leading-[1.6] text-muted">${terminalDirectory(lines, terminal)}${copy}</header>`
-  return `<section data-code class="my-4 flex min-w-0 flex-col gap-2">${toolbar}<div class="${slots.root()}"><pre class="${PRE}">${renderCodeLines(lines, lang, terminal)}</pre></div></section>`
-}
-
-function terminalDirectory(lines: Array<string>, terminal: boolean): string {
-  if (!terminal) return ''
-  return `<span class="${WORKING_DIRECTORY}">${escapeHtml(workingDirectory(lines))}</span>`
-}
-
-function workingDirectory(lines: Array<string>): string {
-  const command = lines.find((line) => line.startsWith('$ ')) ?? ''
-  const words = command.slice(2).trim().split(/\s+/)
-  const participantFlag = words.indexOf('--participant')
-  if (participantFlag !== -1 && participantFlag + 1 < words.length) {
-    return `~/${words[participantFlag + 1]}`
-  }
-  if (COMMANDS_NAMING_PARTICIPANT.has(words[1]) && words.length > 2) {
-    return `~/${words[2]}`
-  }
-  return '~'
+  return `<section class="${pane().root({ className: 'my-4' })}"><pre class="${PRE}">${renderCodeLines(lines, lang, terminal)}</pre></section>`
 }
 
 // The newline lives inside each block span: between block boxes a preserved
@@ -259,7 +230,7 @@ function terminalLine(line: string): CodeLine {
   if (first.tone === 'prompt') {
     return {
       classes: PROMPT_LINE,
-      inner: `<span class="text-accent">${escapeHtml(first.text)}</span><span data-command>${escapeHtml(second.text)}</span>`,
+      inner: `<span class="text-accent">${escapeHtml(first.text)}</span><span>${escapeHtml(second.text)}</span>`,
     }
   }
   const verdict = VERDICT_LINE.find(({ pattern }) => pattern.test(line))
