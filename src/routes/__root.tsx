@@ -4,6 +4,7 @@ import appCss from '#/styles.css?url'
 import { isSiteLaunched } from '#/site'
 import { Button } from '#/Components/Button'
 import { Pane } from '#/Components/Pane'
+import { CookieBanner, googleAnalyticsScripts } from '#/Contextual/CookieBanner'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -20,6 +21,7 @@ export const Route = createRootRoute({
       },
       { rel: 'stylesheet', href: appCss },
     ],
+    scripts: googleAnalyticsScripts(),
   }),
   notFoundComponent: NotFound,
   shellComponent: RootShell,
@@ -33,6 +35,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <CookieBanner />
         <Scripts />
       </body>
     </html>

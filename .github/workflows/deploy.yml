@@ -30,6 +30,7 @@ jobs:
       - run: npm run build
         env:
           VITE_SITE_LAUNCHED: ${{ vars.SITE_LAUNCHED }}
+          VITE_GA_MEASUREMENT_ID: ${{ vars.GA_MEASUREMENT_ID }}
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist/client
