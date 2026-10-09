@@ -4,6 +4,7 @@ import { Pane } from '#/Components/Pane'
 import { CookieSettingsButton } from '#/Contextual/CookieBanner'
 import { SiteFooter } from '#/Contextual/SiteFooter'
 import { SiteNav } from '#/Contextual/SiteNav'
+import { pageHead } from '#/site'
 
 const TITLE = 'privacy'
 const DESCRIPTION =
@@ -24,12 +25,7 @@ const COOKIES = [
 ]
 
 export function privacyPageHead() {
-  return {
-    meta: [
-      { title: `${TITLE} · bidirekt` },
-      { name: 'description', content: DESCRIPTION },
-    ],
-  }
+  return pageHead('/privacy', `${TITLE} · bidirekt`, DESCRIPTION)
 }
 
 export function PrivacyPage() {

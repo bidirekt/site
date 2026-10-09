@@ -11,6 +11,8 @@ const PITCH_BEFORE_CODE =
 const PITCH_CODE = 'can-i-deploy'
 const PITCH_AFTER_CODE = ', property by property. Nothing has to be running.'
 
+export const HERO_PITCH = PITCH_BEFORE_CODE + PITCH_CODE + PITCH_AFTER_CODE
+
 export function Hero() {
   return (
     <section className="mx-auto w-full max-w-[1200px] px-4 pt-12 pb-8 md:px-6 md:pt-24 md:pb-16">
