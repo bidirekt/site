@@ -27,7 +27,7 @@ export function ContactPage() {
           Talk to the author, follow the releases.
         </h1>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
-          <Pane label="author" bodyClassName="flex flex-1 flex-col gap-3">
+          <Pane bodyClassName="flex flex-1 flex-col gap-3">
             <p className={PANE_TEXT}>
               Bidirekt is built by Alef Castelo. Questions, feedback and ideas
               are welcome on LinkedIn.
@@ -38,7 +38,7 @@ export function ContactPage() {
               </Button>
             </div>
           </Pane>
-          <Pane label="releases" bodyClassName="flex flex-1 flex-col gap-3">
+          <Pane bodyClassName="flex flex-1 flex-col gap-3">
             <p className={PANE_TEXT}>
               Each new version of the CLI and the broker is published as a
               GitHub release. <code className="text-primary">Watch</code> →{' '}
