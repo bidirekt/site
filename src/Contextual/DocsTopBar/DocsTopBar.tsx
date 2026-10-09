@@ -23,6 +23,12 @@ export function DocsTopBar({ navOpen, onToggleNav }: DocsTopBarProps) {
         </div>
         <DocsSearch />
         <a
+          href="/contact"
+          className="hidden text-[13px] whitespace-nowrap text-secondary hover:text-primary md:block"
+        >
+          contact
+        </a>
+        <a
           href="https://github.com/bidirekt/site"
           target="_blank"
           rel="noreferrer"
