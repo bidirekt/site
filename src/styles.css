@@ -3,6 +3,7 @@
 @import '@fontsource/jetbrains-mono/400.css';
 @import '@fontsource/jetbrains-mono/500.css';
 @import '@fontsource/jetbrains-mono/600.css';
+@import '@fontsource/jetbrains-mono/700.css';
 
 * {
   box-sizing: border-box;
@@ -36,6 +37,18 @@ body {
   font-size: 14px;
   line-height: normal;
   -webkit-font-smoothing: antialiased;
+}
+
+/* The landing follows its own design palette; the docs keep the theme's. */
+.landing {
+  --color-page: #0a0a0a;
+  --color-pane: #111111;
+  --color-line: #1e1e1e;
+  --color-primary: #e6e6e6;
+  --color-secondary: #a3a3a3;
+  --color-muted: #7c7c7c;
+  --color-success: #4ade80;
+  --color-failure: #f05252;
 }
 
 ::selection {

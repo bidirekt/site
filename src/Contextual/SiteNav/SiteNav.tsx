@@ -1,31 +1,33 @@
 const GITHUB_URL = 'https://github.com/bidirekt'
-const NAV_LINK =
-  'whitespace-nowrap text-[13px] text-secondary hover:text-primary'
+const NAV_LINK = 'whitespace-nowrap text-secondary hover:text-accent'
 
 export function SiteNav() {
   return (
-    <nav className="sticky top-0 z-10 border-b border-line bg-page px-4">
-      <div className="mx-auto flex h-11 w-full max-w-[1200px] items-center gap-4">
+    <header className="border-b border-line">
+      <nav className="mx-auto flex h-[52px] max-w-[1080px] items-center justify-between gap-4 px-6">
         <a
           href="/"
-          className="flex items-center gap-2 whitespace-nowrap text-[14px] text-primary"
+          className="flex items-center gap-2 text-[17px] font-bold whitespace-nowrap text-[#f2f2f2] hover:text-accent"
         >
-          <span className="text-[22px] leading-none">🤝</span>
-          <span className="text-[20px] font-medium">bidirekt</span>
+          <span aria-hidden="true">🤝</span>bidirekt
         </a>
-        <span className="flex-1" />
-        <a
-          href={GITHUB_URL}
-          target="_blank"
-          rel="noreferrer"
-          className={NAV_LINK}
-        >
-          github ↗
-        </a>
-        <a href="/docs" className={NAV_LINK}>
-          docs ↗
-        </a>
-      </div>
-    </nav>
+        <div className="flex gap-4 text-[13px] min-[400px]:gap-6">
+          <a
+            href={GITHUB_URL}
+            target="_blank"
+            rel="noreferrer"
+            className={NAV_LINK}
+          >
+            github ↗
+          </a>
+          <a href="/docs" className={NAV_LINK}>
+            docs
+          </a>
+          <a href="/llms.txt" className={NAV_LINK}>
+            llms.txt
+          </a>
+        </div>
+      </nav>
+    </header>
   )
 }

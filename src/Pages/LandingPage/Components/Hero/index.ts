@@ -1,1 +1,1 @@
-export { HERO_PITCH, Hero } from './Hero'
+export { Hero } from './Hero'

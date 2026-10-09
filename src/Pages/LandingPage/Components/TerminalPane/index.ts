@@ -1,1 +1,1 @@
-export { TerminalPane, terminalFrame } from './TerminalPane'
+export { TerminalPane } from './TerminalPane'

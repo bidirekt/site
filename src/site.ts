@@ -30,12 +30,13 @@ export function pageHead(
   path: string,
   title: string,
   description: string | null,
+  socialDescription?: string,
 ): { meta: Array<PageHeadMeta>; links: Array<PageHeadLink> } {
   const url = canonicalUrl(path)
   return {
     meta: [
       { title },
-      ...descriptionMeta(description),
+      ...descriptionMeta(description, socialDescription),
       { property: 'og:title', content: title },
       { property: 'og:url', content: url },
       { property: 'og:image', content: OG_IMAGE_URL },
@@ -46,10 +47,13 @@ export function pageHead(
   }
 }
 
-function descriptionMeta(description: string | null): Array<PageHeadMeta> {
+function descriptionMeta(
+  description: string | null,
+  socialDescription?: string,
+): Array<PageHeadMeta> {
   if (description === null) return []
   return [
     { name: 'description', content: description },
-    { property: 'og:description', content: description },
+    { property: 'og:description', content: socialDescription ?? description },
   ]
 }
