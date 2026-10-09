@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && node scripts/write-crawler-files.ts",
+    "build": "vite build && node scripts/write-crawler-files.ts && pagefind --site dist/client",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -36,6 +36,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^9.20.0",
+    "pagefind": "1.5.2",
     "prettier": "^3.8.1",
     "typescript": "^6.0.2",
     "vite": "^8.0.0"

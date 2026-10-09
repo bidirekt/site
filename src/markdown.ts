@@ -203,7 +203,7 @@ function renderCodePane(code: string, lang: string): string {
   const lines = code.split('\n')
   const terminal =
     SHELL_LANGS.has(lang) && lines.some((line) => line.startsWith('$ '))
-  const copy = `<button type="button" data-copy class="${button({ variant: 'ghost' })}">[ copy ]</button>`
+  const copy = `<button type="button" data-copy data-pagefind-ignore class="${button({ variant: 'ghost' })}">[ copy ]</button>`
   const header = `<header class="${slots.titleBar()}"><span class="${slots.title()}">── ${escapeHtml(codeTitle(lang, terminal))}</span><span class="${slots.titleRight()} flex items-center gap-4">${terminalDirectory(lines, terminal)}${copy}</span></header>`
   return `<section data-code class="${slots.root({ className: 'my-4' })}">${header}<pre class="${PRE}">${renderCodeLines(lines, lang, terminal)}</pre></section>`
 }

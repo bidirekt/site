@@ -30,7 +30,6 @@ export function docsPageHead(page: DocsPageContent | undefined) {
 }
 
 export function DocsPage({ page }: DocsPageProps) {
-  const [query, setQuery] = useState('')
   const [navOpen, setNavOpen] = useState(false)
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   const renderedPath = useRef(page.path)
@@ -47,7 +46,6 @@ export function DocsPage({ page }: DocsPageProps) {
   useEffect(() => {
     if (renderedPath.current === page.path) return
     renderedPath.current = page.path
-    setQuery('')
     setNavOpen(false)
   }, [page.path])
 
@@ -61,15 +59,12 @@ export function DocsPage({ page }: DocsPageProps) {
   return (
     <div className="min-h-screen">
       <DocsTopBar
-        query={query}
-        onQueryChange={setQuery}
         navOpen={navOpen}
         onToggleNav={() => setNavOpen((previous) => !previous)}
       />
       <div className="mx-auto grid w-full max-w-[1360px] grid-cols-1 md:grid-cols-[240px_minmax(0,1fr)_200px] md:items-start">
         <DocsSidebar
           activePath={page.path}
-          query={query}
           collapsed={collapsed}
           onToggleGroup={toggleGroup}
           open={navOpen}
