@@ -32,7 +32,7 @@ export function PrivacyPage() {
   return (
     <main className="flex min-h-screen flex-col">
       <SiteNav />
-      <section className="mx-auto w-full max-w-[1200px] px-4 pt-12 pb-8 md:px-6 md:pt-24 md:pb-16">
+      <section className="mx-auto w-full max-w-[1080px] px-6 pt-12 pb-8 md:pt-24 md:pb-16">
         <Eyebrow className="mb-6">── {TITLE}</Eyebrow>
         <h1 className="mb-8 text-[24px] leading-[1.15] font-medium tracking-[-0.01em] text-pretty md:text-[40px]">
           No cookies until you accept.

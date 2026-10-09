@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { tv } from 'tailwind-variants'
 
 export const eyebrow = tv({
-  base: 'text-[12px] leading-[1.6] uppercase tracking-[0.08em] text-muted',
+  base: 'text-[11px] leading-[1.6] uppercase tracking-[0.14em] text-muted',
 })
 
 type EyebrowProps = { className?: string; children: ReactNode }

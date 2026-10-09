@@ -1,124 +1,90 @@
 import { useEffect, useState } from 'react'
-import type { Line, Step, Tone } from './terminalSteps'
-import { Button } from '#/Components/Button'
-import { Pane } from '#/Components/Pane'
-import { TERMINAL_STEPS } from './terminalSteps'
+import type { TerminalLine, Tone } from './terminalLines'
+import { TERMINAL_LINES } from './terminalLines'
 
-type CurrentStep = { command: string; output: Array<Line>; cursor: boolean }
-export type TerminalFrame = {
-  done: Array<Step>
-  current: CurrentStep
-  status: string
-  finished: boolean
-}
+const FIRST_LINE_MS = 400
+const COMMAND_LINE_MS = 900
+const OUTPUT_LINE_MS = 220
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)'
+const PROMPT = 'petstore_web ❯'
 
-const TICK_MS = 40
-const TYPED_PAUSE_TICKS = 3
-const TICKS_PER_OUTPUT_LINE = 2
-const STEP_PAUSE_TICKS = 14
-const TYPING_STATUS = 'typing…'
-const PROMPT = '$ '
-const IDLE_PROMPT: CurrentStep = { command: '', output: [], cursor: true }
-
-const LINE = 'min-h-[1.45em] whitespace-pre-wrap [overflow-wrap:anywhere]'
-const CURSOR =
-  'ml-px inline-block h-[15px] w-2 bg-accent align-[-3px] animate-[blink_1s_steps(1)_infinite]'
 const TONE_CLASS: Record<Tone, string> = {
-  primary: 'text-primary',
+  plain: '',
   failure: 'text-failure',
   success: 'text-success',
   muted: 'text-muted',
 }
+const LINE = 'px-[18px] transition-opacity duration-200 ease-[ease]'
+const DOT = 'size-[11px] rounded-full'
+const CURSOR =
+  'inline-block h-[15px] w-2 bg-accent align-[-2px] animate-[blink_1s_steps(1)_infinite] motion-reduce:animate-none'
 
-export function terminalFrame(steps: Array<Step>, tick: number): TerminalFrame {
-  const done: Array<Step> = []
-  let remaining = tick
-  for (const step of steps) {
-    const typed = Math.min(remaining, step.command.length)
-    if (typed < step.command.length) {
-      const command = step.command.slice(0, typed)
-      const current = { command, output: [], cursor: true }
-      return { done, current, status: TYPING_STATUS, finished: false }
-    }
-    remaining -= step.command.length + TYPED_PAUSE_TICKS
-    const revealed = Math.floor(remaining / TICKS_PER_OUTPUT_LINE)
-    const shown = Math.min(step.output.length, Math.max(0, revealed))
-    const current = {
-      command: step.command,
-      output: step.output.slice(0, shown),
-      cursor: false,
-    }
-    if (shown < step.output.length) {
-      return { done, current, status: step.running, finished: false }
-    }
-    remaining -= step.output.length * TICKS_PER_OUTPUT_LINE
-    if (remaining < STEP_PAUSE_TICKS) {
-      return { done, current, status: step.done, finished: false }
-    }
-    remaining -= STEP_PAUSE_TICKS
-    done.push(step)
-  }
-  const last = steps[steps.length - 1]
-  return { done, current: IDLE_PROMPT, status: last.done, finished: true }
-}
-
-function nextTick(tick: number): number {
-  if (terminalFrame(TERMINAL_STEPS, tick).finished) return tick
-  return tick + 1
-}
-
-type TerminalPaneProps = { className?: string }
-
-export function TerminalPane({ className }: TerminalPaneProps) {
-  const [tick, setTick] = useState(0)
-  const frame = terminalFrame(TERMINAL_STEPS, tick)
-
-  useEffect(() => {
-    const interval = setInterval(() => setTick(nextTick), TICK_MS)
-    return () => clearInterval(interval)
-  }, [])
+export function TerminalPane() {
+  const shown = useLineReplay()
 
   return (
-    <Pane
-      title="terminal"
-      titleRight="~/petstore_web"
-      className={className}
-      bodyClassName="min-h-[360px] text-[13px] leading-[1.45] md:min-h-[420px]"
-      status={
-        <div className="flex min-w-0 flex-1 items-center justify-between gap-4 overflow-hidden whitespace-nowrap">
-          <span>{frame.status}</span>
-          <Button variant="ghost" onClick={() => setTick(0)}>
-            [ replay ]
-          </Button>
+    <section aria-label="Terminal demo" className="pb-[88px]">
+      <div className="min-w-0 overflow-hidden rounded-[10px] border border-[#262626] bg-pane shadow-[0_20px_50px_rgba(0,0,0,0.55)]">
+        <div
+          className="flex gap-[7px] border-b border-[#222] bg-[#161616] px-3.5 py-2.5"
+          aria-hidden="true"
+        >
+          <span className={`${DOT} bg-[#3a3a3a]`} />
+          <span className={`${DOT} bg-[#3a3a3a]`} />
+          <span className={`${DOT} bg-accent`} />
         </div>
-      }
-    >
-      {frame.done.map((step) => (
-        <StepLines key={step.command} step={step} cursor={false} />
-      ))}
-      <StepLines step={frame.current} cursor={frame.current.cursor} />
-    </Pane>
+        <div className="overflow-x-auto py-[18px] text-[13px] leading-[1.75]">
+          {TERMINAL_LINES.map((line, index) => (
+            <pre key={index} className={lineClass(line, index < shown)}>
+              <LineText line={line} />
+            </pre>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }
 
-type StepLinesProps = {
-  step: { command: string; output: Array<Line> }
-  cursor: boolean
-}
-
-function StepLines({ step, cursor }: StepLinesProps) {
+function LineText({ line }: { line: TerminalLine }) {
   return (
     <>
-      <div className={LINE}>
-        <span className="text-accent">{PROMPT}</span>
-        <span className="text-primary">{step.command}</span>
-        {cursor && <span className={CURSOR} />}
-      </div>
-      {step.output.map((line, index) => (
-        <div key={index} className={`${LINE} ${TONE_CLASS[line.tone]}`}>
-          {line.text}
-        </div>
-      ))}
+      {line.command && <span className="text-accent">{PROMPT} </span>}
+      {line.text}
+      {line.hint !== undefined && (
+        <span className="text-accent">{line.hint}</span>
+      )}
+      {line.cursor && <span className={CURSOR} />}
     </>
   )
+}
+
+function lineClass(line: TerminalLine, visible: boolean): string {
+  const classes = [LINE, TONE_CLASS[line.tone]]
+  if (line.gapBefore) classes.push('mt-5')
+  if (!visible) classes.push('opacity-0')
+  return classes.join(' ')
+}
+
+function useLineReplay(): number {
+  const [shown, setShown] = useState(TERMINAL_LINES.length)
+
+  useEffect(() => {
+    if (window.matchMedia(REDUCED_MOTION).matches) return
+    let timer: ReturnType<typeof setTimeout>
+    const reveal = (count: number) => {
+      setShown(count)
+      if (count === TERMINAL_LINES.length) return
+      timer = setTimeout(() => reveal(count + 1), revealDelay(count))
+    }
+    reveal(0)
+    return () => clearTimeout(timer)
+  }, [])
+
+  return shown
+}
+
+function revealDelay(index: number): number {
+  if (index === 0) return FIRST_LINE_MS
+  if (TERMINAL_LINES[index].command) return COMMAND_LINE_MS
+  return OUTPUT_LINE_MS
 }
