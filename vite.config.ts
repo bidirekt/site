@@ -6,7 +6,10 @@ import viteReact from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [
     tailwindcss(),
-    tanstackStart({ prerender: { enabled: true, crawlLinks: true } }),
+    tanstackStart({
+      prerender: { enabled: true, crawlLinks: true },
+      pages: [{ path: '/404', prerender: { outputPath: '/404.html' } }],
+    }),
     viteReact(),
   ],
   resolve: { tsconfigPaths: true },

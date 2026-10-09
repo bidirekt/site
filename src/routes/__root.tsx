@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import appCss from '#/styles.css?url'
+import { isSiteLaunched } from '#/site'
 import { Button } from '#/Components/Button'
 import { Pane } from '#/Components/Pane'
 
@@ -10,6 +11,7 @@ export const Route = createRootRoute({
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: 'bidirekt' },
+      ...noindexUntilLaunch(),
     ],
     links: [
       {
@@ -37,7 +39,7 @@ function RootShell({ children }: { children: ReactNode }) {
   )
 }
 
-function NotFound() {
+export function NotFound() {
   return (
     <main className="flex min-h-screen items-center justify-center p-4">
       <Pane title="not found">
@@ -45,4 +47,9 @@ function NotFound() {
       </Pane>
     </main>
   )
+}
+
+function noindexUntilLaunch(): Array<{ name: string; content: string }> {
+  if (isSiteLaunched(import.meta.env)) return []
+  return [{ name: 'robots', content: 'noindex' }]
 }
