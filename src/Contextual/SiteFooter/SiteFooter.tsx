@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 import type { ReactNode } from 'react'
+import { CookieSettingsButton } from '#/Contextual/CookieBanner'
 import { REPOS, useLatestReleases } from './useLatestReleases'
 import type { LatestRelease, Repo } from './useLatestReleases'
 
@@ -25,7 +26,7 @@ export function SiteFooter() {
             ))}
           </span>
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-x-4 gap-y-1">
           <a href="/docs" className={FOOTER_LINK}>
             docs
           </a>
@@ -35,6 +36,12 @@ export function SiteFooter() {
           <a href="/contact" className={FOOTER_LINK}>
             contact
           </a>
+          <a href="/privacy" className={FOOTER_LINK}>
+            privacy
+          </a>
+          <CookieSettingsButton variant="ghost">
+            cookie settings
+          </CookieSettingsButton>
           <ExternalLink href={GITHUB_URL}>github</ExternalLink>
         </div>
       </div>
