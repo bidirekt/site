@@ -14,6 +14,9 @@ export function SiteFooter() {
           <a href="/llms.txt" className={FOOTER_LINK}>
             llms.txt
           </a>
+          <a href="/contact" className={FOOTER_LINK}>
+            contact
+          </a>
           <a
             href={GITHUB_URL}
             target="_blank"
