@@ -4,6 +4,21 @@
 
 Workflow per participant, in this order: `create-participant` (once) → `validate` (before commit) → `publish` (every build) → `can-i-deploy` (before deploy) → deploy → `record-deployment` (after deploy succeeds).
 
+## Setup
+
+Install the CLI (Linux and macOS, `x86_64` and `arm64`):
+
+```
+curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/main/install.sh | sh
+```
+
+Point it at your broker, once per machine. `bidirekt configure` asks for the URL; `bidirekt configure --broker-url <url>` never asks:
+
+```
+bidirekt configure
+bidirekt configure --broker-url <url>
+```
+
 ## Contract file
 
 YAML, extension `.yaml` or `.yml`, one document per file. Three optional top-level keys, nothing else: `provides`, `consumes`, `schemas`. Participant name and version are CLI flags, never keys in the file. One file may carry both `provides` and `consumes`.
