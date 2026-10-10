@@ -3,7 +3,7 @@ title: Installation
 description: How to install the bidirekt CLI and run the broker.
 ---
 
-Bidirekt has two parts: the `bidirekt` CLI, which every pipeline and developer machine runs, and the broker, one server with its Postgres database that stores contracts and deployments. [CLI](#cli) installs the client, [Broker](#broker) puts the server in production, and [Running local](#running-local) starts both on your machine to try them.
+Bidirekt has two parts: the `bidirekt` CLI, which every pipeline and developer machine runs, and the broker, one server with its Postgres database that stores contracts and deployments. [CLI](#cli) installs the client, [Broker](#broker) puts the server in production, [Running local](#running-local) starts both on your machine to try them, and [Agent skill](#agent-skill) lets your coding agent write the contracts.
 
 ## CLI
 
@@ -197,4 +197,24 @@ $ bidirekt configure --profile local --broker-url http://localhost:8080
 $ bidirekt create-environment production --profile local
 Broker: http://localhost:8080 (profile: local)
 production environment created
+```
+
+## Agent skill
+
+The `bidirekt` skill lets a coding agent write and update the service's contract files from its code, check them with the CLI's read-only commands, and fix them from a `can-i-deploy` report. It needs the CLI and a broker, and reads https://bidirekt.com/llms.txt on every run. Install it in the current project:
+
+```
+$ npx skills add bidirekt/skills
+```
+
+`-g` installs it for every project:
+
+```
+$ npx skills add bidirekt/skills -g
+```
+
+The skill follows the `main` branch of https://github.com/bidirekt/skills. Update it with:
+
+```
+$ npx skills update
 ```

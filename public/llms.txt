@@ -19,6 +19,12 @@ bidirekt configure
 bidirekt configure --broker-url <url>
 ```
 
+Install the agent skill that writes and fixes the contract files from the code:
+
+```
+npx skills add bidirekt/skills
+```
+
 ## Contract file
 
 YAML, extension `.yaml` or `.yml`, one document per file. Three optional top-level keys, nothing else: `provides`, `consumes`, `schemas`. Participant name and version are CLI flags, never keys in the file. One file may carry both `provides` and `consumes`.
