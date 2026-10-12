@@ -74,8 +74,8 @@ petstore_web local contract cannot be deployed to production
 petstore_api (1.4.0, deployed):
   GET /pets/*
     response 200:
-      - petstore_web reads "$.status", but petstore_api doesn't provide it → stop reading it, or mark it optional
-      - petstore_web reads "$.weight" as string, but petstore_api provides integer → read it as integer
+      - petstore_web reads "$.status" (Pet.status), but petstore_api doesn't provide it → stop reading it, or mark it optional
+      - petstore_web reads "$.weight" (Pet.weight) as string, but petstore_api provides integer → read it as integer
 
 petstore_reviews:
   GET /reviews/summary
@@ -126,8 +126,8 @@ petstore_web 2.3.0 cannot be deployed to production
 petstore_api (1.4.0, deployed):
   GET /pets/*
     response 200:
-      - petstore_web reads "$.status", but petstore_api doesn't provide it → stop reading it, or mark it optional
-      - petstore_web reads "$.weight" as string, but petstore_api provides integer → read it as integer
+      - petstore_web reads "$.status" (Pet.status), but petstore_api doesn't provide it → stop reading it, or mark it optional
+      - petstore_web reads "$.weight" (Pet.weight) as string, but petstore_api provides integer → read it as integer
 
 petstore_reviews:
   GET /reviews/summary
@@ -139,23 +139,32 @@ One block per counterpart that is not compatible, with the version of it deploye
 
 | Line | When |
 |---|---|
-| `<participant> reads "<property>", but <counterpart> doesn't provide it → stop reading it, or mark it optional` | response: the participant requires a property the provider does not declare |
+| `<participant> reads "<property>" (<field>), but <counterpart> doesn't provide it → stop reading it, or mark it optional` | response: the participant requires a property the provider does not declare |
 | `<participant> doesn't provide "<property>", but <counterpart> reads it → keep providing it` | response: the consumer requires a property the participant does not declare |
-| `<participant> requires "<property>", but <counterpart> only sometimes provides it → mark it optional` | response: the participant requires a property the provider marks optional |
-| `<participant> provides "<property>" only sometimes, but <counterpart> requires it → keep it required` | response: the consumer requires a property the participant marks optional |
+| `<participant> requires "<property>" (<field>), but <counterpart> only sometimes provides it → mark it optional` | response: the participant requires a property the provider marks optional |
+| `<participant> provides "<property>" (<field>) only sometimes, but <counterpart> requires it → keep it required` | response: the consumer requires a property the participant marks optional |
 | `<participant> doesn't send "<property>", but <counterpart> requires it → send it` | request: the provider requires a property the participant does not send |
-| `<participant> requires "<property>", but <counterpart> doesn't send it → make it optional` | request: the participant requires a property the consumer does not send |
-| `<participant> sends "<property>" only sometimes, but <counterpart> requires it → always send it` | request: the provider requires a property the participant marks optional |
-| `<participant> requires "<property>", but <counterpart> sends it only sometimes → make it optional` | request: the participant requires a property the consumer marks optional |
-| `<participant> reads "<property>" as <type>, but <counterpart> provides <counterpart type> → read it as <counterpart type>` | response: the participant reads the property with a different type than the provider declares |
-| `<participant> provides "<property>" as <type>, but <counterpart> reads <counterpart type> → provide <counterpart type>` | response: the participant declares the property with a different type than the consumer reads |
-| `<participant> sends "<property>" as <type>, but <counterpart> expects <counterpart type> → send <counterpart type>` | request: the participant sends the property with a different type than the provider declares |
-| `<participant> expects "<property>" as <type>, but <counterpart> sends <counterpart type> → accept <counterpart type>` | request: the participant declares the property with a different type than the consumer sends |
+| `<participant> requires "<property>" (<field>), but <counterpart> doesn't send it → make it optional` | request: the participant requires a property the consumer does not send |
+| `<participant> sends "<property>" (<field>) only sometimes, but <counterpart> requires it → always send it` | request: the provider requires a property the participant marks optional |
+| `<participant> requires "<property>" (<field>), but <counterpart> sends it only sometimes → make it optional` | request: the participant requires a property the consumer marks optional |
+| `<participant> reads "<property>" (<field>) as <type>, but <counterpart> provides <counterpart type> → read it as <counterpart type>` | response: the participant reads the property with a different type than the provider declares |
+| `<participant> provides "<property>" (<field>) as <type>, but <counterpart> reads <counterpart type> → provide <counterpart type>` | response: the participant declares the property with a different type than the consumer reads |
+| `<participant> sends "<property>" (<field>) as <type>, but <counterpart> expects <counterpart type> → send <counterpart type>` | request: the participant sends the property with a different type than the provider declares |
+| `<participant> expects "<property>" (<field>) as <type>, but <counterpart> sends <counterpart type> → accept <counterpart type>` | request: the participant declares the property with a different type than the consumer sends |
 | `<participant> calls <METHOD> <endpoint>, but <counterpart> doesn't provide it → stop calling it, or wait until <counterpart> publishes it` | the participant names an endpoint, method or status that no published contract of the provider declares, or a provider that does not exist |
 | `<participant> calls <METHOD> <endpoint>, but <counterpart> is not deployed in <environment> (deployed in: <environments>) → deploy <counterpart> first` | the provider is not deployed in the target environment; the parenthesis is left out when it is deployed nowhere |
 | `<participant> removed <METHOD> <endpoint>, but <counterpart> still calls it → keep it until <counterpart> stops calling it` | the participant dropped a resource that a consumer deployed in the environment still consumes |
 
-`<property>` is written from the root of the body: `$.owner.name` for a member, `$[].photoUrl` for a member of each array item. An array type prints its item type, such as `array<object>`. Which side's required properties count is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
+`<property>` is written from the root of the body: `$.owner.name` for a member, `$[].photoUrl` for a member of each array item; the root itself prints as `the body`, without quotes. An array type prints its item type, such as `array<object>`.
+
+`<field>` is the field of `<participant>` at that path: the schema name and the path inside that schema, the place to edit in the participant's own contract. `Order.items[].sku` is a member of each array item, `Pets{}.name` a member of each map value, and at the root it is only the schema name:
+
+```
+spa reads "$.billing.city" (Address.city), but api doesn't provide it → stop reading it, or mark it optional
+spa reads the body (Order) as object, but api provides array<object> → read it as array<object>
+```
+
+The parentheses are left out when `<participant>` has no field at that path, as in the `doesn't provide` and `doesn't send` lines. A difference inside a schema used in several places is reported once, so `<property>` is one of the paths that reach it. Which side's required properties count is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
 
 ## record-deployment
 

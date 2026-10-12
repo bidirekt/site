@@ -82,7 +82,7 @@ Rules:
 - `object` uses `properties`; `array` needs `items`. `type` may be omitted when `properties` or `items` is present.
 - Properties are required unless `optional: true`. There is no `required` list.
 - `ref: <SchemaName>` reuses a named schema at any depth; allowed beside it: only `optional`, `description`. If the node also has `type`/`properties`/`items`, the `ref` is silently ignored. Unknown `ref` is rejected.
-- No recursion: a `ref` loop fails with `schema "Pet" is deeper than 10 levels`. Declare the nested level inline with only the members read.
+- Recursion is allowed: a schema may `ref` itself directly or indirectly (`Comment.replies[] → Comment`, `Post.author → User` / `User.posts[] → Post`). No depth limit.
 - `description` is allowed on any node and ignored.
 - Every unknown key at any level is a violation (`patch`, `GET`, top-level `version`). YAML anchors/aliases are rejected; comments are allowed.
 - Declare only what you use: a consumer lists only the properties it reads or sends; the provider may drop anything else.
@@ -119,17 +119,22 @@ Exit codes: 0 on success, help and version; 1 for everything else. Success goes 
 
 ## Fixing can-i-deploy breaks
 
-Report shape: `<participant> <version> cannot be deployed to <env>`, then one block per incompatible counterpart → endpoint → `request` / `response <status>` → one line per break. `<property>` is a path from the body root: `$.owner.name`, `$[].photoUrl`. Each line ends with `→ <fix>`. Lines and what to change in the contract of the participant under check (or ask the counterpart to change theirs):
+Report shape: `<participant> <version> cannot be deployed to <env>`, then one block per incompatible counterpart → endpoint → `request` / `response <status>` → one line per break. `<property>` is a path from the body root: `$.owner.name`, `$[].photoUrl`; the root prints as `the body`, unquoted. Right after it, in parentheses, comes `<f>`, the field of the participant under check: schema name + path inside that schema (`Address.city`, `Order.items[].sku` for array items, `Pets{}.name` for map values, only `Order` at the root). That is the schema to edit in its contract. No parentheses when that participant has no field there (the `doesn't provide` and `doesn't send` lines). A difference inside a schema used in several places is reported once, with one of the paths that reach it:
+  ```
+  spa reads "$.billing.city" (Address.city), but api doesn't provide it → stop reading it, or mark it optional
+  spa reads the body (Order) as object, but api provides array<object> → read it as array<object>
+  ```
+Each line ends with `→ <fix>`. Lines and what to change in the contract of the participant under check (or ask the counterpart to change theirs):
 
-- `reads "<p>", but <c> doesn't provide it` → stop reading it, or mark it `optional: true`.
+- `reads "<p>" (<f>), but <c> doesn't provide it` → stop reading it, or mark it `optional: true`.
 - `doesn't provide "<p>", but <c> reads it` → keep providing it.
-- `requires "<p>", but <c> only sometimes provides it` → mark it optional.
-- `provides "<p>" only sometimes, but <c> requires it` → keep it required.
+- `requires "<p>" (<f>), but <c> only sometimes provides it` → mark it optional.
+- `provides "<p>" (<f>) only sometimes, but <c> requires it` → keep it required.
 - `doesn't send "<p>", but <c> requires it` → send it.
-- `requires "<p>", but <c> doesn't send it` → make it optional.
-- `sends "<p>" only sometimes, but <c> requires it` → always send it.
-- `requires "<p>", but <c> sends it only sometimes` → make it optional.
-- `reads "<p>" as <t>, but <c> provides <t2>` → read it as `<t2>` (same for provides / sends / expects: align the type).
+- `requires "<p>" (<f>), but <c> doesn't send it` → make it optional.
+- `sends "<p>" (<f>) only sometimes, but <c> requires it` → always send it.
+- `requires "<p>" (<f>), but <c> sends it only sometimes` → make it optional.
+- `reads "<p>" (<f>) as <t>, but <c> provides <t2>` → read it as `<t2>` (same for provides / sends / expects: align the type).
 - `calls <METHOD> <endpoint>, but <c> doesn't provide it` → stop calling it, or wait until the provider publishes it. Check endpoint spelling (`*` segments), method, status and the provider name under `consumes`.
 - `calls <METHOD> <endpoint>, but <c> is not deployed in <env>` → deploy the provider first.
 - `removed <METHOD> <endpoint>, but <c> still calls it` → keep it until the consumer stops calling it.

@@ -26,12 +26,12 @@ export const TERMINAL_LINES: Array<TerminalLine> = [
   { text: '  GET /pets/*', tone: 'plain' },
   { text: '    response 200:', tone: 'plain' },
   {
-    text: '      - petstore_web reads "$.status", but petstore_api doesn\'t provide it → ',
+    text: '      - petstore_web reads "$.status" (Pet.status), but petstore_api doesn\'t provide it → ',
     tone: 'failure',
     hint: 'stop reading it, or mark it optional',
   },
   {
-    text: '      - petstore_web reads "$.weight" as string, but petstore_api provides integer → ',
+    text: '      - petstore_web reads "$.weight" (Pet.weight) as string, but petstore_api provides integer → ',
     tone: 'failure',
     hint: 'read it as integer',
   },
