@@ -214,29 +214,20 @@ Pet:
 
 Here `owner` is a `string`, and `Owner` is never read. A `ref` to a name no schema declares is rejected at publish.
 
-A schema cannot reach itself: a loop such as `Pet` → `Owner` → `Pet` is rejected with `schema "Pet" is deeper than 10 levels`. To describe a recursive body, declare the nested level with only the members that are read, and stop there:
+A schema may point to itself, directly or through other schemas. Here each reply of a `Comment` is a `Comment`:
 
 ```yaml
-Pet:
+Comment:
   type: object
   properties:
-    name:
+    text:
       type: string
-    owner:
-      ref: Owner
-Owner:
-  type: object
-  properties:
-    name:
-      type: string
-    favorite:
-      type: object
-      properties:
-        name:
-          type: string
+    replies:
+      items:
+        ref: Comment
 ```
 
-`Owner.favorite` is a pet, but it is declared inline with the one member the reader uses, instead of a `ref` back to `Pet`.
+The loop can also pass through other schemas, such as `Post.author` pointing to `User` and `User.posts` back to `Post`. There is no depth limit, and a difference inside a recursive schema is reported once.
 
 ## Several files
 
