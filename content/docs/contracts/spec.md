@@ -54,7 +54,7 @@ A resource is one body the two sides exchange: the request of an endpoint and me
 
 That name is the provider's participant name, in snake_case: lowercase letters, digits and single underscores. It is not checked against existing participants at publish, so a misspelled name, such as `petstore_apl` for `petstore_api`, publishes fine and fails at `can-i-deploy` with `petstore_web calls GET /pets/*, but petstore_apl doesn't provide it → stop calling it, or wait until petstore_apl publishes it`.
 
-Each name on the right of `request` and `responses` is a schema name declared under `schemas`, never an inline schema.
+The value of `request` and of each status in `responses` is the name of a schema declared under `schemas`, never an inline schema, or `~` for a body the contract does not describe.
 
 ### Request
 
@@ -66,7 +66,7 @@ provides:
         request: NewPet
 ```
 
-`request` names the schema of the request body. A body exists only on `post` and `put`, so `request` is accepted on those two methods and nowhere else. A method needs nothing more than its `request`: the resource above is complete without any `responses`.
+`request` names the schema of the request body. A body exists only on `post`, `put` and `patch`, so `request` is accepted on those three methods and nowhere else. A method needs nothing more than its `request`: the resource above is complete without any `responses`.
 
 ### Response
 
@@ -96,7 +96,9 @@ provides:
 
 This declares three resources: the request of `POST /pets`, its `201` response and its `500` response. Each one is compared on its own: a break in the `500` does not involve the `201`.
 
-Every status names a schema, even one without a body. A `204` names an object schema with no properties:
+### Bodies not described
+
+`~` in place of a schema name says that the contract does not describe the body: the provider promises no structure, and the consumer reads nothing from it. A status left without a value, such as `204:`, is the same `~`, since YAML reads both as null. It fits a response without a body, a file download and a multipart upload:
 
 ```yaml
 provides:
@@ -104,14 +106,29 @@ provides:
     /pets/*:
       delete:
         responses:
-          204: NoContent
-
-schemas:
-  NoContent:
-    type: object
+          204:
+    /files/*:
+      get:
+        responses:
+          200: ~
+    /files:
+      post:
+        request: ~
+        responses:
+          201: File
 ```
 
-A status left without a value, such as `204:`, is rejected.
+The resource still exists, so a consumer that calls `DELETE /pets/*` matches it. Nothing inside the body is compared, and `~` does not tell a body that is empty from a body that is not described. Against a counterpart:
+
+| Provider | Consumer | Result |
+|---|---|---|
+| `200: ~` | `200: ~` | compatible |
+| `200: Pet` | `200: ~` | compatible |
+| `200: ~` | `200: Pet` | break: `petstore_web reads the body (Pet), but petstore_api doesn't provide it → stop reading it, or mark it optional` |
+| `request: ~` | `request: NewFile` | compatible |
+| no `request` | `request: NewFile` | break: `petstore_web calls POST /files, but petstore_api doesn't provide it → stop calling it, or wait until petstore_api publishes it` |
+
+An empty string is not `~`: `204: ""` and `request: ""` name a schema called `""`, which no schema declares, and are rejected.
 
 ### Endpoints
 
@@ -121,7 +138,7 @@ The endpoint is part of a resource's identity, so a consumer's endpoint matches 
 - A dynamic segment is `*`, one per segment, with no name: `/pets/*`, `/owners/*/pets/*`.
 - `{petId}` and partial wildcards such as `p*` are rejected at publish, not rewritten. `:petId` is read as a literal segment that no request path matches, so write `*`.
 - A trailing slash is removed: `/pets/` is `/pets`, and a provider that writes both has declared the same resources twice.
-- The methods are `get`, `post`, `put` and `delete`, in lowercase. Any other key under an endpoint is rejected.
+- The methods are `get`, `post`, `put`, `patch` and `delete`, in lowercase. Any other key under an endpoint is rejected.
 
 An endpoint copied from an OpenAPI document keeps its named parameter and is rejected:
 
@@ -170,13 +187,46 @@ schemas:
       ref: Pet
 ```
 
-A node's `type` is one of `object`, `array`, `string`, `integer`, `float` and `boolean`, and every property may carry `optional`, `true` or `false`. A property is required unless it says `optional: true`; there is no `required` list. What `optional` means for a break depends on which side reads the body, and that rule is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy). Any node may also carry `description`, free text that the broker ignores.
+A node's `type` is one of `object`, `array`, `string`, `integer`, `float`, `number` and `boolean`. Any node may also carry `description`, free text that the broker ignores.
+
+Two flags, `true` or `false`, say what a value may lack, and they are independent of each other:
+
+- `optional: true` says the key may be missing. A property is required unless it says so; there is no `required` list.
+- `nullable: true` says the key is there and its value may be `null` or the declared type. It is accepted on any node: a property, `items`, `values` and the root of a schema.
+
+```yaml
+User:
+  type: object
+  properties:
+    avatar:          # always there, may be null
+      type: string
+      nullable: true
+    nickname:        # may be missing
+      type: string
+      optional: true
+    bio:             # may be missing, may be null
+      type: string
+      optional: true
+      nullable: true
+```
+
+What `optional` and `nullable` mean for a break depends on which side reads the body, and that rule is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
 
 Schema names are unique across every file of a publish, and `request`, `responses` and `ref` resolve against all of them.
 
 ### Primitives
 
-`string`, `integer`, `float` and `boolean`. There is no `number`. `integer` and `float` are two distinct types compared by exact equality, so a consumer that declares `float` where the provider declares `integer` is a type mismatch. Any other token is rejected at publish.
+`string`, `integer`, `float`, `number` and `boolean`. Any other token is rejected at publish.
+
+`integer` and `float` are strict: a consumer that declares `float` where the provider declares `integer` is a type mismatch. `number` reads both, for a value that JSON sends as `50` or `50.5` alike. The side that reads the body decides, so `number` is accepted on the reading side only:
+
+| Producer | Reader | Result |
+|---|---|---|
+| `integer`, `float` or `number` | `number` | compatible |
+| `number` | `integer` or `float` | type mismatch |
+| `integer` | `float`, or the reverse | type mismatch |
+
+In a response the provider produces and the consumer reads; in a request the consumer produces and the provider reads. Two modules of the same consumer that declare `number` and `integer` for the same property are still rejected as different types ([Several files](#several-files)).
 
 ### Objects
 
@@ -193,15 +243,38 @@ Pet:
           type: string
 ```
 
-`type: object` may be left out when `properties` is present.
+`type: object` may be left out when `properties` or `values` is present.
 
 ### Arrays
 
 `items` is the node of every element, as in `Pets` above. An array without `items` is rejected. `type: array` may be left out when `items` is present.
 
+### Maps
+
+An object whose keys are not known in advance, but whose values all have the same shape, declares `values` instead of `properties`. `values` is the node of every value, and the key is always a string:
+
+```yaml
+PetsByName:
+  type: object
+  values:
+    ref: Pet
+```
+
+describes
+
+```json
+{ "bob": { "name": "Bob" }, "sky": { "name": "Sky" } }
+```
+
+- `values` and `properties` are exclusive: a node with both is rejected with `object schema has both "values" and "properties"`.
+- `values` belongs to an object only: with any other `type`, it is rejected with `"values" on a non-object schema`.
+- An `object` with neither `properties` nor `values` is still accepted.
+
+The values are compared like the items of an array: type, `optional`, `nullable` and their own members. In a break line the dynamic key is written `{}`, as in `$.pets{}.name`, and a map's type is written `map<T>`, as an array's is `array<T>`. A map on one side and fixed properties on the other are compared path by path: a consumer that reads `$.pets.bob` from a provider that only declares `$.pets{}` breaks with `petstore_web reads "$.pets.bob" (Owner.pets.bob), but petstore_api doesn't provide it → stop reading it, or mark it optional`.
+
 ### References
 
-`ref` gives a node the shape of a named schema, at any depth: as a whole schema, as a member, or as the items of an array, like `Pets` does with `Pet`. Write `ref` on its own, with at most `optional` and `description` beside it. When a node also carries `type`, `properties` or `items`, that shape wins and the `ref` is ignored, without a violation:
+`ref` gives a node the shape of a named schema, at any depth: as a whole schema, as a member, or as the items of an array, like `Pets` does with `Pet`. Write `ref` on its own, with at most `optional`, `nullable` and `description` beside it. `nullable` beside a `ref` makes the node nullable even when the named schema is not, as `optional` does. When a node also carries `type`, `properties`, `items` or `values`, that shape wins and the `ref` is ignored, without a violation:
 
 ```yaml
 Pet:
@@ -235,7 +308,7 @@ The loop can also pass through other schemas, such as `Post.author` pointing to 
 
 - **One schema namespace.** A schema declared in one file can be named from any other. The same name declared twice is a duplicate. A file that names schemas declared elsewhere is valid only when published together with that file.
 - **A provider declares each resource once.** Files may split the endpoints, the methods or even the statuses of one method between them, but the same resource in two files is a duplicate. So is the same file passed twice. A request has no status, so the `request` of an endpoint and method belongs in exactly one file, even when its responses are spread over several.
-- **A consumer merges by union.** Each module of a consumer may declare the resources it reads in its own file. Fragments of the same resource merge: in a response, a property is optional only if every fragment allows it; in a request, it is required only if every fragment sends it. Two fragments that give one property different types are rejected.
+- **A consumer merges by union.** Each module of a consumer may declare the resources it reads in its own file. Fragments of the same resource merge: in a response, a property is optional only if every fragment allows it, and nullable only if every fragment accepts `null`; in a request, it is required only if every fragment sends it, and nullable if any fragment may send `null`. A property that one fragment leaves out together with its parent is not made optional: only the parent is. Two fragments that give one property different types are rejected.
 
 A provider that keeps the `201` of `POST /pets` in one file and its `400` in another writes `request` in only one of them:
 
@@ -318,13 +391,12 @@ The grammar has no place for the items below, so a change in any of them never m
 
 - **Headers.** A provider that starts requiring one, and a consumer that stops sending one, both pass.
 - **Query parameters.** A renamed parameter, a newly required one, or a change in how pagination is requested is not a break.
-- **Nullability.** There is no `null` type and no way to say that a property may be `null`.
 - **Enum values.** A `string` is a `string`: a provider that starts returning a fourth value of `status` is compatible with a consumer that handles three.
 - **Formats.** A `date-time` string, an email and free text are the same `string`.
 
 ## File format
 
-- Every key at every level is checked against the grammar on this page. A key the grammar does not know, such as `patch`, an uppercase `GET` or a top-level `version`, is a violation. The report lists every violation in every file, and nothing is stored.
+- Every key at every level is checked against the grammar on this page. A key the grammar does not know, such as `options`, an uppercase `GET` or a top-level `version`, is a violation. The report lists every violation in every file, and nothing is stored.
 - The extension must be `.yaml` or `.yml`. The CLI refuses anything else before contacting the broker: `unsupported contract file extension: "petstore_api.txt"`.
 - One YAML document per file. A second document after `---` is rejected with `malformed contract file: petstore_api.yaml: multiple documents are not supported`.
 - YAML anchors and aliases are rejected with `malformed contract file: petstore_api.yaml: anchors and aliases are not supported`. To reuse a shape, name it under `schemas` and point to it with `ref`.

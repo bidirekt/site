@@ -83,7 +83,7 @@ petstore_reviews:
       - petstore_web calls GET /reviews/summary, but petstore_reviews doesn't provide it → stop calling it, or wait until petstore_reviews publishes it
 ```
 
-Errors that stop the check go to stderr: an unknown participant fails with `participant not found`, an environment that does not exist with `environment not found`, and a file that breaks the [specification](../contracts/spec.md) prints its violations as [`publish`](#publish) does.
+Errors that stop the check go to stderr. The participant and the environment are checked before any file: an unknown participant fails with `participant "petstore_web" not found → create it with: bidirekt create-participant petstore_web`, an environment that does not exist with `environment not found`. Then a file that breaks the [specification](../contracts/spec.md) prints its violations as [`publish`](#publish) does.
 
 ## publish
 
@@ -93,7 +93,7 @@ petstore_api contract publish successful
 ```
 
 - `file...`: one or more contract files, `.yaml` or `.yml`. All of them publish together as one contract ([Several files](../contracts/spec.md#several-files)); the shell expands globs.
-- `--participant`: the participant the contract belongs to. It must exist, or the publish fails with `contract participant not found`.
+- `--participant`: the participant the contract belongs to. It must exist, or the publish fails with `participant "petstore_api" not found → create it with: bidirekt create-participant petstore_api`, before any file is checked.
 - `--version`: any label, usually a commit hash or a release tag.
 
 Publishing the same version again with different content fails with `contract version already exists with different content`; a version never changes once published.
@@ -139,23 +139,29 @@ One block per counterpart that is not compatible, with the version of it deploye
 
 | Line | When |
 |---|---|
-| `<participant> reads "<property>" (<field>), but <counterpart> doesn't provide it → stop reading it, or mark it optional` | response: the participant requires a property the provider does not declare |
-| `<participant> doesn't provide "<property>", but <counterpart> reads it → keep providing it` | response: the consumer requires a property the participant does not declare |
+| `<participant> reads "<property>" (<field>), but <counterpart> doesn't provide it → stop reading it, or mark it optional` | response: the participant requires a property the provider does not declare, inside a parent the provider declares |
+| `<participant> doesn't provide "<property>", but <counterpart> reads it → keep providing it` | response: the consumer requires a property the participant does not declare, inside a parent the participant declares |
 | `<participant> requires "<property>" (<field>), but <counterpart> only sometimes provides it → mark it optional` | response: the participant requires a property the provider marks optional |
 | `<participant> provides "<property>" (<field>) only sometimes, but <counterpart> requires it → keep it required` | response: the consumer requires a property the participant marks optional |
-| `<participant> doesn't send "<property>", but <counterpart> requires it → send it` | request: the provider requires a property the participant does not send |
-| `<participant> requires "<property>" (<field>), but <counterpart> doesn't send it → make it optional` | request: the participant requires a property the consumer does not send |
+| `<participant> doesn't send "<property>", but <counterpart> requires it → send it` | request: the provider requires a property the participant does not send, inside a parent the participant sends |
+| `<participant> requires "<property>" (<field>), but <counterpart> doesn't send it → make it optional` | request: the participant requires a property the consumer does not send, inside a parent the consumer sends |
 | `<participant> sends "<property>" (<field>) only sometimes, but <counterpart> requires it → always send it` | request: the provider requires a property the participant marks optional |
 | `<participant> requires "<property>" (<field>), but <counterpart> sends it only sometimes → make it optional` | request: the participant requires a property the consumer marks optional |
-| `<participant> reads "<property>" (<field>) as <type>, but <counterpart> provides <counterpart type> → read it as <counterpart type>` | response: the participant reads the property with a different type than the provider declares |
-| `<participant> provides "<property>" (<field>) as <type>, but <counterpart> reads <counterpart type> → provide <counterpart type>` | response: the participant declares the property with a different type than the consumer reads |
-| `<participant> sends "<property>" (<field>) as <type>, but <counterpart> expects <counterpart type> → send <counterpart type>` | request: the participant sends the property with a different type than the provider declares |
-| `<participant> expects "<property>" (<field>) as <type>, but <counterpart> sends <counterpart type> → accept <counterpart type>` | request: the participant declares the property with a different type than the consumer sends |
+| `<participant> reads "<property>" (<field>) as <type>, but <counterpart> provides <counterpart type> → read it as <counterpart type>` | response: the participant reads the property as a type that does not accept the type the provider declares |
+| `<participant> provides "<property>" (<field>) as <type>, but <counterpart> reads <counterpart type> → provide <counterpart type>` | response: the consumer reads the property as a type that does not accept the type the participant declares |
+| `<participant> sends "<property>" (<field>) as <type>, but <counterpart> expects <counterpart type> → send <counterpart type>` | request: the provider expects the property as a type that does not accept the type the participant sends |
+| `<participant> expects "<property>" (<field>) as <type>, but <counterpart> sends <counterpart type> → accept <counterpart type>` | request: the participant expects the property as a type that does not accept the type the consumer sends |
+| `<participant> doesn't accept null at "<property>" (<field>), but <counterpart> may provide null → mark it nullable` | response: the provider marks the property nullable and the participant does not |
+| `<participant> may provide null at "<property>" (<field>), but <counterpart> doesn't accept it → never provide null` | response: the participant marks the property nullable and the consumer does not |
+| `<participant> may send null at "<property>" (<field>), but <counterpart> doesn't accept it → never send null` | request: the participant marks the property nullable and the provider does not |
+| `<participant> doesn't accept null at "<property>" (<field>), but <counterpart> may send it → mark it nullable` | request: the consumer marks the property nullable and the participant does not |
 | `<participant> calls <METHOD> <endpoint>, but <counterpart> doesn't provide it → stop calling it, or wait until <counterpart> publishes it` | the participant names an endpoint, method or status that no published contract of the provider declares, or a provider that does not exist |
 | `<participant> calls <METHOD> <endpoint>, but <counterpart> is not deployed in <environment> (deployed in: <environments>) → deploy <counterpart> first` | the provider is not deployed in the target environment; the parenthesis is left out when it is deployed nowhere |
 | `<participant> removed <METHOD> <endpoint>, but <counterpart> still calls it → keep it until <counterpart> stops calling it` | the participant dropped a resource that a consumer deployed in the environment still consumes |
 
-`<property>` is written from the root of the body: `$.owner.name` for a member, `$[].photoUrl` for a member of each array item; the root itself prints as `the body`, without quotes. An array type prints its item type, such as `array<object>`.
+A property is only required where its parent is present. When the producing side does not declare a parent, only the parent can break, and only if it is required; its members, array items and map values are never reported on their own. The body itself has no parent, so it is always compared.
+
+`<property>` is written from the root of the body: `$.owner.name` for a member, `$[].photoUrl` for a member of each array item, `$.pets{}.name` for a member of each map value; the root itself prints as `the body`, without quotes. An array type prints its item type, such as `array<object>`, and a map type its value type, such as `map<object>`.
 
 `<field>` is the field of `<participant>` at that path: the schema name and the path inside that schema, the place to edit in the participant's own contract. `Order.items[].sku` is a member of each array item, `Pets{}.name` a member of each map value, and at the root it is only the schema name:
 

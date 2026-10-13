@@ -73,27 +73,28 @@ schemas:
 Rules:
 
 - Resource = one body: the request of (endpoint, method), or one response of (endpoint, method, status). Each is compared on its own.
-- Methods: `get`, `post`, `put`, `delete`, lowercase only. `request` only on `post` and `put`. A method may have only `request`, only `responses`, or both.
-- `request` and each status in `responses` name a schema declared under `schemas`. Never an inline schema. A status without a value (`204:`) is rejected; for an empty body use `type: object` with no properties.
+- Methods: `get`, `post`, `put`, `patch`, `delete`, lowercase only. `request` only on `post`, `put` and `patch`. A method may have only `request`, only `responses`, or both.
+- `request` and each status in `responses` name a schema declared under `schemas`, or are `~` (or no value, `204:`) = body not described: nothing in it is compared, the resource still exists. Never an inline schema. `""` is an unresolved schema name, not `~`. Provider `200: ~` vs consumer `200: Pet` breaks once, on the body; provider `200: Pet` vs consumer `200: ~` and provider `request: ~` vs consumer `request: NewFile` are compatible.
 - Status: integer 100–599, quoted or not. No patterns (`2xx` rejected).
 - Endpoint: starts with `/`, no empty segment. Dynamic segment = `*`, one per segment, unnamed (`/owners/*/pets/*`). `{petId}` and `p*` are rejected; `:petId` is a literal segment that matches nothing. Trailing slash is removed (`/pets/` = `/pets`). Consumer and provider endpoints match only when written identically.
 - Consumer key under `consumes` = the provider's participant name, snake_case. Not checked at publish: a typo publishes and fails at `can-i-deploy` with "doesn't provide it".
-- Schema node `type`: `object`, `array`, `string`, `integer`, `float`, `boolean`. No `number`, no `null`, no enums, no formats. `integer` ≠ `float`.
-- `object` uses `properties`; `array` needs `items`. `type` may be omitted when `properties` or `items` is present.
-- Properties are required unless `optional: true`. There is no `required` list.
-- `ref: <SchemaName>` reuses a named schema at any depth; allowed beside it: only `optional`, `description`. If the node also has `type`/`properties`/`items`, the `ref` is silently ignored. Unknown `ref` is rejected.
+- Schema node `type`: `object`, `array`, `string`, `integer`, `float`, `number`, `boolean`. No enums, no formats. `integer` ≠ `float`, both strict. A `number` reader accepts an `integer`, `float` or `number` producer; a `number` producer breaks an `integer` or `float` reader (JSON sends `50` for a round float: read it as `number`).
+- `object` uses `properties` or `values`; `array` needs `items`. `type` may be omitted when `properties`, `values` or `items` is present.
+- Map (dynamic keys, all values one shape): `values: <node>` instead of `properties`, e.g. `PetsByName: {type: object, values: {ref: Pet}}` for `{"bob": {...}, "sky": {...}}`. Keys are strings. `values` with `properties` → `object schema has both "values" and "properties"`; `values` with a non-object `type` → `"values" on a non-object schema`. Values compare like array items; the key is the path segment `{}` (`$.pets{}.name`), the type prints `map<T>`. A map on one side and fixed properties on the other compare path by path (`$.pets.bob` vs `$.pets{}` → `doesn't provide`).
+- Properties are required unless `optional: true` (the key may be missing). There is no `required` list. `nullable: true` (any node: property, `items`, `values`, root) = the key is there and the value may be `null`; independent of `optional`.
+- `ref: <SchemaName>` reuses a named schema at any depth; allowed beside it: only `optional`, `nullable`, `description` (either one makes the node optional/nullable even when the named schema is not). If the node also has `type`/`properties`/`items`/`values`, the `ref` is silently ignored. Unknown `ref` is rejected.
 - Recursion is allowed: a schema may `ref` itself directly or indirectly (`Comment.replies[] → Comment`, `Post.author → User` / `User.posts[] → Post`). No depth limit.
 - `description` is allowed on any node and ignored.
-- Every unknown key at any level is a violation (`patch`, `GET`, top-level `version`). YAML anchors/aliases are rejected; comments are allowed.
+- Every unknown key at any level is a violation (`options`, `GET`, top-level `version`). YAML anchors/aliases are rejected; comments are allowed.
 - Declare only what you use: a consumer lists only the properties it reads or sends; the provider may drop anything else.
 
 Several files: all files of one `publish` are one contract, order irrelevant.
 
 - Schema names are one namespace across files; the same name twice is a duplicate.
 - Provider: each resource declared in exactly one file (endpoints, methods or statuses may be split across files, but the `request` of an endpoint+method lives in one file only). The same file passed twice is a duplicate.
-- Consumer: fragments of the same resource merge. Response: a property is optional only if every fragment marks it optional. Request: required only if every fragment sends it. Different types for one property are rejected.
+- Consumer: fragments of the same resource merge. Response: a property is optional only if every fragment marks it optional, nullable only if every fragment marks it nullable. Request: required only if every fragment sends it (a fragment that lacks its parent too doesn't count), nullable if any fragment marks it nullable. Different types for one property are rejected.
 
-Not compared (never breaks): headers, query parameters, nullability, enum values, string formats.
+Not compared (never breaks): headers, query parameters, enum values, string formats.
 
 ## CLI
 
@@ -102,8 +103,8 @@ Every broker command needs a broker URL; there is no default. Resolution: `--bro
 - `bidirekt configure [--profile <name>] [--broker-url <url>]` — saves the URL in `~/.config/bidirekt/config.json` (or `$XDG_CONFIG_HOME/bidirekt/config.json`, or `BIDIREKT_CONFIG_FILE`). Without `--broker-url` it prompts; outside a terminal it fails. URL must be `http://` or `https://` plus a host. One profile per broker (account), never per environment.
 - `bidirekt create-participant <name>` — name in snake_case (`participant name must be snake_case`). Idempotent: `already exists` exits 0.
 - `bidirekt create-environment <name>` — e.g. `production`. Idempotent.
-- `bidirekt validate <file>... --participant <name> --environment <env>` — checks the local files as `publish` does, then compares them with every counterpart deployed in `<env>`, as `can-i-deploy` does. Nothing is stored. Exit 0 = yes, exit 1 = no; the report goes to stdout either way, starts with `<participant> local contract can be deployed to <env>` or `<participant> local contract cannot be deployed to <env>`, and carries the same break lines as `can-i-deploy` (see `## Fixing can-i-deploy breaks`). Violations print as in `publish`. Errors: `participant not found`, `environment not found`.
-- `bidirekt publish <file>... --participant <name> --version <label>` — all files publish together as one contract. Participant must exist (`contract participant not found`). Same version with different content fails (`contract version already exists with different content`); versions are immutable. Any spec violation rejects the whole publish and prints every violation:
+- `bidirekt validate <file>... --participant <name> --environment <env>` — checks the local files as `publish` does, then compares them with every counterpart deployed in `<env>`, as `can-i-deploy` does. Nothing is stored. Exit 0 = yes, exit 1 = no; the report goes to stdout either way, starts with `<participant> local contract can be deployed to <env>` or `<participant> local contract cannot be deployed to <env>`, and carries the same break lines as `can-i-deploy` (see `## Fixing can-i-deploy breaks`). Violations print as in `publish`. Participant and environment are checked before any file: `participant "<name>" not found → create it with: bidirekt create-participant <name>`, `environment not found`.
+- `bidirekt publish <file>... --participant <name> --version <label>` — all files publish together as one contract. Participant must exist, checked before any file (`participant "<name>" not found → create it with: bidirekt create-participant <name>`). Same version with different content fails (`contract version already exists with different content`); versions are immutable. Any spec violation rejects the whole publish and prints every violation:
   ```
   contract validation failed
     - petstore_api.yaml: invalid endpoint "/pets/{petId}" at provides rest, dynamic path segments must use *
@@ -119,7 +120,7 @@ Exit codes: 0 on success, help and version; 1 for everything else. Success goes 
 
 ## Fixing can-i-deploy breaks
 
-Report shape: `<participant> <version> cannot be deployed to <env>`, then one block per incompatible counterpart → endpoint → `request` / `response <status>` → one line per break. `<property>` is a path from the body root: `$.owner.name`, `$[].photoUrl`; the root prints as `the body`, unquoted. Right after it, in parentheses, comes `<f>`, the field of the participant under check: schema name + path inside that schema (`Address.city`, `Order.items[].sku` for array items, `Pets{}.name` for map values, only `Order` at the root). That is the schema to edit in its contract. No parentheses when that participant has no field there (the `doesn't provide` and `doesn't send` lines). A difference inside a schema used in several places is reported once, with one of the paths that reach it:
+Report shape: `<participant> <version> cannot be deployed to <env>`, then one block per incompatible counterpart → endpoint → `request` / `response <status>` → one line per break. `<property>` is a path from the body root: `$.owner.name`, `$[].photoUrl` (array items), `$.pets{}.name` (map values); the root prints as `the body`, unquoted. Types print `array<T>` and `map<T>`. Right after it, in parentheses, comes `<f>`, the field of the participant under check: schema name + path inside that schema (`Address.city`, `Order.items[].sku` for array items, `Pets{}.name` for map values, only `Order` at the root). That is the schema to edit in its contract. No parentheses when that participant has no field there (the `doesn't provide` and `doesn't send` lines). A difference inside a schema used in several places is reported once, with one of the paths that reach it:
   ```
   spa reads "$.billing.city" (Address.city), but api doesn't provide it → stop reading it, or mark it optional
   spa reads the body (Order) as object, but api provides array<object> → read it as array<object>
@@ -134,12 +135,16 @@ Each line ends with `→ <fix>`. Lines and what to change in the contract of the
 - `requires "<p>" (<f>), but <c> doesn't send it` → make it optional.
 - `sends "<p>" (<f>) only sometimes, but <c> requires it` → always send it.
 - `requires "<p>" (<f>), but <c> sends it only sometimes` → make it optional.
-- `reads "<p>" (<f>) as <t>, but <c> provides <t2>` → read it as `<t2>` (same for provides / sends / expects: align the type).
+- `reads "<p>" (<f>) as <t>, but <c> provides <t2>` → read it as `<t2>` (same for provides / sends / expects: the reader's type must accept the producer's).
+- `doesn't accept null at "<p>" (<f>), but <c> may provide null` → mark it nullable.
+- `may provide null at "<p>" (<f>), but <c> doesn't accept it` → never provide null.
+- `may send null at "<p>" (<f>), but <c> doesn't accept it` → never send null.
+- `doesn't accept null at "<p>" (<f>), but <c> may send it` → mark it nullable.
 - `calls <METHOD> <endpoint>, but <c> doesn't provide it` → stop calling it, or wait until the provider publishes it. Check endpoint spelling (`*` segments), method, status and the provider name under `consumes`.
 - `calls <METHOD> <endpoint>, but <c> is not deployed in <env>` → deploy the provider first.
 - `removed <METHOD> <endpoint>, but <c> still calls it` → keep it until the consumer stops calling it.
 
-Core rule: the side that reads a body decides what must be in it. Response: provider produces, consumer reads. Request: consumer produces, provider reads. A property the reader requires must be declared by the producer, required too, with the same type. A property the reader marks optional may be absent, but if both declare it the types must match. A property the reader does not declare is not checked.
+Core rule: the side that reads a body decides what must be in it. Response: provider produces, consumer reads. Request: consumer produces, provider reads. A property the reader requires must be declared by the producer, required too, with a type the reader accepts (the same type; a `number` reader also accepts `integer` and `float`). A property is required only where its parent is present: when the producer does not declare a parent, only the parent can break, nothing inside it is checked (array items and map values included). A property the reader marks optional may be absent, but if both declare it the reader must accept its type. A property the producer marks nullable must be nullable for the reader too. A property the reader does not declare is not checked.
 
 ## Docs
 
