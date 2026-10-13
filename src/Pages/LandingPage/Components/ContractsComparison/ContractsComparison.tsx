@@ -3,7 +3,7 @@ import { Eyebrow } from '#/Components/Eyebrow'
 const INTRO_LEFT =
   'The provider declares what it produces. The consumer declares what it reads. Neither knows about the other; both publish to the broker.'
 const INTRO_RIGHT =
-  'The broker checks that every required property on the reading side exists, with the same type, on the producing side. Here every property the consumer reads exists on the provider, with the same type, so the check passes.'
+  'The broker checks that every required property on the reading side exists on the producing side whenever its parent does, with a type the reader accepts, and is never null unless the reader allows it. Here every property the consumer reads exists on the provider, with the same type, so the check passes.'
 
 const PROVIDER_YAML = `provides:
   rest:
