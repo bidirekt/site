@@ -210,6 +210,19 @@ User:
       nullable: true
 ```
 
+The contract describes what the code does, not the type the code declares. The side that reads the body writes the flags from how its code reads each property, and the side that produces the body from what its code can send. In a response the provider produces and the consumer reads; in a request the consumer produces and the provider reads.
+
+| The code | Write |
+|---|---|
+| reads the property with no fallback (`pet.name` in JS, `as String` in Dart) | neither `optional` nor `nullable` |
+| accepts `null` but needs the key (`pet.nickname === null ? … : …`) | `nullable: true` |
+| accepts a missing key but not `null` | `optional: true` |
+| accepts both (`??` and `?.` in JS, `as T?` in Dart) | `optional: true` and `nullable: true` |
+| produces the body and may send `null` for the property | `nullable: true` |
+| produces the body and may leave the key out | `optional: true` |
+
+When `petstore_api` gives `name` a nullable type, such as `String?`, but always fills it, its contract writes `name` without `nullable`. With `nullable: true`, `can-i-deploy` fails against every consumer that reads `name` with no fallback.
+
 What `optional` and `nullable` mean for a break depends on which side reads the body, and that rule is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
 
 Schema names are unique across every file of a publish, and `request`, `responses` and `ref` resolve against all of them.
@@ -245,6 +258,22 @@ Pet:
 
 `type: object` may be left out when `properties` or `values` is present.
 
+An `object` with neither `properties` nor `values` is any object. It fits an object the code does not read inside. Here `petstore_web` passes `metadata` along as it came and only counts the `vaccinations`:
+
+```yaml
+Pet:
+  type: object
+  properties:
+    metadata:
+      type: object
+    vaccinations:
+      type: array
+      items:
+        type: object
+```
+
+On the side that reads the body, `type: object` alone accepts any object, and nothing inside it is compared. On the side that produces the body, it declares no property, so each property the reader requires directly in it breaks with `doesn't provide`, or with `doesn't send` in a request.
+
 ### Arrays
 
 `items` is the node of every element, as in `Pets` above. An array without `items` is rejected. `type: array` may be left out when `items` is present.
@@ -268,9 +297,15 @@ describes
 
 - `values` and `properties` are exclusive: a node with both is rejected with `object schema has both "values" and "properties"`.
 - `values` belongs to an object only: with any other `type`, it is rejected with `"values" on a non-object schema`.
-- An `object` with neither `properties` nor `values` is still accepted.
 
-The values are compared like the items of an array: type, `optional`, `nullable` and their own members. In a break line the dynamic key is written `{}`, as in `$.pets{}.name`, and a map's type is written `map<T>`, as an array's is `array<T>`. A map on one side and fixed properties on the other are compared path by path: a consumer that reads `$.pets.bob` from a provider that only declares `$.pets{}` breaks with `petstore_web reads "$.pets.bob" (Owner.pets.bob), but petstore_api doesn't provide it → stop reading it, or mark it optional`.
+The values are compared like the items of an array: type, `optional`, `nullable` and their own members. In a break line the dynamic key is written `{}`, as in `$.pets{}.name`, and a map's type is written `map<T>`, as an array's is `array<T>`.
+
+A map reader also accepts fixed properties. A consumer that reads `pets` with `values: {ref: Pet}` accepts a provider that declares `pets` with the properties `bob` and `sky`. Each fixed property is compared against `values`: its type, `nullable` and its own members, with a break reported at its own property, such as `$.pets.sky`. A fixed property's `optional` never breaks, because a map requires none of its keys.
+
+Two cases still break:
+
+- A map on the producing side promises no key. A consumer that reads `$.pets.bob` from a provider that only declares `$.pets{}` breaks with `petstore_web reads "$.pets.bob" (Owner.pets.bob), but petstore_api doesn't provide it → stop reading it, or mark it optional`.
+- An `object` with neither `properties` nor `values` promises nothing about the values. Against a map reader, it breaks at `$.pets{}` with `doesn't provide`, or with `doesn't send` in a request.
 
 ### References
 
