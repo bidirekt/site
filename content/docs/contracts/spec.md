@@ -52,7 +52,7 @@ The two files have the same shape. `provides` holds what this participant serves
 
 A resource is one body the two sides exchange: the request of an endpoint and method, or one response of an endpoint, method and status. A provider declares its resources under `provides`, in a `rest` block. A consumer writes the same `rest` block under `consumes`, one level deeper, under the name of the provider it calls.
 
-That name is the provider's participant name, in snake_case: lowercase letters, digits and single underscores. It is not checked against existing participants at publish, so a misspelled name, such as `petstore_apl` for `petstore_api`, publishes fine and fails at `can-i-deploy` with `petstore_web calls GET /pets/*, but petstore_apl doesn't provide it → stop calling it, or wait until petstore_apl publishes it`.
+That name is the provider's participant name, in snake_case: lowercase letters, digits and single underscores. It is not checked against existing participants at publish, so a misspelled name, such as `petstore_apl` for `petstore_api`, publishes fine and fails at `can-i-deploy` with `petstore_web calls GET /pets/*, but petstore_apl doesn't provide it`.
 
 The value of `request` and of each status in `responses` is the name of a schema declared under `schemas`, never an inline schema, or `~` for a body the contract does not describe.
 
@@ -124,9 +124,9 @@ The resource still exists, so a consumer that calls `DELETE /pets/*` matches it.
 |---|---|---|
 | `200: ~` | `200: ~` | compatible |
 | `200: Pet` | `200: ~` | compatible |
-| `200: ~` | `200: Pet` | break: `petstore_web reads the body (Pet), but petstore_api doesn't provide it → stop reading it, or mark it optional` |
+| `200: ~` | `200: Pet` | break: `petstore_web reads the body (Pet), but petstore_api doesn't provide it` |
 | `request: ~` | `request: NewFile` | compatible |
-| no `request` | `request: NewFile` | break: `petstore_web calls POST /files, but petstore_api doesn't provide it → stop calling it, or wait until petstore_api publishes it` |
+| no `request` | `request: NewFile` | break: `petstore_web calls POST /files, but petstore_api doesn't provide it` |
 
 An empty string is not `~`: `204: ""` and `request: ""` name a schema called `""`, which no schema declares, and are rejected.
 
@@ -304,7 +304,7 @@ A map reader also accepts fixed properties. A consumer that reads `pets` with `v
 
 Two cases still break:
 
-- A map on the producing side promises no key. A consumer that reads `$.pets.bob` from a provider that only declares `$.pets{}` breaks with `petstore_web reads "$.pets.bob" (Owner.pets.bob), but petstore_api doesn't provide it → stop reading it, or mark it optional`.
+- A map on the producing side promises no key. A consumer that reads `$.pets.bob` from a provider that only declares `$.pets{}` breaks with `petstore_web reads "$.pets.bob" (Owner.pets.bob), but petstore_api doesn't provide it`.
 - An `object` with neither `properties` nor `values` promises nothing about the values. Against a map reader, it breaks at `$.pets{}` with `doesn't provide`, or with `doesn't send` in a request.
 
 ### References
@@ -335,14 +335,14 @@ Comment:
         ref: Comment
 ```
 
-The loop can also pass through other schemas, such as `Post.author` pointing to `User` and `User.posts` back to `Post`. There is no depth limit, and a difference inside a recursive schema is reported once.
+The loop can also pass through other schemas, such as `Post.author` pointing to `User` and `User.posts` back to `Post`. There is no depth limit, and a difference inside a recursive schema is reported once per resource.
 
 ## Several files
 
-`bidirekt publish` takes any number of files, and all the files of one publish are one contract. The order does not matter, and the shell expands globs such as `contracts/*.yaml`. Reports name each file by the path you typed.
+`bidirekt publish` takes any number of files and folders, and all the files of one publish are one contract. A folder stands for every `.yaml` and `.yml` file under it, subfolders included. The order does not matter, and the shell expands globs such as `contracts/*.yaml`. Reports name a file you passed by the path you typed, and a file found in a folder by the folder and its path inside it, such as `contracts/rest/pets.yaml`.
 
 - **One schema namespace.** A schema declared in one file can be named from any other. The same name declared twice is a duplicate. A file that names schemas declared elsewhere is valid only when published together with that file.
-- **A provider declares each resource once.** Files may split the endpoints, the methods or even the statuses of one method between them, but the same resource in two files is a duplicate. So is the same file passed twice. A request has no status, so the `request` of an endpoint and method belongs in exactly one file, even when its responses are spread over several.
+- **A provider declares each resource once.** Files may split the endpoints, the methods or even the statuses of one method between them, but the same resource in two files is a duplicate. A file reached twice, such as a file passed on its own and again through its folder, is read once and is not a duplicate. A request has no status, so the `request` of an endpoint and method belongs in exactly one file, even when its responses are spread over several.
 - **A consumer merges by union.** Each module of a consumer may declare the resources it reads in its own file. Fragments of the same resource merge: in a response, a property is optional only if every fragment allows it, and nullable only if every fragment accepts `null`; in a request, it is required only if every fragment sends it, and nullable if any fragment may send `null`. A property that one fragment leaves out together with its parent is not made optional: only the parent is. Two fragments that give one property different types are rejected.
 
 A provider that keeps the `201` of `POST /pets` in one file and its `400` in another writes `request` in only one of them:
@@ -432,7 +432,7 @@ The grammar has no place for the items below, so a change in any of them never m
 ## File format
 
 - Every key at every level is checked against the grammar on this page. A key the grammar does not know, such as `options`, an uppercase `GET` or a top-level `version`, is a violation. The report lists every violation in every file, and nothing is stored.
-- The extension must be `.yaml` or `.yml`. The CLI refuses anything else before contacting the broker: `unsupported contract file extension: "petstore_api.txt"`.
+- The extension must be `.yaml` or `.yml`. The CLI refuses a file passed with anything else before contacting the broker: `unsupported contract file extension: "petstore_api.txt"`. Inside a folder, files with any other extension are skipped.
 - One YAML document per file. A second document after `---` is rejected with `malformed contract file: petstore_api.yaml: multiple documents are not supported`.
 - YAML anchors and aliases are rejected with `malformed contract file: petstore_api.yaml: anchors and aliases are not supported`. To reuse a shape, name it under `schemas` and point to it with `ref`.
 - YAML comments are allowed. They are ignored when the file is parsed.
