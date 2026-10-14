@@ -1,9 +1,8 @@
-export type Tone = 'plain' | 'failure' | 'success' | 'muted'
+export type Tone = 'plain' | 'failure' | 'fix' | 'success' | 'muted'
 export type TerminalLine = {
   text: string
   tone: Tone
   command?: boolean
-  hint?: string
   gapBefore?: boolean
   cursor?: boolean
 }
@@ -26,14 +25,22 @@ export const TERMINAL_LINES: Array<TerminalLine> = [
   { text: '  GET /pets/*', tone: 'plain' },
   { text: '    response 200:', tone: 'plain' },
   {
-    text: '      - petstore_web reads "$.status" (Pet.status), but petstore_api doesn\'t provide it → ',
+    text: '      - petstore_web reads "$.status" (Pet.status), but petstore_api doesn\'t provide it',
     tone: 'failure',
-    hint: 'stop reading it, or mark it optional',
   },
   {
-    text: '      - petstore_web reads "$.weight" (Pet.weight) as string, but petstore_api provides integer → ',
+    text: '        → petstore_web: stop reading it, or handle its absence in the code and mark it optional',
+    tone: 'fix',
+  },
+  { text: '        → petstore_api: provide it', tone: 'fix' },
+  {
+    text: '      - petstore_web reads "$.weight" (Pet.weight) as string, but petstore_api provides integer',
     tone: 'failure',
-    hint: 'read it as integer',
+  },
+  { text: '        → petstore_web: read it as integer', tone: 'fix' },
+  {
+    text: '        → petstore_api: provide it as string at Pet.weight',
+    tone: 'fix',
   },
   {
     text: '$EDITOR contracts/petstore_web.yaml',

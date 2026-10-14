@@ -11,6 +11,7 @@ const PROMPT = 'petstore_web ❯'
 const TONE_CLASS: Record<Tone, string> = {
   plain: '',
   failure: 'text-failure',
+  fix: 'text-accent',
   success: 'text-success',
   muted: 'text-muted',
 }
@@ -50,9 +51,6 @@ function LineText({ line }: { line: TerminalLine }) {
     <>
       {line.command && <span className="text-accent">{PROMPT} </span>}
       {line.text}
-      {line.hint !== undefined && (
-        <span className="text-accent">{line.hint}</span>
-      )}
       {line.cursor && <span className={CURSOR} />}
     </>
   )
