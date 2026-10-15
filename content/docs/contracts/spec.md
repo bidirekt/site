@@ -96,9 +96,29 @@ provides:
 
 This declares three resources: the request of `POST /pets`, its `201` response and its `500` response. Each one is compared on its own: a break in the `500` does not involve the `201`.
 
+### Which statuses to declare
+
+Each status is its own resource, so the statuses each side lists decide what can break. A status the consumer declares must be declared by the provider, or it breaks with `petstore_web reads response 404, but petstore_api answers only 200`; a status only the provider declares obliges no consumer.
+
+- A consumer declares a status when its code does something specific with it or reads its body. Handling that treats any error the same way does not count.
+- A provider declares the statuses its code actually returns. A branch that never runs is left out.
+
+`petstore_web` shows a "pet not found" page on a `404` without reading its body, and shows one generic message for every other error:
+
+```yaml
+consumes:
+  petstore_api:
+    rest:
+      /pets/*:
+        get:
+          responses:
+            200: Pet
+            404: ~
+```
+
 ### Bodies not described
 
-`~` in place of a schema name says that the contract does not describe the body: the provider promises no structure, and the consumer reads nothing from it. A status left without a value, such as `204:`, is the same `~`, since YAML reads both as null. It fits a response without a body, a file download and a multipart upload:
+`~` in place of a schema name says that the contract does not describe the body: the provider promises no structure, and the consumer reads nothing from it. A status left without a value, such as `204:`, is the same `~`, since YAML reads both as null. Write `~` for a response without a body, and for every body that is a file or a multipart form, in a request or a response:
 
 ```yaml
 provides:
@@ -126,7 +146,7 @@ The resource still exists, so a consumer that calls `DELETE /pets/*` matches it.
 | `200: Pet` | `200: ~` | compatible |
 | `200: ~` | `200: Pet` | break: `petstore_web reads the body (Pet), but petstore_api doesn't provide it` |
 | `request: ~` | `request: NewFile` | compatible |
-| no `request` | `request: NewFile` | break: `petstore_web calls POST /files, but petstore_api doesn't provide it` |
+| no `request` | `request: NewFile` | break: `petstore_web sends a request body, but petstore_api declares none` |
 
 An empty string is not `~`: `204: ""` and `request: ""` name a schema called `""`, which no schema declares, and are rejected.
 
@@ -134,7 +154,7 @@ An empty string is not `~`: `204: ""` and `request: ""` name a schema called `""
 
 The endpoint is part of a resource's identity, so a consumer's endpoint matches a provider's only when both are written the same way:
 
-- An endpoint starts with `/` and has no empty segment. `/` alone is the root.
+- An endpoint starts with `/` and has no empty segment: `//` and `/pets//photos` are rejected at publish with `malformed path`. `/` alone is the root, a valid endpoint.
 - A dynamic segment is `*`, one per segment, with no name: `/pets/*`, `/owners/*/pets/*`.
 - `{petId}` and partial wildcards such as `p*` are rejected at publish, not rewritten. `:petId` is read as a literal segment that no request path matches, so write `*`.
 - A trailing slash is removed: `/pets/` is `/pets`, and a provider that writes both has declared the same resources twice.
@@ -212,26 +232,27 @@ User:
 
 The contract describes what the code does, not the type the code declares. The side that reads the body writes the flags from how its code reads each property, and the side that produces the body from what its code can send. In a response the provider produces and the consumer reads; in a request the consumer produces and the provider reads.
 
-| The code | Write |
-|---|---|
-| reads the property with no fallback (`pet.name` in JS, `as String` in Dart) | neither `optional` nor `nullable` |
-| accepts `null` but needs the key (`pet.nickname === null ? … : …`) | `nullable: true` |
-| accepts a missing key but not `null` | `optional: true` |
-| accepts both (`??` and `?.` in JS, `as T?` in Dart) | `optional: true` and `nullable: true` |
-| produces the body and may send `null` for the property | `nullable: true` |
-| produces the body and may leave the key out | `optional: true` |
+The side that reads the body asks one question for each property: if this value comes `null` or is missing, does the code keep working?
+
+- It keeps working with `null`: `nullable: true`.
+- It keeps working without the key: `optional: true`.
+- It breaks: neither.
+
+The side that produces the body writes `nullable: true` when its code may send `null` for the property, and `optional: true` when it may leave the key out.
+
+In a request, the provider marks a property by what it accepts without answering an error. When `petstore_api` answers `400` to a `POST /pets` without `name`, `name` is required, even if the code that parses the body lets it be missing.
 
 When `petstore_api` gives `name` a nullable type, such as `String?`, but always fills it, its contract writes `name` without `nullable`. With `nullable: true`, `can-i-deploy` fails against every consumer that reads `name` with no fallback.
 
 What `optional` and `nullable` mean for a break depends on which side reads the body, and that rule is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
 
-Schema names are unique across every file of a publish, and `request`, `responses` and `ref` resolve against all of them.
+Schema names are unique across every file of a publish, and `request`, `responses` and `ref` resolve against all of them. A schema that no `request`, `responses` or `ref` names is accepted and never compared, so a file with only `schemas` publishes too.
 
 ### Primitives
 
 `string`, `integer`, `float`, `number` and `boolean`. Any other token is rejected at publish.
 
-`integer` and `float` are strict: a consumer that declares `float` where the provider declares `integer` is a type mismatch. `number` reads both, for a value that JSON sends as `50` or `50.5` alike. The side that reads the body decides, so `number` is accepted on the reading side only:
+`integer` and `float` are strict: a consumer that declares `float` where the provider declares `integer` is a type mismatch. `number` is for a value that JSON sends as `50` or `50.5` alike, on either side. A reader writes it when its code accepts both. A producer writes it when its value can be a round float: PHP's `json_encode` sends the float `50.0` as `50`, so that value is `number`, not `float` or `integer`. A `number` reader accepts all three, and a `number` producer breaks a strict reader:
 
 | Producer | Reader | Result |
 |---|---|---|
