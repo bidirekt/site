@@ -10,16 +10,23 @@ Bidirekt has two parts: the `bidirekt` CLI, which every pipeline and developer m
 ### With curl
 
 ```
-$ curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/main/install.sh | sh
-bidirekt 0.1.0 installed to /home/you/.local/bin/bidirekt
+$ curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/main/install.sh | sh -s -- v0.1.0-rc.1
+bidirekt 0.1.0-rc.1 installed to /home/you/.local/bin/bidirekt
 ```
 
-The script downloads the latest release for your system, checks it against the release's `checksums.txt` and installs it in `~/.local/bin`, without `sudo`. A checksum that does not match stops it before anything is installed. When the directory is not on your `PATH`, it prints the line to add to your shell profile.
+The script downloads that release for your system, checks it against the release's `checksums.txt` and installs it in `~/.local/bin`, without `sudo`. A checksum that does not match stops it before anything is installed. When the directory is not on your `PATH`, it prints the line to add to your shell profile.
 
-`-b` picks the directory and a tag picks the version. A directory owned by root, such as `/usr/local/bin`, needs `sudo` on the `sh`:
+The version is written with or without the `v`: `v0.1.0-rc.1` and `0.1.0-rc.1` install the same release. Without a version, the script installs the latest release, but only pre-releases are published so far, so it stops and names the newest one:
 
 ```
-$ curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/main/install.sh | sudo sh -s -- -b /usr/local/bin v0.1.0
+only pre-releases are published at https://github.com/bidirekt/cli/releases. Install the newest one with:
+  curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/main/install.sh | sh -s -- v0.1.0-rc.1
+```
+
+`-b` picks the directory. A directory owned by root, such as `/usr/local/bin`, needs `sudo` on the `sh`:
+
+```
+$ curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/main/install.sh | sudo sh -s -- -b /usr/local/bin v0.1.0-rc.1
 ```
 
 The CLI is built for Linux and macOS, on `x86_64` and `arm64`.
@@ -29,13 +36,13 @@ The CLI is built for Linux and macOS, on `x86_64` and `arm64`.
 Every release at https://github.com/bidirekt/cli/releases has one archive per system, named `bidirekt_<version>_<os>_<arch>`: `linux` and `darwin` in `amd64` and `arm64`, as `.tar.gz`. Check the archive against `checksums.txt` before extracting it:
 
 ```
-$ curl -sSfLO https://github.com/bidirekt/cli/releases/download/v0.1.0/bidirekt_0.1.0_linux_amd64.tar.gz
-$ curl -sSfLO https://github.com/bidirekt/cli/releases/download/v0.1.0/checksums.txt
+$ curl -sSfLO https://github.com/bidirekt/cli/releases/download/v0.1.0-rc.1/bidirekt_0.1.0-rc.1_linux_amd64.tar.gz
+$ curl -sSfLO https://github.com/bidirekt/cli/releases/download/v0.1.0-rc.1/checksums.txt
 $ sha256sum --check --ignore-missing checksums.txt
-bidirekt_0.1.0_linux_amd64.tar.gz: OK
-$ tar -xzf bidirekt_0.1.0_linux_amd64.tar.gz bidirekt
+bidirekt_0.1.0-rc.1_linux_amd64.tar.gz: OK
+$ tar -xzf bidirekt_0.1.0-rc.1_linux_amd64.tar.gz bidirekt
 $ ./bidirekt version
-bidirekt version 0.1.0
+bidirekt version 0.1.0-rc.1
 ```
 
 On macOS, `shasum -a 256 --check --ignore-missing checksums.txt` does the same check.
@@ -68,6 +75,12 @@ Broker: https://broker.acme.example (profile: acme)
 
 ```
 no broker configured — pass --broker-url, set BIDIREKT_BROKER_URL, or run "bidirekt configure"
+```
+
+When the config file has other profiles, a second line names them and how to pick one:
+
+```
+the config file has the profile local — pass --profile local or set BIDIREKT_PROFILE=local
 ```
 
 On your machine, run `bidirekt configure`. In a pipeline, set `BIDIREKT_BROKER_URL`, or write a profile with `bidirekt configure --broker-url <url>`, which never asks. Every option is in the [CLI reference](../reference/cli.md#overview).
@@ -150,9 +163,12 @@ To try Bidirekt on your machine, `docker-compose.yaml` in https://github.com/bid
 
 ```yaml
 # Local use only: fixed credentials, broker exposed on localhost:8080.
+name: bidirekt
+
 services:
   postgres:
     image: postgres:17-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: bidirekt
       POSTGRES_PASSWORD: bidirekt
@@ -167,10 +183,11 @@ services:
 
   broker:
     image: ghcr.io/bidirekt/broker:0.1.0-rc.1
+    restart: unless-stopped
     environment:
       BIDIREKT_DATABASE_URL: postgres://bidirekt:bidirekt@postgres:5432/bidirekt?sslmode=disable
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -188,7 +205,9 @@ $ curl -s http://localhost:8080/health
 {"status":"ok","brokerVersion":"0.1.0-rc.1","apiVersion":1}
 ```
 
-The data lives in the `postgres-data` volume, so it survives `docker compose down` and `up`; `docker compose down -v` erases it.
+The data lives in the `bidirekt_postgres-data` volume, the same from any folder, so it survives `docker compose down` and `up`; `docker compose down -v` erases it. Both containers start again by themselves when Docker restarts. The broker listens on `127.0.0.1` only, so other machines on your network cannot reach it.
+
+An older copy of this file had no `name:`, so its data is in `<folder>_postgres-data`, named after the folder it ran from. Stop that project first with `docker compose down` in its folder, since it holds port 8080.
 
 Give the local broker its own profile, so it never mixes with your real one:
 
@@ -199,6 +218,12 @@ Broker: http://localhost:8080 (profile: local)
 production environment created
 ```
 
+Every later command needs the profile too, including the ones your coding agent runs: pass `--profile local` each time, or set it once for the shell:
+
+```
+$ export BIDIREKT_PROFILE=local
+```
+
 ## Agent skill
 
 The `bidirekt` skill lets a coding agent write and update the service's contract files from its code, check them with the CLI's read-only commands, and fix them from a `can-i-deploy` report. It needs the CLI and a broker, and reads https://bidirekt.com/llms.txt on every run. Install it in the current project:
@@ -207,11 +232,15 @@ The `bidirekt` skill lets a coding agent write and update the service's contract
 $ npx skills add bidirekt/skills
 ```
 
+It writes `.agents/skills/bidirekt/SKILL.md`, `.claude/skills/bidirekt` and `skills-lock.json` in the project.
+
 `-g` installs it for every project:
 
 ```
 $ npx skills add bidirekt/skills -g
 ```
+
+It writes `~/.agents/skills/bidirekt/SKILL.md`, a link in the skills folder of each agent it finds, such as `~/.claude/skills/`, and `~/.agents/.skill-lock.json`. Which agents get it depends on what the `skills` tool detects on your machine. A line `✗ bidirekt → PromptScript: PromptScript does not support global skill installation` comes from the `skills` tool and can be ignored.
 
 The skill follows the `main` branch of https://github.com/bidirekt/skills. Update it with:
 

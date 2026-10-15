@@ -28,7 +28,7 @@ $ bidirekt configure --profile acme
 Broker URL [https://broker.acme.example]:
 ```
 
-Without `--broker-url` and outside a terminal, it fails with `no terminal to ask for the broker URL — pass --broker-url`. `BIDIREKT_BROKER_URL` is ignored here: `configure` only writes the config file.
+Without `--broker-url` and outside a terminal, such as with stdin from `/dev/null` in a CI job or an agent's shell, it fails with `no terminal to ask for the broker URL — pass --broker-url`. `BIDIREKT_BROKER_URL` is ignored here: `configure` only writes the config file.
 
 ## create-participant
 
@@ -57,6 +57,7 @@ Running it again prints `production environment already exists` and exits `0`.
 ```
 $ bidirekt validate contracts/*.yaml --participant petstore_web --environment production
 petstore_web local contract can be deployed to production
+compared with: petstore_api, petstore_reviews
 ```
 
 - `file or folder...`: one or more contract files or folders, the same ones [`publish`](#publish) takes.
@@ -65,7 +66,7 @@ petstore_web local contract can be deployed to production
 
 It answers, before you commit, what `can-i-deploy` would answer after a publish: the files are checked as `publish` checks them, then compared with every counterpart deployed in the environment. Nothing is stored: no version, no check.
 
-It exits `0` when the answer is yes and `1` when it is no; the report goes to stdout either way, with the same lines as [`can-i-deploy`](#can-i-deploy):
+It exits `0` when the answer is yes and `1` when it is no; the report goes to stdout either way, with the same lines as [`can-i-deploy`](#can-i-deploy), including the line that names what it compared with:
 
 ```
 $ bidirekt validate contracts/*.yaml --participant petstore_web --environment production
@@ -100,7 +101,7 @@ petstore_api contract publish successful
 
 - `file or folder...`: one or more contract files, `.yaml` or `.yml`, or folders that hold them. All of them publish together as one contract ([Several files](../contracts/spec.md#several-files)); the shell expands globs.
 - `--participant`: the participant the contract belongs to. It must exist, or the publish fails with `participant "petstore_api" not found → create it with: bidirekt create-participant petstore_api`, before any file is checked.
-- `--version`: any label, usually a commit hash or a release tag.
+- `--version`: any label, usually a commit hash or a release tag. Publish from a commit that holds the contract files: a version never changes, so files that are not committed yet should not take the hash of the commit before them. Commit first, then publish.
 
 A folder is read with its subfolders, and only its `.yaml` and `.yml` files count; a folder without any fails with `no contract YAML files in folder: "./docs"`. Files and folders can be mixed in one command. The files are read in alphabetical order, and a file reached twice, such as a file passed on its own and again through its folder, is read once, under the name the first argument gives it. A file found in a folder is named by the folder and its path inside it, so `./contracts/` gives `contracts/rest/pets.yaml`; a file passed on its own keeps the name you typed.
 
@@ -114,18 +115,26 @@ contract validation failed
   - petstore_api.yaml: invalid endpoint "/pets/{petId}" at provides rest, dynamic path segments must use *
 ```
 
+The files are checked in two steps. First the shape of each file: its keys, endpoints, methods, statuses and schema nodes. Only when every file passes come the checks between names: a resource or a schema declared twice, a property given two types by two files of a consumer, and a schema name that no schema declares. While any file has a shape violation, the report lists only the shape violations; after they are fixed, the next run lists the others. If `petstore_api.yaml` above also named an undeclared schema, `200: Pett`, the second run would print:
+
+```
+contract validation failed
+  - petstore_api.yaml: unresolved schema "Pett" referenced by provides GET /pets/* 200
+```
+
 ## can-i-deploy
 
 ```
 $ bidirekt can-i-deploy petstore_web --version 2.3.0 --environment production
 petstore_web 2.3.0 can be deployed to production
+compared with: petstore_api, petstore_reviews
 ```
 
 - `participant`: the participant you are about to deploy.
 - `--version`: the published version you are about to deploy.
 - `--environment`: where you are about to deploy it.
 
-It exits `0` when the answer is yes and `1` when it is no; the report goes to stdout either way. Errors that stop the check go to stderr: a version that was never published fails with `contract not found`, an environment that does not exist with `environment not found`, and an unknown participant with `participant not found`.
+It exits `0` when the answer is yes and `1` when it is no; the report goes to stdout either way. A yes names, below it, the counterparts deployed in the environment that it compared with, in alphabetical order, or says there were none: `nothing deployed in production to compare with`. Errors that stop the check go to stderr: a version that was never published fails with `contract not found`, an environment that does not exist with `environment not found`, and an unknown participant with `participant not found`.
 
 ```
 $ bidirekt can-i-deploy petstore_web --version 2.3.0 --environment production
@@ -177,7 +186,10 @@ A fix is a change in the code first, then in the contract, so that the contract 
 | `<participant> may provide null at "<property>" (<field>), but <counterpart> doesn't accept it` | `stop providing null` | `handle null in the code, then mark it nullable at <counterpart field>` | response: the participant marks the property nullable and the consumer does not |
 | `<participant> may send null at "<property>" (<field>), but <counterpart> doesn't accept it` | `stop sending null` | `handle null in the code, then mark it nullable at <counterpart field>` | request: the participant marks the property nullable and the provider does not |
 | `<participant> doesn't accept null at "<property>" (<field>), but <counterpart> may send it` | `handle null in the code, then mark it nullable` | `stop sending null at <counterpart field>` | request: the consumer marks the property nullable and the participant does not |
-| `<participant> calls <METHOD> <endpoint>, but <counterpart> doesn't provide it` | `stop calling it` | `publish it` | the participant names an endpoint, method or status that no published contract of the provider declares, or a provider that does not exist |
+| `<participant> calls <METHOD> <endpoint>, but <counterpart> doesn't provide it` | `stop calling it` | `publish it` | the participant names an endpoint or method that no published contract of the provider declares, or a provider that does not exist |
+| `<participant> reads response <status>, but <counterpart> answers only <statuses>` | `read response <statuses>` | `answer <status>` | response: the provider declares the endpoint and method, but not that status; `<statuses>` are the ones it declares, such as `201, 204 or 404` |
+| `<participant> reads response <status>, but <counterpart> declares no response` | `stop reading it` | `answer <status>` | response: the provider declares the endpoint and method with no response at all |
+| `<participant> sends a request body, but <counterpart> declares none` | `stop sending it` | `accept a request body` | request: the provider declares the endpoint and method with no `request` |
 | `<participant> calls <METHOD> <endpoint>, but <counterpart> is not deployed in <environment> (deployed in: <environments>)` | none | `deploy it to <environment> first` | the provider is not deployed in the target environment; the parenthesis is left out when it is deployed nowhere |
 | `<participant> removed <METHOD> <endpoint>, but <counterpart> still calls it` | `keep it until <counterpart> stops calling it` | `stop calling it` | the participant dropped a resource that a consumer deployed in the environment still consumes; printed once, right below `<METHOD> <endpoint>` |
 
@@ -189,6 +201,22 @@ petstore_web (2.3.0, deployed):
     - petstore_api removed POST /pets, but petstore_web still calls it
       → petstore_api: keep it until petstore_web stops calling it
       → petstore_web: stop calling it
+```
+
+When the provider declares the endpoint and method but not the status the participant reads, or no request body, the break says what is missing and which statuses the provider answers, instead of `doesn't provide it`. A status only the provider declares obliges no consumer:
+
+```
+petstore_api (1.4.0, deployed):
+  POST /pets/*/adopt
+    response 200:
+      - petstore_web reads response 200, but petstore_api answers only 204
+        → petstore_web: read response 204
+        → petstore_api: answer 200
+  POST /files
+    request:
+      - petstore_web sends a request body, but petstore_api declares none
+        → petstore_web: stop sending it
+        → petstore_api: accept a request body
 ```
 
 When `<property>` ends with `[]` or `{}`, the items of an array or the values of a map, there is no property to mark optional. The fix that would mark it optional, on the side that reads the body, reads the parent instead and has no ` at <counterpart field>`: `read "$.tags" the way petstore_api provides it` in a response, `read "$.tags" the way petstore_web sends it` in a request.
@@ -335,7 +363,14 @@ When none of them has a URL, the command fails without calling anything, in a te
 no broker configured — pass --broker-url, set BIDIREKT_BROKER_URL, or run "bidirekt configure"
 ```
 
-A profile named with `--profile` or `BIDIREKT_PROFILE` that is not in the config file fails the same way with `profile "acme" not found in <path>`. An invalid URL fails wherever it comes from, naming the source: `invalid broker URL "broker.example.com" (from BIDIREKT_BROKER_URL) — use http:// or https:// followed by a host`.
+When the config file has other profiles, a second line names them and how to pick one:
+
+```
+the config file has the profile local — pass --profile local or set BIDIREKT_PROFILE=local
+the config file has the profiles acme, local — pass --profile <name> or set BIDIREKT_PROFILE=<name>
+```
+
+The first form is printed for one other profile, the second for several. A profile named with `--profile` or `BIDIREKT_PROFILE` that is not in the config file fails the same way with `profile "acme" not found in <path>`. An invalid URL fails wherever it comes from, naming the source: `invalid broker URL "broker.example.com" (from BIDIREKT_BROKER_URL) — use http:// or https:// followed by a host`.
 
 **Config file.** Profiles live in `~/.config/bidirekt/config.json` (`$XDG_CONFIG_HOME/bidirekt/config.json` when `XDG_CONFIG_HOME` is set), or in the file `BIDIREKT_CONFIG_FILE` names. `configure` creates it readable only by you:
 
@@ -353,4 +388,4 @@ A `.env` file in the current directory is not read. A request that gets no answe
 
 **Exit codes.** `0` on success, help and version; `1` for everything else, including a refused publish and a `can-i-deploy` answer of no.
 
-**Output.** Success lines go to stdout and failures to stderr, except the `can-i-deploy` and `validate` reports, which always go to stdout. In a terminal, success is green and failures are red; `NO_COLOR` turns color off and `CLICOLOR_FORCE=1` keeps it on when the output is piped.
+**Output.** Success lines go to stdout and failures to stderr, except the `can-i-deploy` and `validate` reports, which always go to stdout. The `Broker:` line goes to stderr, before anything else, on success too. In a terminal, success is green and failures are red; `NO_COLOR` turns color off and `CLICOLOR_FORCE=1` keeps it on when the output is piped.

@@ -70,6 +70,7 @@ export const TERMINAL_LINES: Array<TerminalLine> = [
     text: 'petstore_web 2.3.1 can be deployed to production',
     tone: 'success',
   },
+  { text: 'compared with: petstore_api', tone: 'plain' },
   {
     text: 'bidirekt record-deployment petstore_web --version 2.3.1 --environment production',
     tone: 'plain',
