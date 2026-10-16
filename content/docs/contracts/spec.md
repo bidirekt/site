@@ -144,7 +144,7 @@ The resource still exists, so a consumer that calls `DELETE /pets/*` matches it.
 |---|---|---|
 | `200: ~` | `200: ~` | compatible |
 | `200: Pet` | `200: ~` | compatible |
-| `200: ~` | `200: Pet` | break: `petstore_web reads the body (Pet), but petstore_api doesn't provide it` |
+| `200: ~` | `200: Pet` | break: `Pet — petstore_web reads it, but petstore_api doesn't provide it`, at the body |
 | `request: ~` | `request: NewFile` | compatible |
 | no `request` | `request: NewFile` | break: `petstore_web sends a request body, but petstore_api declares none` |
 
@@ -325,7 +325,7 @@ A map reader also accepts fixed properties. A consumer that reads `pets` with `v
 
 Two cases still break:
 
-- A map on the producing side promises no key. A consumer that reads `$.pets.bob` from a provider that only declares `$.pets{}` breaks with `petstore_web reads "$.pets.bob" (Owner.pets.bob), but petstore_api doesn't provide it`.
+- A map on the producing side promises no key. A consumer that reads `$.pets.bob` from a provider that only declares `$.pets{}` breaks with `Owner.pets.bob — petstore_web reads it, but petstore_api doesn't provide it`, at `"$.pets.bob"`.
 - An `object` with neither `properties` nor `values` promises nothing about the values. Against a map reader, it breaks at `$.pets{}` with `doesn't provide`, or with `doesn't send` in a request.
 
 ### References
@@ -356,7 +356,7 @@ Comment:
         ref: Comment
 ```
 
-The loop can also pass through other schemas, such as `Post.author` pointing to `User` and `User.posts` back to `Post`. There is no depth limit, and a difference inside a recursive schema is reported once per resource.
+The loop can also pass through other schemas, such as `Post.author` pointing to `User` and `User.posts` back to `Post`. There is no depth limit, and a difference inside a recursive schema is one block, with one place per resource.
 
 ## Several files
 
