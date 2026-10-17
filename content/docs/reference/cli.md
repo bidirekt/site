@@ -182,7 +182,7 @@ One block per counterpart that is not compatible, with the version of it deploye
       → <counterpart>: <fix>
 ```
 
-Then the breaks of a property, one block per field, in alphabetical order. A block holds one break: the break and its fixes once, then every place where it happens, one line per request or response status. ` (<N> places)` is left out when there is one place:
+Then the breaks of a property, one block per field, break and fix, in alphabetical order of the field. A block holds one break: the break and its fixes once, then every place where it happens, one line per request or response status and property. ` (<N> places)` is left out when there is one place. A place line takes one of two forms, for a response or for a request:
 
 ```
 <field> — <break> (<N> places)
@@ -264,7 +264,7 @@ Pet — petstore_web reads it as object, but petstore_api provides array<object>
     · GET /owners/*/pet response 200 at the body (petstore_api: PetRecords)
 ```
 
-When `<participant>` has no field at that path, as in the `doesn't provide` and `doesn't send` blocks, the block is named by the field of `<counterpart>`. A difference inside a schema used in several places is one block with its places, one under each request and each response status that reaches it; `<property>` is one of the properties that reach it there. Which side's required properties count is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
+When `<participant>` has no field at that path, as in the `doesn't provide` and `doesn't send` blocks, the block is named by the field of `<counterpart>`. A difference inside a schema used in several places is one block with its places, one for each request or each response status that reaches it; `<property>` is one of the properties that reach it there. A block holds only requests or only responses: the same difference in a request and in a response is two blocks, each with its own break and fixes. Which side's required properties count is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
 
 ## record-deployment
 

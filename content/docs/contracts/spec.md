@@ -356,7 +356,7 @@ Comment:
         ref: Comment
 ```
 
-The loop can also pass through other schemas, such as `Post.author` pointing to `User` and `User.posts` back to `Post`. There is no depth limit, and a difference inside a recursive schema is one block, with one place per resource.
+The loop can also pass through other schemas, such as `Post.author` pointing to `User` and `User.posts` back to `Post`. There is no depth limit, and a difference inside a recursive schema is one block, with one place per request or response status that reaches it; the same difference in a request and in a response is two blocks.
 
 ## Several files
 
