@@ -207,7 +207,23 @@ schemas:
       ref: Pet
 ```
 
-A node's `type` is one of `object`, `array`, `string`, `integer`, `float`, `number` and `boolean`. Any node may also carry `description`, free text that the broker ignores.
+A node's `type` is one of `object`, `array`, `string`, `integer`, `float`, `number` and `boolean`. Every node declares `type`, except a node that is a `ref` ([References](#references)). A node with neither is rejected at publish, even when its `items` or `properties` already show what it is:
+
+```yaml
+Pet:
+  type: object
+  properties:
+    tags:
+      items:
+        type: string
+```
+
+```
+contract validation failed
+  - petstore_api.yaml: missing "type" at schemas Pet properties tags, expected one of: object, array, string, integer, float, number, boolean
+```
+
+Any node may also carry `description`, free text that the broker ignores.
 
 Two flags, `true` or `false`, say what a value may lack, and they are independent of each other:
 
@@ -277,8 +293,6 @@ Pet:
           type: string
 ```
 
-`type: object` may be left out when `properties` or `values` is present.
-
 An `object` with neither `properties` nor `values` is any object. It fits an object the code does not read inside. Here `petstore_web` passes `metadata` along as it came and only counts the `vaccinations`:
 
 ```yaml
@@ -297,7 +311,7 @@ On the side that reads the body, `type: object` alone accepts any object, and no
 
 ### Arrays
 
-`items` is the node of every element, as in `Pets` above. An array without `items` is rejected. `type: array` may be left out when `items` is present.
+`items` is the node of every element, as in `Pets` above. An array without `items` is rejected.
 
 ### Maps
 
@@ -330,7 +344,7 @@ Two cases still break:
 
 ### References
 
-`ref` gives a node the shape of a named schema, at any depth: as a whole schema, as a member, or as the items of an array, like `Pets` does with `Pet`. Write `ref` on its own, with at most `optional`, `nullable` and `description` beside it. `nullable` beside a `ref` makes the node nullable even when the named schema is not, as `optional` does. When a node also carries `type`, `properties`, `items` or `values`, that shape wins and the `ref` is ignored, without a violation:
+`ref` gives a node the shape of a named schema, at any depth: as a whole schema, as a member, or as the items of an array, like `Pets` does with `Pet`. Write `ref` on its own, with at most `optional`, `nullable` and `description` beside it. `nullable` beside a `ref` makes the node nullable even when the named schema is not, as `optional` does. `type`, `properties`, `items` or `values` beside a `ref` is rejected at publish:
 
 ```yaml
 Pet:
@@ -341,7 +355,12 @@ Pet:
       ref: Owner
 ```
 
-Here `owner` is a `string`, and `Owner` is never read. A `ref` to a name no schema declares is rejected at publish.
+```
+contract validation failed
+  - petstore_api.yaml: "type" is not allowed beside "ref" at schemas Pet properties owner
+```
+
+A `ref` to a name no schema declares is rejected at publish.
 
 A schema may point to itself, directly or through other schemas. Here each reply of a `Comment` is a `Comment`:
 
@@ -352,6 +371,7 @@ Comment:
     text:
       type: string
     replies:
+      type: array
       items:
         ref: Comment
 ```
