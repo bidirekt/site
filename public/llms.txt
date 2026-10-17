@@ -140,33 +140,43 @@ Exit codes: 0 on success, help and version; 1 for everything else. Success goes 
 
 ## Fixing can-i-deploy breaks
 
-Report shape: `<participant> <version> cannot be deployed to <env>`, then one block per incompatible counterpart → endpoint → `request` / `response <status>` → one break per line, each followed by its fix lines; a removed endpoint's break prints once, right below `<METHOD> <endpoint>`, outside any `request` / `response <status>` group. `<property>` is a path from the body root: `$.owner.name`, `$[].photoUrl` (array items), `$.pets{}.name` (map values); the root prints as `the body`, unquoted. Types print `array<T>` and `map<T>`. Right after it, in parentheses, comes `<f>`, the field of the participant under check: schema name + path inside that schema (`Address.city`, `Pet.vaccinations[].name` for array items, `Pets{}.name` for map values, only `Pet` at the root). That is the schema to edit in its contract. No parentheses when that participant has no field there (the `doesn't provide` and `doesn't send` lines). A difference inside a schema used in several places is reported once per resource (once under each request and each response status), with one of the paths that reach it:
+Report shape: `<participant> <version> cannot be deployed to <env>`, then one block per incompatible counterpart. In it, first the breaks of an endpoint, method, status or request body: endpoint → `request` / `response <status>` → one break per line, each followed by its fix lines; a removed endpoint's break prints once, right below `<METHOD> <endpoint>`, outside any `request` / `response <status>` group. Then the property breaks, one block per field, break and fix, sorted by field: the header `<f> — <break>` (plus ` (<N> places)` when there is more than one place), its fix lines once, then one place line per request or response status and path where it happens, `· <METHOD> <endpoint> request at "<p>"` or `· <METHOD> <endpoint> response <s> at "<p>"`, ending with ` (<c>: <cf>)` (the counterpart's own field) when the counterpart has one there. `<f>` is the field of the participant under check: schema name + path inside that schema (`Address.city`, `Pet.vaccinations[].name` for array items, `Pets{}.name` for map values, only `Pet` at the root). That is the schema to edit in its contract. When that participant has no field there (the `doesn't provide` and `doesn't send` breaks), `<f>` is the counterpart's field. `<p>` is a path from the body root: `$.owner.name`, `$[].photoUrl` (array items), `$.pets{}.name` (map values); the root prints as `the body`, unquoted. Types print `array<T>` and `map<T>`. A difference inside a schema used in several places is one block, with one place per request or response status that reaches it, each with one of the paths that reach it there; a block holds only requests or only responses, so the same difference in a request and in a response is two blocks:
   ```
-  - petstore_web reads "$.owner.address.city" (Address.city), but petstore_api doesn't provide it
-    → petstore_web: stop reading it, or handle its absence in the code and mark it optional
-    → petstore_api: provide it
-  - petstore_web reads the body (Pet) as object, but petstore_api provides array<object>
-    → petstore_web: read it as array<object>
-    → petstore_api: provide it as object at Pets
+  petstore_api (1.4.0, deployed):
+    POST /pets/*/adopt
+      response 200:
+        - petstore_web reads response 200, but petstore_api answers only 204
+          → petstore_web: read response 204
+          → petstore_api: answer 200
+    Pet.status — petstore_web reads it, but petstore_api doesn't provide it (2 places)
+      → petstore_web: stop reading it, or handle its absence in the code and mark it optional
+      → petstore_api: provide it
+        · GET /pets response 200 at "$[].status"
+        · GET /pets/* response 200 at "$.status"
+    Pet.weight — petstore_web reads it as string, but petstore_api provides integer (2 places)
+      → petstore_web: read it as integer
+      → petstore_api: provide it as string there
+        · GET /pets response 200 at "$[].weight" (petstore_api: PetRecord.weight)
+        · GET /pets/* response 200 at "$.weight" (petstore_api: PetRecord.weight)
   ```
-Below each break come its fixes, one line per side, the participant under check first: `→ <participant>: <fix>`, then `→ <c>: <fix>`, which ends with ` at <cf>` (the counterpart's own field) when the counterpart has one there. A fix is a code change first, then the contract change that matches it: the contract follows the code. When `<p>` ends with `[]` or `{}` (array items, map values), the reading side's fix that would mark it optional reads the parent instead, `read "<parent>" the way <producer> provides it` (in a request, `sends it`), with no ` at`. Each break, with the fix of the participant under check, then `<c>`'s:
+Below each break come its fixes, one line per side, the participant under check first: `→ <participant>: <fix>`, then `→ <c>: <fix>`, which in a block ends with ` there` when the places name `<cf>`. A fix is a code change first, then the contract change that matches it: the contract follows the code. When `<p>` ends with `[]` or `{}` (array items, map values), the reading side's fix that would mark it optional reads the parent field instead, `read <parent field> the way <producer> provides it` (in a request, `sends it`), with no ` there`. Each break, with the fix of the participant under check, then `<c>`'s:
 
-- `reads "<p>" (<f>), but <c> doesn't provide it` → `stop reading it, or handle its absence in the code and mark it optional`; <c>: `provide it`.
-- `doesn't provide "<p>", but <c> reads it` → `provide it`; <c>: `stop reading it, or handle its absence in the code and mark it optional at <cf>`.
-- `requires "<p>" (<f>), but <c> only sometimes provides it` → `handle its absence in the code, then mark it optional`; <c>: `always provide it at <cf>`.
-- `provides "<p>" (<f>) only sometimes, but <c> requires it` → `always provide it`; <c>: `handle its absence in the code, then mark it optional at <cf>`.
-- `doesn't send "<p>", but <c> requires it` → `send it`; <c>: `stop requiring it, then mark it optional at <cf>`.
-- `requires "<p>" (<f>), but <c> doesn't send it` → `stop requiring it, then mark it optional`; <c>: `send it`.
-- `sends "<p>" (<f>) only sometimes, but <c> requires it` → `always send it`; <c>: `handle its absence in the code, then mark it optional at <cf>`.
-- `requires "<p>" (<f>), but <c> sends it only sometimes` → `handle its absence in the code, then mark it optional`; <c>: `always send it at <cf>`.
-- `reads "<p>" (<f>) as <t>, but <c> provides <t2>` → `read it as <t2>`; <c>: `provide it as <t> at <cf>`.
-- `provides "<p>" (<f>) as <t>, but <c> reads <t2>` → `provide it as <t2>`; <c>: `read it as <t> at <cf>`.
-- `sends "<p>" (<f>) as <t>, but <c> expects <t2>` → `send <t2>`; <c>: `accept <t> at <cf>`.
-- `expects "<p>" (<f>) as <t>, but <c> sends <t2>` → `accept <t2>`; <c>: `send <t> at <cf>`.
-- `doesn't accept null at "<p>" (<f>), but <c> may provide null` → `handle null in the code, then mark it nullable`; <c>: `stop providing null at <cf>`.
-- `may provide null at "<p>" (<f>), but <c> doesn't accept it` → `stop providing null`; <c>: `handle null in the code, then mark it nullable at <cf>`.
-- `may send null at "<p>" (<f>), but <c> doesn't accept it` → `stop sending null`; <c>: `handle null in the code, then mark it nullable at <cf>`.
-- `doesn't accept null at "<p>" (<f>), but <c> may send it` → `handle null in the code, then mark it nullable`; <c>: `stop sending null at <cf>`.
+- `reads it, but <c> doesn't provide it` → `stop reading it, or handle its absence in the code and mark it optional`; <c>: `provide it`.
+- `doesn't provide it, but <c> reads it` → `provide it`; <c>: `stop reading it, or handle its absence in the code and mark it optional there`.
+- `requires it, but <c> only sometimes provides it` → `handle its absence in the code, then mark it optional`; <c>: `always provide it there`.
+- `provides it only sometimes, but <c> requires it` → `always provide it`; <c>: `handle its absence in the code, then mark it optional there`.
+- `doesn't send it, but <c> requires it` → `send it`; <c>: `stop requiring it, then mark it optional there`.
+- `requires it, but <c> doesn't send it` → `stop requiring it, then mark it optional`; <c>: `send it`.
+- `sends it only sometimes, but <c> requires it` → `always send it`; <c>: `handle its absence in the code, then mark it optional there`.
+- `requires it, but <c> sends it only sometimes` → `handle its absence in the code, then mark it optional`; <c>: `always send it there`.
+- `reads it as <t>, but <c> provides <t2>` → `read it as <t2>`; <c>: `provide it as <t> there`.
+- `provides it as <t>, but <c> reads <t2>` → `provide it as <t2>`; <c>: `read it as <t> there`.
+- `sends it as <t>, but <c> expects <t2>` → `send <t2>`; <c>: `accept <t> there`.
+- `expects it as <t>, but <c> sends <t2>` → `accept <t2>`; <c>: `send <t> there`.
+- `doesn't accept null, but <c> may provide null` → `handle null in the code, then mark it nullable`; <c>: `stop providing null there`.
+- `may provide null, but <c> doesn't accept it` → `stop providing null`; <c>: `handle null in the code, then mark it nullable there`.
+- `may send null, but <c> doesn't accept it` → `stop sending null`; <c>: `handle null in the code, then mark it nullable there`.
+- `doesn't accept null, but <c> may send it` → `handle null in the code, then mark it nullable`; <c>: `stop sending null there`.
 - `calls <METHOD> <endpoint>, but <c> doesn't provide it` → `stop calling it`; <c>: `publish it`. The endpoint or method doesn't exist in <c>: check endpoint spelling (`*` segments), method and the provider name under `consumes`.
 - `reads response <s>, but <c> answers only <statuses>` (`204`; `201 or 204`; `201, 204 or 404`) → `read response <statuses>`; <c>: `answer <s>`. Endpoint and method exist, that status doesn't.
 - `reads response <s>, but <c> declares no response` → `stop reading it`; <c>: `answer <s>`.

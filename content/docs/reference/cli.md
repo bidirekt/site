@@ -73,14 +73,21 @@ $ bidirekt validate contracts/*.yaml --participant petstore_web --environment pr
 petstore_web local contract cannot be deployed to production
 
 petstore_api (1.4.0, deployed):
-  GET /pets/*
+  POST /pets/*/adopt
     response 200:
-      - petstore_web reads "$.status" (Pet.status), but petstore_api doesn't provide it
-        → petstore_web: stop reading it, or handle its absence in the code and mark it optional
-        → petstore_api: provide it
-      - petstore_web reads "$.weight" (Pet.weight) as string, but petstore_api provides integer
-        → petstore_web: read it as integer
-        → petstore_api: provide it as string at Pet.weight
+      - petstore_web reads response 200, but petstore_api answers only 204
+        → petstore_web: read response 204
+        → petstore_api: answer 200
+  Pet.status — petstore_web reads it, but petstore_api doesn't provide it (2 places)
+    → petstore_web: stop reading it, or handle its absence in the code and mark it optional
+    → petstore_api: provide it
+      · GET /pets response 200 at "$[].status"
+      · GET /pets/* response 200 at "$.status"
+  Pet.weight — petstore_web reads it as string, but petstore_api provides integer (2 places)
+    → petstore_web: read it as integer
+    → petstore_api: provide it as string there
+      · GET /pets response 200 at "$[].weight" (petstore_api: PetRecord.weight)
+      · GET /pets/* response 200 at "$.weight" (petstore_api: PetRecord.weight)
 
 petstore_reviews:
   GET /reviews/summary
@@ -141,14 +148,21 @@ $ bidirekt can-i-deploy petstore_web --version 2.3.0 --environment production
 petstore_web 2.3.0 cannot be deployed to production
 
 petstore_api (1.4.0, deployed):
-  GET /pets/*
+  POST /pets/*/adopt
     response 200:
-      - petstore_web reads "$.status" (Pet.status), but petstore_api doesn't provide it
-        → petstore_web: stop reading it, or handle its absence in the code and mark it optional
-        → petstore_api: provide it
-      - petstore_web reads "$.weight" (Pet.weight) as string, but petstore_api provides integer
-        → petstore_web: read it as integer
-        → petstore_api: provide it as string at Pet.weight
+      - petstore_web reads response 200, but petstore_api answers only 204
+        → petstore_web: read response 204
+        → petstore_api: answer 200
+  Pet.status — petstore_web reads it, but petstore_api doesn't provide it (2 places)
+    → petstore_web: stop reading it, or handle its absence in the code and mark it optional
+    → petstore_api: provide it
+      · GET /pets response 200 at "$[].status"
+      · GET /pets/* response 200 at "$.status"
+  Pet.weight — petstore_web reads it as string, but petstore_api provides integer (2 places)
+    → petstore_web: read it as integer
+    → petstore_api: provide it as string there
+      · GET /pets response 200 at "$[].weight" (petstore_api: PetRecord.weight)
+      · GET /pets/* response 200 at "$.weight" (petstore_api: PetRecord.weight)
 
 petstore_reviews:
   GET /reviews/summary
@@ -158,34 +172,46 @@ petstore_reviews:
         → petstore_reviews: publish it
 ```
 
-One block per counterpart that is not compatible, with the version of it deployed in the environment; the version is left out when it is not deployed there. Each break is one line, written from the side of `<participant>`, the participant under check, against `<counterpart>`, the counterpart it breaks. Below it come the fixes, one line per side, the fix of `<participant>` first:
+One block per counterpart that is not compatible, with the version of it deployed in the environment; the version is left out when it is not deployed there. Each break is one line, written from the side of `<participant>`, the participant under check, against `<counterpart>`, the counterpart it breaks. Below it come the fixes, one line per side, the fix of `<participant>` first. The breaks of an endpoint, a method, a status or a request body come first, under the endpoint and the request or response status they are about:
 
 ```
-- <break>
+<METHOD> <endpoint>
+  response <status>:
+    - <break>
+      → <participant>: <fix>
+      → <counterpart>: <fix>
+```
+
+Then the breaks of a property, one block per field, break and fix, in alphabetical order of the field. A block holds one break: the break and its fixes once, then every place where it happens, one line per request or response status and property. ` (<N> places)` is left out when there is one place. A place line takes one of two forms, for a response or for a request:
+
+```
+<field> — <break> (<N> places)
   → <participant>: <fix>
-  → <counterpart>: <fix> at <counterpart field>
+  → <counterpart>: <fix> there
+    · <METHOD> <endpoint> response <status> at "<property>" (<counterpart>: <counterpart field>)
+    · <METHOD> <endpoint> request at "<property>" (<counterpart>: <counterpart field>)
 ```
 
-A fix is a change in the code first, then in the contract, so that the contract keeps describing what the code does. `<counterpart field>` is the field of `<counterpart>` at that property, the place to edit in its contract; the fix leaves ` at <counterpart field>` out when `<counterpart>` has no field there. Every break and its fixes:
+A fix is a change in the code first, then in the contract, so that the contract keeps describing what the code does. `<counterpart field>` is the field of `<counterpart>` at that property, the place to edit in its contract, and ` there` points the fix of `<counterpart>` at it; both are left out when `<counterpart>` has no field there. Every break and its fixes:
 
 | Break | Fix of `<participant>` | Fix of `<counterpart>` | When |
 |---|---|---|---|
-| `<participant> reads "<property>" (<field>), but <counterpart> doesn't provide it` | `stop reading it, or handle its absence in the code and mark it optional` | `provide it` | response: the participant requires a property the provider does not declare, inside a parent the provider declares |
-| `<participant> doesn't provide "<property>", but <counterpart> reads it` | `provide it` | `stop reading it, or handle its absence in the code and mark it optional at <counterpart field>` | response: the consumer requires a property the participant does not declare, inside a parent the participant declares |
-| `<participant> requires "<property>" (<field>), but <counterpart> only sometimes provides it` | `handle its absence in the code, then mark it optional` | `always provide it at <counterpart field>` | response: the participant requires a property the provider marks optional |
-| `<participant> provides "<property>" (<field>) only sometimes, but <counterpart> requires it` | `always provide it` | `handle its absence in the code, then mark it optional at <counterpart field>` | response: the consumer requires a property the participant marks optional |
-| `<participant> doesn't send "<property>", but <counterpart> requires it` | `send it` | `stop requiring it, then mark it optional at <counterpart field>` | request: the provider requires a property the participant does not send, inside a parent the participant sends |
-| `<participant> requires "<property>" (<field>), but <counterpart> doesn't send it` | `stop requiring it, then mark it optional` | `send it` | request: the participant requires a property the consumer does not send, inside a parent the consumer sends |
-| `<participant> sends "<property>" (<field>) only sometimes, but <counterpart> requires it` | `always send it` | `handle its absence in the code, then mark it optional at <counterpart field>` | request: the provider requires a property the participant marks optional |
-| `<participant> requires "<property>" (<field>), but <counterpart> sends it only sometimes` | `handle its absence in the code, then mark it optional` | `always send it at <counterpart field>` | request: the participant requires a property the consumer marks optional |
-| `<participant> reads "<property>" (<field>) as <type>, but <counterpart> provides <counterpart type>` | `read it as <counterpart type>` | `provide it as <type> at <counterpart field>` | response: the participant reads the property as a type that does not accept the type the provider declares |
-| `<participant> provides "<property>" (<field>) as <type>, but <counterpart> reads <counterpart type>` | `provide it as <counterpart type>` | `read it as <type> at <counterpart field>` | response: the consumer reads the property as a type that does not accept the type the participant declares |
-| `<participant> sends "<property>" (<field>) as <type>, but <counterpart> expects <counterpart type>` | `send <counterpart type>` | `accept <type> at <counterpart field>` | request: the provider expects the property as a type that does not accept the type the participant sends |
-| `<participant> expects "<property>" (<field>) as <type>, but <counterpart> sends <counterpart type>` | `accept <counterpart type>` | `send <type> at <counterpart field>` | request: the participant expects the property as a type that does not accept the type the consumer sends |
-| `<participant> doesn't accept null at "<property>" (<field>), but <counterpart> may provide null` | `handle null in the code, then mark it nullable` | `stop providing null at <counterpart field>` | response: the provider marks the property nullable and the participant does not |
-| `<participant> may provide null at "<property>" (<field>), but <counterpart> doesn't accept it` | `stop providing null` | `handle null in the code, then mark it nullable at <counterpart field>` | response: the participant marks the property nullable and the consumer does not |
-| `<participant> may send null at "<property>" (<field>), but <counterpart> doesn't accept it` | `stop sending null` | `handle null in the code, then mark it nullable at <counterpart field>` | request: the participant marks the property nullable and the provider does not |
-| `<participant> doesn't accept null at "<property>" (<field>), but <counterpart> may send it` | `handle null in the code, then mark it nullable` | `stop sending null at <counterpart field>` | request: the consumer marks the property nullable and the participant does not |
+| `<participant> reads it, but <counterpart> doesn't provide it` | `stop reading it, or handle its absence in the code and mark it optional` | `provide it` | response: the participant requires a property the provider does not declare, inside a parent the provider declares |
+| `<participant> doesn't provide it, but <counterpart> reads it` | `provide it` | `stop reading it, or handle its absence in the code and mark it optional there` | response: the consumer requires a property the participant does not declare, inside a parent the participant declares |
+| `<participant> requires it, but <counterpart> only sometimes provides it` | `handle its absence in the code, then mark it optional` | `always provide it there` | response: the participant requires a property the provider marks optional |
+| `<participant> provides it only sometimes, but <counterpart> requires it` | `always provide it` | `handle its absence in the code, then mark it optional there` | response: the consumer requires a property the participant marks optional |
+| `<participant> doesn't send it, but <counterpart> requires it` | `send it` | `stop requiring it, then mark it optional there` | request: the provider requires a property the participant does not send, inside a parent the participant sends |
+| `<participant> requires it, but <counterpart> doesn't send it` | `stop requiring it, then mark it optional` | `send it` | request: the participant requires a property the consumer does not send, inside a parent the consumer sends |
+| `<participant> sends it only sometimes, but <counterpart> requires it` | `always send it` | `handle its absence in the code, then mark it optional there` | request: the provider requires a property the participant marks optional |
+| `<participant> requires it, but <counterpart> sends it only sometimes` | `handle its absence in the code, then mark it optional` | `always send it there` | request: the participant requires a property the consumer marks optional |
+| `<participant> reads it as <type>, but <counterpart> provides <counterpart type>` | `read it as <counterpart type>` | `provide it as <type> there` | response: the participant reads the property as a type that does not accept the type the provider declares |
+| `<participant> provides it as <type>, but <counterpart> reads <counterpart type>` | `provide it as <counterpart type>` | `read it as <type> there` | response: the consumer reads the property as a type that does not accept the type the participant declares |
+| `<participant> sends it as <type>, but <counterpart> expects <counterpart type>` | `send <counterpart type>` | `accept <type> there` | request: the provider expects the property as a type that does not accept the type the participant sends |
+| `<participant> expects it as <type>, but <counterpart> sends <counterpart type>` | `accept <counterpart type>` | `send <type> there` | request: the participant expects the property as a type that does not accept the type the consumer sends |
+| `<participant> doesn't accept null, but <counterpart> may provide null` | `handle null in the code, then mark it nullable` | `stop providing null there` | response: the provider marks the property nullable and the participant does not |
+| `<participant> may provide null, but <counterpart> doesn't accept it` | `stop providing null` | `handle null in the code, then mark it nullable there` | response: the participant marks the property nullable and the consumer does not |
+| `<participant> may send null, but <counterpart> doesn't accept it` | `stop sending null` | `handle null in the code, then mark it nullable there` | request: the participant marks the property nullable and the provider does not |
+| `<participant> doesn't accept null, but <counterpart> may send it` | `handle null in the code, then mark it nullable` | `stop sending null there` | request: the consumer marks the property nullable and the participant does not |
 | `<participant> calls <METHOD> <endpoint>, but <counterpart> doesn't provide it` | `stop calling it` | `publish it` | the participant names an endpoint or method that no published contract of the provider declares, or a provider that does not exist |
 | `<participant> reads response <status>, but <counterpart> answers only <statuses>` | `read response <statuses>` | `answer <status>` | response: the provider declares the endpoint and method, but not that status; `<statuses>` are the ones it declares, such as `201, 204 or 404` |
 | `<participant> reads response <status>, but <counterpart> declares no response` | `stop reading it` | `answer <status>` | response: the provider declares the endpoint and method with no response at all |
@@ -193,7 +219,7 @@ A fix is a change in the code first, then in the contract, so that the contract 
 | `<participant> calls <METHOD> <endpoint>, but <counterpart> is not deployed in <environment> (deployed in: <environments>)` | none | `deploy it to <environment> first` | the provider is not deployed in the target environment; the parenthesis is left out when it is deployed nowhere |
 | `<participant> removed <METHOD> <endpoint>, but <counterpart> still calls it` | `keep it until <counterpart> stops calling it` | `stop calling it` | the participant dropped a resource that a consumer deployed in the environment still consumes; printed once, right below `<METHOD> <endpoint>` |
 
-A removed endpoint is reported once, right below `<METHOD> <endpoint>`, not under each request and response status it had. Any other break of that endpoint stays under its body:
+A removed endpoint is reported once, right below `<METHOD> <endpoint>`, not under each request and response status it had. Any other break of that endpoint stays under its body or in its block:
 
 ```
 petstore_web (2.3.0, deployed):
@@ -219,7 +245,7 @@ petstore_api (1.4.0, deployed):
         → petstore_api: accept a request body
 ```
 
-When `<property>` ends with `[]` or `{}`, the items of an array or the values of a map, there is no property to mark optional. The fix that would mark it optional, on the side that reads the body, reads the parent instead and has no ` at <counterpart field>`: `read "$.tags" the way petstore_api provides it` in a response, `read "$.tags" the way petstore_web sends it` in a request.
+When `<property>` ends with `[]` or `{}`, the items of an array or the values of a map, there is no property to mark optional. The fix that would mark it optional, on the side that reads the body, reads the parent field instead and has no ` there`: `read Pet.tags the way petstore_api provides it` in a response, `read NewPetRecord.tags the way petstore_web sends it` in a request.
 
 A property is only required where its parent is present. When the producing side does not declare a parent, only the parent can break, and only if it is required; its members, array items and map values are never reported on their own. The body itself has no parent, so it is always compared.
 
@@ -228,15 +254,17 @@ A property is only required where its parent is present. When the producing side
 `<field>` is the field of `<participant>` at that path: the schema name and the path inside that schema, the place to edit in the participant's own contract. `Pet.vaccinations[].name` is a member of each array item, `Pets{}.name` a member of each map value, and at the root it is only the schema name:
 
 ```
-- petstore_web reads "$.owner.address.city" (Address.city), but petstore_api doesn't provide it
+Address.city — petstore_web reads it, but petstore_api doesn't provide it
   → petstore_web: stop reading it, or handle its absence in the code and mark it optional
   → petstore_api: provide it
-- petstore_web reads the body (Pet) as object, but petstore_api provides array<object>
+    · GET /pets/* response 200 at "$.owner.address.city"
+Pet — petstore_web reads it as object, but petstore_api provides array<object>
   → petstore_web: read it as array<object>
-  → petstore_api: provide it as object at Pets
+  → petstore_api: provide it as object there
+    · GET /owners/*/pet response 200 at the body (petstore_api: PetRecords)
 ```
 
-The parentheses are left out when `<participant>` has no field at that path, as in the `doesn't provide` and `doesn't send` lines. A difference inside a schema used in several places is reported once per resource, that is once under each request and each response status, not once per report; `<property>` is one of the properties that reach it. Which side's required properties count is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
+When `<participant>` has no field at that path, as in the `doesn't provide` and `doesn't send` blocks, the block is named by the field of `<counterpart>`. A difference inside a schema used in several places is one block with its places, one for each request or each response status that reaches it; `<property>` is one of the properties that reach it there. A block holds only requests or only responses: the same difference in a request and in a response is two blocks, each with its own break and fixes. Which side's required properties count is in [How the broker works](../concepts/how-the-broker-works.md#can-i-deploy).
 
 ## record-deployment
 
