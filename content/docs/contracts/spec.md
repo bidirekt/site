@@ -327,7 +327,26 @@ contract validation failed
   - petstore_web.yaml: object schema without properties at schemas Pet properties metadata, declare the keys you read, or use "type: map" with "values" if the keys vary
 ```
 
-The fix is to declare the properties the code reads. When the keys vary, write a `map` with `values` instead ([Maps](#maps)).
+The fix is to declare the keys that arrive in the body. The side that reads the body marks each key its code does not read with `optional: true`, so the side that produces the body is free to drop it. The side that produces the body declares the keys its code sends. When the keys vary, both sides write a `map` with `values` instead ([Maps](#maps)).
+
+Here `petstore_web` only counts a pet's `vaccinations`. Each vaccination arrives with a `name` and a `date`, and the code reads neither:
+
+```yaml
+Pet:
+  type: object
+  properties:
+    vaccinations:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            optional: true
+          date:
+            type: string
+            optional: true
+```
 
 ### Arrays
 
@@ -398,6 +417,8 @@ Pet:
 contract validation failed
   - petstore_api.yaml: "type" is not allowed beside "ref" at schemas Pet properties owner
 ```
+
+The fix is to keep either the `ref` alone or the shape without the `ref`, whichever describes the body. A contract written before this rule was compared by the shape and never read the `ref`, so removing the `ref` keeps what that contract checked.
 
 A `ref` to a name no schema declares is rejected at publish.
 
