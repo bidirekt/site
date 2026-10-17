@@ -225,11 +225,11 @@ contract validation failed
 
 Each type takes only its own keys:
 
-| `type` | Its key | Keys rejected beside it |
+| `type` | Required key | Keys rejected beside it |
 |---|---|---|
-| `object` | `properties` | `items`, `values` |
-| `array` | `items`, required | `properties`, `values` |
-| `map` | `values`, required | `properties`, `items` |
+| `object` | `properties`, at least one | `items`, `values` |
+| `array` | `items` | `properties`, `values` |
+| `map` | `values` | `properties`, `items` |
 | `string`, `integer`, `float`, `number`, `boolean` | none | `properties`, `items`, `values` |
 | none, with `ref` | none | `type`, `properties`, `items`, `values` |
 
@@ -320,21 +320,14 @@ Pet:
           type: string
 ```
 
-An `object` without `properties` is any object. It fits an object the code does not read inside. Here `petstore_web` passes `metadata` along as it came and only counts the `vaccinations`:
+An `object` without `properties`, or with `properties: {}`, is rejected:
 
-```yaml
-Pet:
-  type: object
-  properties:
-    metadata:
-      type: object
-    vaccinations:
-      type: array
-      items:
-        type: object
+```
+contract validation failed
+  - petstore_web.yaml: object schema without properties at schemas Pet properties metadata, declare the keys you read, or use "type: map" with "values" if the keys vary
 ```
 
-On the side that reads the body, `type: object` alone accepts any object, and nothing inside it is compared. On the side that produces the body, it declares no property, so each property the reader requires directly in it breaks with `doesn't provide`, or with `doesn't send` in a request.
+The fix is to declare the properties the code reads. When the keys vary, write a `map` with `values` instead ([Maps](#maps)).
 
 ### Arrays
 
@@ -364,11 +357,12 @@ contract validation failed
   - petstore_api.yaml: map schema without values at schemas PetsByName
 ```
 
-A contract written before `map` existed declares a map as `type: object` with `values`. It is rejected, and the fix is to write `type: map` in place of `type: object`:
+A contract written before `map` existed declares a map as `type: object` with `values`. It is rejected with two lines at the same property, one for `values` and one for the missing `properties`, and the fix is to write `type: map` in place of `type: object`:
 
 ```
 contract validation failed
   - petstore_web.yaml: "values" is not allowed on an object schema at schemas Owner properties pets, use it with "type: map"
+  - petstore_web.yaml: object schema without properties at schemas Owner properties pets, declare the keys you read, or use "type: map" with "values" if the keys vary
 ```
 
 A map only matches a map. Two maps compare their values like the items of an array: type, `optional`, `nullable` and their own members. In a break line the dynamic key is written `{}`, as in `$.pets{}.name`, and a map's type is written `map<T>`, as an array's is `array<T>`.
