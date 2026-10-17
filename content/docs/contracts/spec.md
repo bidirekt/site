@@ -207,7 +207,7 @@ schemas:
       ref: Pet
 ```
 
-A node's `type` is one of `object`, `array`, `string`, `integer`, `float`, `number` and `boolean`. Every node declares `type`, except a node that is a `ref` ([References](#references)). A node with neither is rejected at publish, even when its `items` or `properties` already show what it is:
+A node's `type` is one of `object`, `array`, `map`, `string`, `integer`, `float`, `number` and `boolean`. Every node declares `type`, except a node that is a `ref` ([References](#references)). A node with neither is rejected at publish, even when its `items` or `properties` already show what it is:
 
 ```yaml
 Pet:
@@ -220,7 +220,34 @@ Pet:
 
 ```
 contract validation failed
-  - petstore_api.yaml: missing "type" at schemas Pet properties tags, expected one of: object, array, string, integer, float, number, boolean
+  - petstore_api.yaml: missing "type" at schemas Pet properties tags, expected one of: object, array, map, string, integer, float, number, boolean
+```
+
+Each type takes only its own keys:
+
+| `type` | Its key | Keys rejected beside it |
+|---|---|---|
+| `object` | `properties` | `items`, `values` |
+| `array` | `items`, required | `properties`, `values` |
+| `map` | `values`, required | `properties`, `items` |
+| `string`, `integer`, `float`, `number`, `boolean` | none | `properties`, `items`, `values` |
+| none, with `ref` | none | `type`, `properties`, `items`, `values` |
+
+A key on the wrong type is rejected at publish, and the line names the type it belongs to:
+
+```yaml
+Pet:
+  type: object
+  properties:
+    tags:
+      type: string
+      items:
+        type: string
+```
+
+```
+contract validation failed
+  - petstore_api.yaml: "items" is not allowed on a string schema at schemas Pet properties tags, use it with "type: array"
 ```
 
 Any node may also carry `description`, free text that the broker ignores.
@@ -293,7 +320,7 @@ Pet:
           type: string
 ```
 
-An `object` with neither `properties` nor `values` is any object. It fits an object the code does not read inside. Here `petstore_web` passes `metadata` along as it came and only counts the `vaccinations`:
+An `object` without `properties` is any object. It fits an object the code does not read inside. Here `petstore_web` passes `metadata` along as it came and only counts the `vaccinations`:
 
 ```yaml
 Pet:
@@ -315,11 +342,11 @@ On the side that reads the body, `type: object` alone accepts any object, and no
 
 ### Maps
 
-An object whose keys are not known in advance, but whose values all have the same shape, declares `values` instead of `properties`. `values` is the node of every value, and the key is always a string:
+An object whose keys are not known in advance, but whose values all have the same shape, is a `map`. `values` is the node of every value, and the key is always a string:
 
 ```yaml
 PetsByName:
-  type: object
+  type: map
   values:
     ref: Pet
 ```
@@ -330,17 +357,35 @@ describes
 { "bob": { "name": "Bob" }, "sky": { "name": "Sky" } }
 ```
 
-- `values` and `properties` are exclusive: a node with both is rejected with `object schema has both "values" and "properties"`.
-- `values` belongs to an object only: with any other `type`, it is rejected with `"values" on a non-object schema`.
+A `map` without `values` is rejected:
 
-The values are compared like the items of an array: type, `optional`, `nullable` and their own members. In a break line the dynamic key is written `{}`, as in `$.pets{}.name`, and a map's type is written `map<T>`, as an array's is `array<T>`.
+```
+contract validation failed
+  - petstore_api.yaml: map schema without values at schemas PetsByName
+```
 
-A map reader also accepts fixed properties. A consumer that reads `pets` with `values: {ref: Pet}` accepts a provider that declares `pets` with the properties `bob` and `sky`. Each fixed property is compared against `values`: its type, `nullable` and its own members, with a break reported at its own property, such as `$.pets.sky`. A fixed property's `optional` never breaks, because a map requires none of its keys.
+A contract written before `map` existed declares a map as `type: object` with `values`. It is rejected, and the fix is to write `type: map` in place of `type: object`:
 
-Two cases still break:
+```
+contract validation failed
+  - petstore_web.yaml: "values" is not allowed on an object schema at schemas Owner properties pets, use it with "type: map"
+```
 
-- A map on the producing side promises no key. A consumer that reads `$.pets.bob` from a provider that only declares `$.pets{}` breaks with `Owner.pets.bob — petstore_web reads it, but petstore_api doesn't provide it`, at `"$.pets.bob"`.
-- An `object` with neither `properties` nor `values` promises nothing about the values. Against a map reader, it breaks at `$.pets{}` with `doesn't provide`, or with `doesn't send` in a request.
+A map only matches a map. Two maps compare their values like the items of an array: type, `optional`, `nullable` and their own members. In a break line the dynamic key is written `{}`, as in `$.pets{}.name`, and a map's type is written `map<T>`, as an array's is `array<T>`.
+
+A map on one side and an `object` on the other is a type mismatch on the property itself, and nothing inside it is compared. Here `petstore_api` sends `pets` as an `object` with the properties `bob` and `sky`, and `petstore_web` reads it as a map:
+
+```
+petstore_api 1.5.0 cannot be deployed to production
+
+petstore_web (1.4.0, deployed):
+  Owner.pets — petstore_api provides it as object, but petstore_web reads map<object>
+    → petstore_api: provide it as map<object>
+    → petstore_web: read it as object there
+      · GET /owners/* response 200 at "$.pets" (petstore_web: Owner.pets)
+```
+
+The fix is to describe the same shape on both sides. When the keys are fixed, both sides declare them as `properties` of an `object`. When the keys vary, both sides declare a `map`.
 
 ### References
 
