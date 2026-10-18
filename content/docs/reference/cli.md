@@ -245,8 +245,6 @@ petstore_api (1.4.0, deployed):
         → petstore_api: answer 200
 ```
 
-When `<property>` ends with `[]` or `{}`, the items of an array or the values of a map, there is no property to mark optional. The fix that would mark it optional, on the side that reads the body, reads the parent field instead and has no ` there`: `read Pet.tags the way petstore_api provides it` in a response, `read NewPetRecord.tags the way petstore_web sends it` in a request.
-
 A property is only required where its parent is present. When the producing side does not declare a parent, only the parent can break, and only if it is required; its members, array items and map values are never reported on their own. The body itself has no parent, so it is always compared.
 
 `<property>` is written from the root of the body: `$.owner.name` for a member, `$[].photoUrl` for a member of each array item, `$.pets{}.name` for a member of each map value; the root itself prints as `the body`, without quotes. An array type prints its item type, such as `array<object>`, and a map type its value type, such as `map<object>`.
