@@ -254,8 +254,15 @@ Any node may also carry `description`, free text that the broker ignores.
 
 Two flags, `true` or `false`, say what a value may lack, and they are independent of each other:
 
-- `optional: true` says the key may be missing. A property is required unless it says so; there is no `required` list.
+- `optional: true` says the key may be missing. It is accepted only on a property, with or without a `ref` beside it. A property is required unless it says so; there is no `required` list.
 - `nullable: true` says the key is there and its value may be `null` or the declared type. It is accepted on any node: a property, `items`, `values` and the root of a schema.
+
+`optional` on array items ([Arrays](#arrays)), on map values ([Maps](#maps)) or on a named schema is rejected at publish, `optional: false` too. A named schema is not optional by itself: the property that uses it is, with `optional: true` beside its `ref`:
+
+```
+contract validation failed
+  - petstore_api.yaml: "optional" is not allowed on a schema at schemas Pet, mark optional the property that uses it, beside its "ref"
+```
 
 ```yaml
 User:
@@ -352,6 +359,13 @@ Pet:
 
 `items` is the node of every element, as in `Pets` above. An array without `items` is rejected.
 
+`items` does not accept `optional`. When the array may be missing, the property that holds it is optional; when an element may be `null`, `items` is `nullable: true`:
+
+```
+contract validation failed
+  - petstore_api.yaml: "optional" is not allowed on array items at schemas Pet properties tags items, mark the property that holds the array optional, or use "nullable: true" for an item that may be null
+```
+
 ### Maps
 
 An object whose keys are not known in advance, but whose values all have the same shape, is a `map`. `values` is the node of every value, and the key is always a string:
@@ -384,7 +398,14 @@ contract validation failed
   - petstore_web.yaml: object schema without properties at schemas Owner properties pets, declare the keys you read, or use "type: map" with "values" if the keys vary
 ```
 
-A map only matches a map. Two maps compare their values like the items of an array: type, `optional`, `nullable` and their own members. In a break line the dynamic key is written `{}`, as in `$.pets{}.name`, and a map's type is written `map<T>`, as an array's is `array<T>`.
+`values` does not accept `optional`. When the map may be missing, the property that holds it is optional; when a value may be `null`, `values` is `nullable: true`:
+
+```
+contract validation failed
+  - petstore_api.yaml: "optional" is not allowed on map values at schemas Pet properties scores values, mark the property that holds the map optional, or use "nullable: true" for a value that may be null
+```
+
+A map only matches a map. Two maps compare their values like the items of an array: type, `nullable` and their own members. In a break line the dynamic key is written `{}`, as in `$.pets{}.name`, and a map's type is written `map<T>`, as an array's is `array<T>`.
 
 A map on one side and an `object` on the other is a type mismatch on the property itself, and nothing inside it is compared. Here `petstore_api` sends `pets` as an `object` with the properties `bob` and `sky`, and `petstore_web` reads it as a map:
 
@@ -402,7 +423,7 @@ The fix is to describe the same shape on both sides. When the keys are fixed, bo
 
 ### References
 
-`ref` gives a node the shape of a named schema, at any depth: as a whole schema, as a member, or as the items of an array, like `Pets` does with `Pet`. Write `ref` on its own, with at most `optional`, `nullable` and `description` beside it. `nullable` beside a `ref` makes the node nullable even when the named schema is not, as `optional` does. `type`, `properties`, `items` or `values` beside a `ref` is rejected at publish:
+`ref` gives a node the shape of a named schema, at any depth: as a whole schema, as a member, or as the items of an array, like `Pets` does with `Pet`. Write `ref` on its own, with at most `nullable` and `description` beside it, and `optional` when the node is a property. `nullable` beside a `ref` makes the node nullable even when the named schema is not, and `optional` beside it makes the property optional. `type`, `properties`, `items` or `values` beside a `ref` is rejected at publish:
 
 ```yaml
 Pet:
