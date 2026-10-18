@@ -298,6 +298,13 @@ What `optional` and `nullable` mean for a break depends on which side reads the 
 
 Schema names are unique across every file of a publish, and `request`, `responses` and `ref` resolve against all of them. A schema that no `request`, `responses` or `ref` names is accepted and never compared, so a file with only `schemas` publishes too.
 
+A schema name follows the same rule as a property name ([Objects](#objects)). The name lives only in the contract, so the fix is to rename the schema:
+
+```
+contract validation failed
+  - petstore_api.yaml: invalid schema name "Pet.v2" at schemas, must not contain ".", "[", "]", "{", "}" or ";"
+```
+
 ### Primitives
 
 `string`, `integer`, `float`, `number` and `boolean`. Any other token is rejected at publish.
@@ -327,6 +334,15 @@ Pet:
           type: string
 ```
 
+A property name or a schema name must not be empty, must not contain `.`, `[`, `]`, `{`, `}` or `;`, and must not contain control characters. The six characters are reserved for the paths the broker compares and shows: `.`, `[]` and `{}` write `$.owner.name`, `$[].photoUrl` and `$.pets{}.name`. Any other name is valid, such as `content-type`, `@type`, `$ref` or `first name`:
+
+```
+contract validation failed
+  - petstore_api.yaml: invalid property name "user.name" at schemas Pet properties, must not contain ".", "[", "]", "{", "}" or ";"
+```
+
+An empty name ends with `must not be empty`, and a name with a control character with `must not contain control characters`. A property spelled differently from the body is renamed to the key the body has. A key the body really has with one of these characters is left out of the contract when it is fixed, and a property no side declares is not checked ([How the broker works](../concepts/how-the-broker-works.md#can-i-deploy)). Keys that vary go in a `map`, whose keys are not property names ([Maps](#maps)).
+
 An `object` without `properties`, or with `properties: {}`, is rejected:
 
 ```
@@ -334,7 +350,7 @@ contract validation failed
   - petstore_web.yaml: object schema without properties at schemas Pet properties metadata, declare the keys you read, or use "type: map" with "values" if the keys vary
 ```
 
-The fix is to declare the keys that arrive in the body. The side that reads the body marks each key its code does not read with `optional: true`, so the side that produces the body is free to drop it. The side that produces the body declares the keys its code sends. When the keys vary, both sides write a `map` with `values` instead ([Maps](#maps)).
+The fix is to declare the keys that arrive in the body, except a fixed key with a reserved character in its name, which stays out. The side that reads the body marks each key its code does not read with `optional: true`, so the side that produces the body is free to drop it. The side that produces the body declares the keys its code sends. When the keys vary, both sides write a `map` with `values` instead ([Maps](#maps)).
 
 Here `petstore_web` only counts a pet's `vaccinations`. Each vaccination arrives with a `name` and a `date`, and the code reads neither:
 
@@ -419,7 +435,7 @@ petstore_web (1.4.0, deployed):
       · GET /owners/* response 200 at "$.pets" (petstore_web: Owner.pets)
 ```
 
-The fix is to describe the same shape on both sides. When the keys are fixed, both sides declare them as `properties` of an `object`. When the keys vary, both sides declare a `map`.
+The fix is to describe the same shape on both sides. When the keys are fixed, both sides declare them as `properties` of an `object`, and leave out a key with a reserved character in its name. When the keys vary, both sides declare a `map`.
 
 ### References
 
