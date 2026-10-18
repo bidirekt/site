@@ -233,16 +233,16 @@ When the provider declares the endpoint and method but not the status the partic
 
 ```
 petstore_api (1.4.0, deployed):
-  POST /pets/*/adopt
-    response 200:
-      - petstore_web reads response 200, but petstore_api answers only 204
-        → petstore_web: read response 204
-        → petstore_api: answer 200
   POST /files
     request:
       - petstore_web sends a request body, but petstore_api declares none
         → petstore_web: stop sending it
         → petstore_api: accept a request body
+  POST /pets/*/adopt
+    response 200:
+      - petstore_web reads response 200, but petstore_api answers only 204
+        → petstore_web: read response 204
+        → petstore_api: answer 200
 ```
 
 When `<property>` ends with `[]` or `{}`, the items of an array or the values of a map, there is no property to mark optional. The fix that would mark it optional, on the side that reads the body, reads the parent field instead and has no ` there`: `read Pet.tags the way petstore_api provides it` in a response, `read NewPetRecord.tags the way petstore_web sends it` in a request.
