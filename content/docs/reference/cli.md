@@ -296,13 +296,15 @@ petstore_inventory participant renamed to petstore_stock
 - `old`: the current name.
 - `new`: the new name, in `snake_case`. A name that is already taken fails with `participant already exists` and exits `1`; unlike `create-participant`, renaming is not idempotent.
 
-The participant keeps its versions and deployments, but a provider's published resources keep the old name. Renaming a provider is a migration:
+Renaming works only before the participant's first publish. A participant with at least one published contract keeps its name: the rename fails with `cannot post participant rename to broker: participant has published contracts, create a new participant and switch every consumer's consumes to it` and exits `1`.
 
-1. Rename the participant.
-2. Publish and deploy a new version of the provider, so its resources carry the new name.
-3. Switch every consumer's `consumes` key to the new name.
+To change the name of a participant that has published:
 
-Between steps 2 and 3 one side fails with a break such as `petstore_web calls GET /stock/*, but petstore_inventory doesn't provide it`: consumers still on the old name stop matching once the new version is deployed, and consumers already on the new name fail until it is. Renaming a consumer needs none of this.
+1. Create a new participant with the new name and publish its contract.
+2. Every consumer switches its `consumes` key to the new name and publishes.
+3. The old participant stays, with its versions and deployments.
+
+A participant that has not published may already be named under other participants' `consumes`, because a consumer can publish before its provider. After the rename, those consumers switch their `consumes` key to the new name.
 
 ## list-participants
 
