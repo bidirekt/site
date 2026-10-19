@@ -1,0 +1,18 @@
+consumes:
+  petstore_api:
+    rest:
+      /pets/*:
+        get:
+          responses:
+            200: Pet
+
+schemas:
+  Pet:
+    type: object
+    properties:
+      name:
+        type: string
+      weight:
+        type: string
+      status:
+        type: string

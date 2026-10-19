@@ -1,0 +1,73 @@
+set timeout 30
+# 👉 and a space, as the bytes the binary channels below carry.
+set prompt "\xf0\x9f\x91\x89 "
+set bashrc [file join [file dirname [file normalize [info script]]] bashrc]
+
+# expect relays the shell's output only while it reads, so every pause reads
+# what arrived and the recording keeps each keystroke at the time it was typed.
+proc pause {seconds} {
+    sleep $seconds
+    expect -timeout 0 -re .+
+}
+
+proc type {text} {
+    foreach char [split $text ""] {
+        send -- $char
+        pause [expr {0.025 + rand() * 0.05}]
+    }
+}
+
+proc press {keys} {
+    send -- $keys
+    pause 0.6
+}
+
+proc run {command} {
+    type $command
+    pause 0.3
+    send "\r"
+    expect -re $::prompt
+    pause 2
+}
+
+# The shell's own terminal already ends its lines with \r\n.
+stty -opost
+# macOS ships expect on Tcl 8.5, which garbles characters past U+FFFF such as
+# 👉: the channels stay binary so the shell's bytes pass through as they are,
+# and patterns use -re because -ex crashes on binary data there.
+fconfigure $user_spawn_id -encoding binary
+cd [file join $env(HOME) petstore_web]
+spawn -noecho bash --noprofile --rcfile $bashrc -i
+fconfigure $spawn_id -encoding binary
+expect -re $prompt
+pause 1
+
+run "bidirekt can-i-deploy petstore_web --version 2.3.0 --environment production"
+
+type "vim contracts/petstore_web.yaml"
+pause 0.3
+send "\r"
+# vim shows the cursor once it has drawn the file.
+expect -re {\e\[\?25h}
+pause 1
+type "/weight"
+press "\r"
+press "j"
+press "$"
+type "ciw"
+pause 0.3
+type "integer"
+press "\033"
+type "/status"
+press "\r"
+type "2dd"
+pause 0.8
+type ":wq"
+pause 0.3
+send "\r"
+expect -re $prompt
+pause 2
+
+run "bidirekt publish ./contracts/*.yaml --participant petstore_web --version 2.3.1"
+run "bidirekt can-i-deploy petstore_web --version 2.3.1 --environment production"
+run "bidirekt record-deployment petstore_web --version 2.3.1 --environment production"
