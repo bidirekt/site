@@ -1,30 +1,35 @@
-import { useEffect, useState } from 'react'
-import type { TerminalLine, Tone } from './terminalLines'
-import { TERMINAL_LINES } from './terminalLines'
+import { useEffect, useRef, useState } from 'react'
+import type { RefObject } from 'react'
+import type { Player } from 'asciinema-player'
+import landingScreen from '../../../../../public/casts/landing.cast?screen'
 
-const FIRST_LINE_MS = 400
-const COMMAND_LINE_MS = 900
-const OUTPUT_LINE_MS = 220
+const CAST_URL = '/casts/landing.cast'
 const REDUCED_MOTION = '(prefers-reduced-motion: reduce)'
-const PROMPT = 'petstore_web ❯'
-
-const TONE_CLASS: Record<Tone, string> = {
-  plain: '',
-  failure: 'text-failure',
-  fix: 'text-accent',
-  success: 'text-success',
-  muted: 'text-muted',
+const LINE_HEIGHT = 1.3333333333
+const PLAYER_OPTIONS = {
+  controls: true,
+  idleTimeLimit: 1.5,
+  theme: 'bidirekt',
+  terminalFontFamily: 'var(--font-mono)',
+  terminalLineHeight: LINE_HEIGHT,
 }
-const LINE = 'px-[18px] transition-opacity duration-200 ease-[ease]'
+// asciinema-player fits the terminal to the box width: cols × 0.6em of
+// JetBrains Mono plus a 0.75em border, with its 32px control bar below. The
+// screen text takes that same box until the player mounts.
+const SCREEN_STYLE = {
+  fontSize: `calc(100cqw / ${landingScreen.cols * 0.6 + 1.5})`,
+  lineHeight: LINE_HEIGHT,
+}
+const SCREEN =
+  'overflow-hidden p-[0.75em] pb-[calc(0.75em+32px)] [font-variant-ligatures:none] [grid-area:1/1]'
 const DOT = 'size-[11px] rounded-full'
-const CURSOR =
-  'inline-block h-[15px] w-2 bg-accent align-[-2px] animate-[blink_1s_steps(1)_infinite] motion-reduce:animate-none'
 
 export function TerminalPane() {
-  const shown = useLineReplay()
+  const playerRef = useRef<HTMLDivElement>(null)
+  const playerMounted = usePlayerInView(playerRef)
 
   return (
-    <section aria-label="Terminal demo" className="pb-[88px]">
+    <section aria-label="Terminal demo" className="hidden pb-[88px] md:block">
       <div className="min-w-0 overflow-hidden border border-[#262626] bg-pane shadow-[0_20px_50px_rgba(0,0,0,0.55)]">
         <div
           className="flex gap-[7px] border-b border-[#222] bg-[#161616] px-3.5 py-2.5"
@@ -34,55 +39,55 @@ export function TerminalPane() {
           <span className={`${DOT} bg-[#3a3a3a]`} />
           <span className={`${DOT} bg-accent`} />
         </div>
-        <div className="overflow-x-auto py-[18px] text-[13px] leading-[1.75]">
-          {TERMINAL_LINES.map((line, index) => (
-            <pre key={index} className={lineClass(line, index < shown)}>
-              <LineText line={line} />
-            </pre>
-          ))}
+        <div className="@container grid">
+          <pre style={SCREEN_STYLE} className={screenClass(playerMounted)}>
+            {landingScreen.lines.join('\n')}
+          </pre>
+          <div ref={playerRef} className="[grid-area:1/1]" />
         </div>
       </div>
     </section>
   )
 }
 
-function LineText({ line }: { line: TerminalLine }) {
-  return (
-    <>
-      {line.command && <span className="text-accent">{PROMPT} </span>}
-      {line.text}
-      {line.cursor && <span className={CURSOR} />}
-    </>
-  )
+function screenClass(playerMounted: boolean): string {
+  if (playerMounted) return `${SCREEN} invisible`
+  return SCREEN
 }
 
-function lineClass(line: TerminalLine, visible: boolean): string {
-  const classes = [LINE, TONE_CLASS[line.tone]]
-  if (line.gapBefore) classes.push('mt-5')
-  if (!visible) classes.push('opacity-0')
-  return classes.join(' ')
-}
-
-function useLineReplay(): number {
-  const [shown, setShown] = useState(TERMINAL_LINES.length)
+function usePlayerInView(ref: RefObject<HTMLDivElement | null>): boolean {
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    if (window.matchMedia(REDUCED_MOTION).matches) return
-    let timer: ReturnType<typeof setTimeout>
-    const reveal = (count: number) => {
-      setShown(count)
-      if (count === TERMINAL_LINES.length) return
-      timer = setTimeout(() => reveal(count + 1), revealDelay(count))
+    const element = ref.current
+    if (element === null) return
+    let player: Player | undefined
+    let unmounted = false
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return
+        observer.disconnect()
+        void import('asciinema-player').then(({ create }) => {
+          if (unmounted) return
+          const reducedMotion = window.matchMedia(REDUCED_MOTION).matches
+          player = create(CAST_URL, element, {
+            ...PLAYER_OPTIONS,
+            autoPlay: !reducedMotion,
+            loop: !reducedMotion,
+          })
+          if (reducedMotion) void player.seek('100%')
+          setMounted(true)
+        })
+      },
+      { threshold: 0.5 },
+    )
+    observer.observe(element)
+    return () => {
+      unmounted = true
+      observer.disconnect()
+      player?.dispose()
     }
-    reveal(0)
-    return () => clearTimeout(timer)
-  }, [])
+  }, [ref])
 
-  return shown
-}
-
-function revealDelay(index: number): number {
-  if (index === 0) return FIRST_LINE_MS
-  if (TERMINAL_LINES[index].command) return COMMAND_LINE_MS
-  return OUTPUT_LINE_MS
+  return mounted
 }

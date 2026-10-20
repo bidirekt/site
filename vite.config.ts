@@ -2,9 +2,11 @@ import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
+import { castScreen } from './scripts/casts/cast-screen.ts'
 
 export default defineConfig({
   plugins: [
+    castScreen(),
     tailwindcss(),
     tanstackStart({
       prerender: {

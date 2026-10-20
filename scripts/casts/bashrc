@@ -1,0 +1,2 @@
+PS1='\w \[\e[32m\]⎇ $(git branch --show-current)\[\e[0m\]\n👉 '
+vim() { command vim -u NONE -N -c 'syntax on' "$@"; }
