@@ -7,3 +7,4 @@ dist
 node_modules
 package-lock.json
 src/routeTree.gen.ts
+CODE_OF_CONDUCT.md
