@@ -12,23 +12,25 @@ type RenderOptions = { pagePath: string; title: string }
 type RenderResult = { html: string; toc: Array<TocEntry> }
 type CodeLine = { classes: string; inner: string }
 
-const HEADING_BASE = 'leading-[1.25] font-medium text-primary scroll-mt-[72px]'
+const HEADING_BASE =
+  'max-w-[70ch] leading-[1.25] font-medium text-primary scroll-mt-[72px]'
 const HEADING_BY_DEPTH: Partial<Record<number, string>> = {
   1: 'mb-4 text-[40px] tracking-[-0.01em]',
   2: 'mt-12 mb-4 text-[24px]',
   3: 'mt-8 mb-3 text-[18px]',
 }
 const HEADING_DEEPER = 'mt-8 mb-3 text-[14px]'
-const PARAGRAPH = 'mb-4 text-[14px] leading-[1.7] text-secondary text-pretty'
+const PARAGRAPH =
+  'mb-4 max-w-[70ch] text-[14px] leading-[1.7] text-secondary text-pretty'
 const CODESPAN =
   'border border-line bg-hover px-[5px] py-px text-[0.92em] [overflow-wrap:anywhere] text-primary'
 const STRONG = 'font-semibold text-primary'
 const EM = 'italic text-secondary'
 const LINK = 'text-accent hover:text-primary border-b border-accent/33'
 const PRE =
-  'px-4 py-3 text-[13px] leading-[1.45] whitespace-pre-wrap [overflow-wrap:anywhere] text-primary'
+  'overflow-x-auto px-4 py-3 text-[13px] leading-[1.45] whitespace-pre text-primary'
 const CODE_LINE = 'block min-h-[1.45em]'
-const PROMPT_LINE = 'pl-[2ch] -indent-[2ch] text-primary'
+const PROMPT_LINE = 'text-primary'
 const OUTPUT_LINE = 'text-primary'
 const TERMINAL_OUTPUT_LINE = 'text-secondary'
 const VERDICT_LINE: Array<{ pattern: RegExp; classes: string }> = [
@@ -48,10 +50,10 @@ const TABLE_ROW = '[&:last-child>td]:border-b-0'
 const TABLE_HEADER_CELL =
   'px-3 py-2 text-left text-[12px] uppercase tracking-[0.08em] font-normal text-muted whitespace-nowrap border-b border-line'
 const TABLE_CELL =
-  'px-3 py-2 align-top text-[13px] text-primary border-b border-line'
+  'px-3 py-2 align-top text-[13px] text-primary border-b border-line [&_code]:whitespace-nowrap'
 const LIST = 'mb-4 list-none'
 const LIST_ITEM =
-  'grid grid-cols-[max-content_1fr] gap-3 mb-1 text-[14px] leading-[1.7]'
+  'grid max-w-[70ch] grid-cols-[max-content_1fr] gap-3 mb-1 text-[14px] leading-[1.7]'
 const LIST_PREFIX = 'text-muted select-none'
 const LIST_TEXT = 'min-w-0 text-secondary'
 const RULE = 'my-6 overflow-hidden whitespace-nowrap text-line'

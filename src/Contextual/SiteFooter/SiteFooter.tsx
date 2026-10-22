@@ -5,7 +5,7 @@ import { REPOS, useLatestReleases } from './useLatestReleases'
 import type { LatestRelease, Repo } from './useLatestReleases'
 
 const GITHUB_URL = 'https://github.com/bidirekt'
-const FOOTER_LINK = 'text-secondary hover:text-accent'
+const FOOTER_LINK = 'pressable text-secondary hover:text-accent'
 const SEPARATOR = ' · '
 
 export function SiteFooter() {

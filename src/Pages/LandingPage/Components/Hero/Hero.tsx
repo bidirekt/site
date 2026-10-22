@@ -9,7 +9,7 @@ const PITCH =
   'Each service declares what it provides and what it reads. bidirekt compares them in seconds. No running services, no test environment.'
 const FOOTNOTE = 'self-hosted · single Go binary'
 
-const LINK_BUTTON = 'border px-3.5 py-2.5 text-[13px]'
+const LINK_BUTTON = 'pressable border px-3.5 py-2.5 text-[13px]'
 
 export function Hero() {
   return (

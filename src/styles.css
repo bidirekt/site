@@ -6,6 +6,19 @@
 @import '@fontsource/jetbrains-mono/700.css';
 @import 'asciinema-player/dist/bundle/asciinema-player.css';
 
+/* Touch screens fire :hover on tap and keep it stuck; only a fine pointer hovers. */
+@custom-variant hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+
+@utility pressable {
+  @apply transition-[color,background-color,border-color,scale] duration-150 ease-out active:scale-[0.97] motion-reduce:transition-none;
+}
+
 * {
   box-sizing: border-box;
   scrollbar-width: thin;
@@ -79,8 +92,7 @@ body {
   color: #000;
 }
 
-input,
-button,
-a {
-  outline: none;
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }

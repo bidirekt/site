@@ -16,7 +16,7 @@ export function DocsToc({ toc }: DocsTocProps) {
         <a
           key={entry.id}
           href={`#${entry.id}`}
-          className={`block truncate py-0.5 text-[12px] leading-[1.6] text-secondary hover:text-primary ${INDENT[entry.level]}`}
+          className={`pressable block truncate py-0.5 text-[12px] leading-[1.6] text-secondary hover:text-primary ${INDENT[entry.level]}`}
         >
           <span className="text-muted">{GLYPH[entry.level]} </span>
           {entry.text}

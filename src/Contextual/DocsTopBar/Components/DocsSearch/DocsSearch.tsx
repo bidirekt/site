@@ -110,7 +110,7 @@ export function DocsSearch() {
             onBlur={() => setFocused(false)}
             onKeyDown={onSearchKeyDown}
             placeholder="search docs"
-            className="min-w-0 flex-1 bg-transparent text-[13px] text-primary outline-none placeholder:text-muted"
+            className="min-w-0 flex-1 bg-transparent text-[13px] text-primary placeholder:text-muted"
           />
           <span className="hidden text-[12px] text-muted md:block">/</span>
         </label>

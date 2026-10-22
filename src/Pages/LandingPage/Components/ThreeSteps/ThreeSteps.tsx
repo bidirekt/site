@@ -26,7 +26,7 @@ export function ThreeSteps() {
           key={step.command}
           className="flex flex-col gap-2.5 border border-[#262626] bg-pane px-[18px] pt-5 pb-[22px]"
         >
-          <div className="text-[13px] text-[#6a6a6a]">
+          <div className="text-[13px] text-muted">
             {step.number} · <span className="text-primary">{step.command}</span>
           </div>
           <p className="text-[13px] leading-[1.7] text-secondary">

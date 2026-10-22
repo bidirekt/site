@@ -3,7 +3,7 @@ import type { VariantProps } from 'tailwind-variants'
 import { tv } from 'tailwind-variants'
 
 export const button = tv({
-  base: 'inline-block cursor-pointer whitespace-nowrap font-mono outline-none',
+  base: 'inline-block cursor-pointer whitespace-nowrap font-mono pressable',
   variants: {
     variant: {
       primary:

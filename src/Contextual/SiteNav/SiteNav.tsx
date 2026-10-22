@@ -1,5 +1,5 @@
 const GITHUB_URL = 'https://github.com/bidirekt'
-const NAV_LINK = 'whitespace-nowrap text-secondary hover:text-accent'
+const NAV_LINK = 'pressable whitespace-nowrap text-secondary hover:text-accent'
 
 export function SiteNav() {
   return (
@@ -7,7 +7,7 @@ export function SiteNav() {
       <nav className="mx-auto flex h-[52px] max-w-[1080px] items-center justify-between gap-4 px-6">
         <a
           href="/"
-          className="flex items-center gap-2 text-[17px] font-bold whitespace-nowrap text-[#f2f2f2] hover:text-accent"
+          className="pressable flex items-center gap-2 text-[17px] font-bold whitespace-nowrap text-[#f2f2f2] hover:text-accent"
         >
           <span aria-hidden="true">🤝</span>bidirekt
         </a>

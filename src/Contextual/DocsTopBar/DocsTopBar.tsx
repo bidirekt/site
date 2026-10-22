@@ -12,19 +12,19 @@ export function DocsTopBar({ navOpen, onToggleNav }: DocsTopBarProps) {
         <div className="flex items-center gap-2 text-[14px] whitespace-nowrap">
           <a
             href="/"
-            className="flex items-center gap-2 text-primary hover:text-accent"
+            className="pressable flex items-center gap-2 text-primary hover:text-accent"
           >
             <span className="text-[22px] leading-none">🤝</span>
             <span className="text-[20px] font-medium">bidirekt</span>
           </a>
-          <a href="/docs" className="text-muted hover:text-primary">
+          <a href="/docs" className="pressable text-muted hover:text-primary">
             / docs
           </a>
         </div>
         <DocsSearch />
         <a
           href="/contact"
-          className="hidden text-[13px] whitespace-nowrap text-secondary hover:text-primary md:block"
+          className="pressable hidden text-[13px] whitespace-nowrap text-secondary hover:text-primary md:block"
         >
           contact
         </a>
@@ -32,14 +32,14 @@ export function DocsTopBar({ navOpen, onToggleNav }: DocsTopBarProps) {
           href="https://github.com/bidirekt/site"
           target="_blank"
           rel="noreferrer"
-          className="hidden text-[13px] whitespace-nowrap text-secondary hover:text-primary md:block"
+          className="pressable hidden text-[13px] whitespace-nowrap text-secondary hover:text-primary md:block"
         >
           github ↗
         </a>
         <button
           type="button"
           onClick={onToggleNav}
-          className="cursor-pointer border border-line px-2 py-[3px] text-[13px] text-secondary hover:bg-hover hover:text-primary md:hidden"
+          className="pressable cursor-pointer border border-line px-2 py-[3px] text-[13px] text-secondary hover:bg-hover hover:text-primary md:hidden"
         >
           {navToggleLabel(navOpen)}
         </button>

@@ -7,11 +7,11 @@ export function EditFooter({ editUrl, markdownHref }: EditFooterProps) {
         href={editUrl}
         target="_blank"
         rel="noreferrer"
-        className="hover:text-accent"
+        className="pressable hover:text-accent"
       >
         edit this page on GitHub ↗
       </a>
-      <a href={markdownHref} className="hover:text-accent">
+      <a href={markdownHref} className="pressable hover:text-accent">
         Markdown
       </a>
       <span>bidirekt/site @ main</span>

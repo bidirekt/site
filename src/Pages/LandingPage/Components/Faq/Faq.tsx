@@ -5,13 +5,19 @@ type Question = { question: string; answer: string }
 const QUESTIONS: Array<Question> = [
   {
     question: 'Do I have to rewrite my OpenAPI spec?',
-    answer: '[YOUR ANSWER]',
+    answer:
+      'No. Your OpenAPI document stays as it is. The Bidirekt contract is a separate, smaller YAML file: only the endpoints and fields each side actually uses, in the same format on both sides. It is not generated from OpenAPI today.',
   },
   {
     question: 'How do I keep the YAML honest with the real code?',
-    answer: '[YOUR ANSWER]',
+    answer:
+      'Generate it from the code instead of writing it by hand. The Bidirekt agent skill reads your service and writes its contract files, and fixes them from a can-i-deploy report.',
   },
-  { question: 'Do I need to host the broker?', answer: '[YOUR ANSWER]' },
+  {
+    question: 'Do I need to host the broker?',
+    answer:
+      'Yes, it is self-hosted: one Docker image and a Postgres database. It has no authentication yet, so keep it on a private network or behind a proxy that controls who gets in.',
+  },
 ]
 
 export function Faq() {

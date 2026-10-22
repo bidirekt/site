@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from 'react'
 import { Link } from '@tanstack/react-router'
 import { DOCS_TREE, docsLinkProps } from '#/docs'
 
@@ -14,12 +15,18 @@ type SidebarRow =
 
 type Position = 'middle' | 'last'
 
-const ROW = 'flex px-3 py-0.5 text-[13px] leading-[1.7] hover:bg-hover'
+const ROW =
+  'pressable flex px-3 py-0.5 text-[13px] leading-[1.7] hover:bg-hover'
 const PREFIX = 'flex-none whitespace-pre text-muted'
 const LABEL = 'min-w-0 truncate'
 const BRANCH: Record<Position, string> = { middle: '├── ', last: '└── ' }
 const CHILD_INDENT: Record<Position, string> = { middle: '│   ', last: '    ' }
 const COLLAPSED_SUFFIX = '  ▸'
+const ARROW_STEP: Partial<Record<string, number>> = {
+  ArrowDown: 1,
+  ArrowUp: -1,
+}
+const ROW_SELECTOR = 'a, button'
 
 export function DocsSidebar({
   activePath,
@@ -29,6 +36,7 @@ export function DocsSidebar({
 }: DocsSidebarProps) {
   return (
     <nav
+      onKeyDown={moveFocusByArrow}
       className={`${visibility(open)} bg-page pt-4 pb-6 md:sticky md:top-11 md:max-h-[calc(100vh-44px)] md:overflow-x-hidden md:overflow-y-auto`}
     >
       <div className="px-3 pt-1 pb-2 text-[12px] tracking-[0.08em] whitespace-nowrap text-muted uppercase">
@@ -82,6 +90,19 @@ function SidebarRowView({
       <span className={LABEL}>{row.label}</span>
     </Link>
   )
+}
+
+function moveFocusByArrow(event: KeyboardEvent<HTMLElement>) {
+  const step = ARROW_STEP[event.key]
+  if (step === undefined) return
+  const rows = Array.from(
+    event.currentTarget.querySelectorAll<HTMLElement>(ROW_SELECTOR),
+  )
+  const current = rows.findIndex((row) => row === document.activeElement)
+  if (current === -1) return
+  event.preventDefault()
+  const next = Math.min(Math.max(current + step, 0), rows.length - 1)
+  rows[next].focus()
 }
 
 function sidebarRows(collapsed: Record<string, boolean>): Array<SidebarRow> {
