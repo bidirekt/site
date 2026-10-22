@@ -10,7 +10,7 @@ For questions about using Bidirekt, read the docs at https://bidirekt.com/docs.
 
 ## Pull requests
 
-Fork the repository, create a branch, and open a pull request against `main`. `npm run check` and `npm run lint` must pass before it is merged.
+Fork the repository, create a branch, and open a pull request against `main`. `npm run check`, `npm run lint` and `npm run build` must pass before it is merged; CI runs the three on every pull request.
 
 ## Security
 
