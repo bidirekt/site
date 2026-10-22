@@ -91,7 +91,7 @@ export function docsMarkdownFromPath(path: string): string | null {
   const page = loadDocsPage(path)
   if (page === null) return null
   const body = markdownWithAbsoluteDocsLinks(path, page.body)
-  if (firstTopHeadingText(page.body) !== null) return body
+  if (firstTopHeadingText(page.body) !== null) return body.trimStart()
   return `${markdownHeaderFromPage(page)}\n\n${body.trimStart()}`
 }
 
