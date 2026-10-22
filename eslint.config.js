@@ -16,11 +16,6 @@ export default [
     },
   },
   {
-    ignores: [
-      'eslint.config.js',
-      'prettier.config.js',
-      'design_handoff_landing',
-      'content',
-    ],
+    ignores: ['eslint.config.js', 'prettier.config.js', 'content'],
   },
 ]
