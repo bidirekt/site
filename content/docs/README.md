@@ -1,3 +1,7 @@
+---
+description: What Bidirekt is and how it works, from the contract file each side declares to the can-i-deploy answer before a deployment.
+---
+
 # Bidirekt
 
 Bidirekt is a declarative, static, bidirectional contract testing tool. Each side of an integration declares, in a small contract file, what it provides and what it consumes.
