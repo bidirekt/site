@@ -5,26 +5,28 @@ import { docsLinkProps } from '#/docs'
 type PrevNextProps = { prev: DocsEntry | null; next: DocsEntry | null }
 
 const SIDE =
-  'pressable flex min-w-[200px] flex-1 flex-col gap-1 border border-line px-3 py-2.5 hover:border-accent hover:bg-hover'
-const LABEL = 'text-[12px] tracking-[0.08em] text-muted uppercase'
-const NAME = 'text-[13px] text-primary'
+  'pressable rounded-pane border border-line bg-pane px-4 py-3.5 shadow-sheen hover:bg-hover active:scale-[0.98]'
+const LABEL = 'block text-[12px] text-muted'
 
 export function PrevNext({ prev, next }: PrevNextProps) {
   return (
-    <nav className="mt-12 flex flex-wrap gap-4 border-t border-line pt-4">
+    <nav
+      aria-label="Pages"
+      className="mt-16 grid max-w-[760px] gap-3 min-[821px]:grid-cols-2"
+    >
       {prev !== null && (
         <Link {...docsLinkProps(prev.path)} className={SIDE}>
-          <span className={LABEL}>← previous</span>
-          <span className={NAME}>{prev.label}</span>
+          <span className={LABEL}>← Previous</span>
+          {prev.label}
         </Link>
       )}
       {next !== null && (
         <Link
           {...docsLinkProps(next.path)}
-          className={`${SIDE} items-end text-right`}
+          className={`${SIDE} text-right min-[821px]:col-start-2`}
         >
-          <span className={LABEL}>next →</span>
-          <span className={NAME}>{next.label}</span>
+          <span className={LABEL}>Next →</span>
+          {next.label}
         </Link>
       )}
     </nav>

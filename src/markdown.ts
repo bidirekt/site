@@ -11,25 +11,27 @@ export type Segment<TTone extends string> = { text: string; tone: TTone }
 type RenderOptions = { pagePath: string; title: string }
 type RenderResult = { html: string; toc: Array<TocEntry> }
 type CodeLine = { classes: string; inner: string }
+type ListTag = 'ul' | 'ol'
 
-const HEADING_BASE =
-  'max-w-[70ch] leading-[1.25] font-medium text-primary scroll-mt-[72px]'
+const HEADING_BASE = 'max-w-[70ch] font-semibold text-primary scroll-mt-[84px]'
 const HEADING_BY_DEPTH: Partial<Record<number, string>> = {
-  1: 'mb-4 text-[40px] tracking-[-0.01em]',
-  2: 'mt-12 mb-4 text-[24px]',
-  3: 'mt-8 mb-3 text-[18px]',
+  1: 'mb-4 text-[40px] leading-[1.1] tracking-[-0.03em]',
+  2: 'mt-14 mb-3.5 text-[28px] leading-[1.2] tracking-[-0.02em]',
+  3: 'mt-10 mb-2.5 text-[20px] leading-[1.3] tracking-[-0.01em]',
 }
-const HEADING_DEEPER = 'mt-8 mb-3 text-[14px]'
+const HEADING_DEEPER = 'mt-8 mb-2 text-[16px] leading-[1.4]'
 const PARAGRAPH =
-  'mb-4 max-w-[70ch] text-[14px] leading-[1.7] text-secondary text-pretty'
+  'mb-[18px] max-w-[70ch] text-[16px] leading-[1.7] text-secondary text-pretty'
 const CODESPAN =
-  'border border-line bg-hover px-[5px] py-px text-[0.92em] [overflow-wrap:anywhere] text-primary'
-const STRONG = 'font-semibold text-primary'
+  'rounded-[4px] bg-raised px-[5px] py-px text-[0.86em] [overflow-wrap:anywhere] text-primary'
+const STRONG = 'font-medium text-primary'
 const EM = 'italic text-secondary'
-const LINK = 'text-accent hover:text-primary border-b border-accent/33'
+const LINK =
+  'text-primary underline decoration-accent underline-offset-[3px] hover:text-accent'
+const BLOCK_WIDTH = 'max-w-[760px]'
 const PRE =
-  'overflow-x-auto px-4 py-3 text-[13px] leading-[1.45] whitespace-pre text-primary'
-const CODE_LINE = 'block min-h-[1.45em]'
+  'overflow-x-auto px-4 py-3.5 text-[13.5px] leading-[1.7] whitespace-pre text-primary'
+const CODE_LINE = 'block min-h-[1.7em]'
 const PROMPT_LINE = 'text-primary'
 const OUTPUT_LINE = 'text-primary'
 const TERMINAL_OUTPUT_LINE = 'text-secondary'
@@ -43,20 +45,22 @@ const VERDICT_LINE: Array<{ pattern: RegExp; classes: string }> = [
     classes: 'text-success',
   },
 ]
+const NOTE =
+  'my-5 max-w-[70ch] shadow-[inset_2px_0_0_var(--color-accent),inset_0_1px_0_var(--color-sheen)]'
 const NOTE_CONTENT =
-  'text-[14px] leading-[1.7] text-primary [&_p]:text-primary [&_p:last-child]:mb-0'
-const TABLE = 'w-full text-[13px] leading-[1.45]'
-const TABLE_ROW = '[&:last-child>td]:border-b-0'
+  'text-[16px] leading-[1.7] text-primary [&_p]:text-primary [&_p:last-child]:mb-0'
+const TABLE = 'w-full border-collapse text-[14px] leading-[1.6]'
 const TABLE_HEADER_CELL =
-  'px-3 py-2 text-left text-[12px] uppercase tracking-[0.08em] font-normal text-muted whitespace-nowrap border-b border-line'
+  'bg-raised px-3.5 py-2.5 text-left text-[13px] font-medium text-muted whitespace-nowrap'
 const TABLE_CELL =
-  'px-3 py-2 align-top text-[13px] text-primary border-b border-line [&_code]:whitespace-nowrap'
-const LIST = 'mb-4 list-none'
+  'border-t border-page px-3.5 py-2.5 align-top text-secondary [&_code]:whitespace-nowrap'
+const LIST_BY_TAG: Record<ListTag, string> = {
+  ul: 'mb-[18px] max-w-[70ch] list-disc pl-5 text-secondary marker:text-muted',
+  ol: 'mb-[18px] max-w-[70ch] list-decimal pl-5 text-secondary marker:text-muted',
+}
 const LIST_ITEM =
-  'grid max-w-[70ch] grid-cols-[max-content_1fr] gap-3 mb-1 text-[14px] leading-[1.7]'
-const LIST_PREFIX = 'text-muted select-none'
-const LIST_TEXT = 'min-w-0 text-secondary'
-const RULE = 'my-6 overflow-hidden whitespace-nowrap text-line'
+  'mb-1.5 text-[16px] leading-[1.7] [&>p]:mb-1.5 [&>ul]:mt-1.5 [&>ol]:mt-1.5 [&>ul]:mb-0 [&>ol]:mb-0'
+const RULE = 'my-10 max-w-[70ch] border-line'
 
 const YAML_TONE_CLASS: Record<YamlTone, string | null> = {
   key: 'text-secondary',
@@ -120,13 +124,13 @@ export function renderDocsMarkdown(
         return `<a href="${escapeHtml(resolved)}" class="${LINK}">${label}</a>`
       },
       blockquote({ tokens }) {
-        const root = pane().root({
-          className: 'my-4 border-l-2 border-l-accent',
-        })
+        const root = pane().root({ className: NOTE })
         return `<blockquote class="${root}"><div class="px-4 py-3"><div class="${NOTE_CONTENT}">${this.parser.parse(tokens)}</div></div></blockquote>`
       },
       table(token) {
-        const root = pane().root({ className: 'my-4 overflow-x-auto' })
+        const root = pane().root({
+          className: `my-5 overflow-x-auto ${BLOCK_WIDTH}`,
+        })
         const header = this.tablerow({
           text: token.header.map((cell) => this.tablecell(cell)).join(''),
         })
@@ -140,7 +144,7 @@ export function renderDocsMarkdown(
         return `<div class="${root}"><table class="${TABLE}"><thead>${header}</thead><tbody>${rows}</tbody></table></div>`
       },
       tablerow({ text }) {
-        return `<tr class="${TABLE_ROW}">${text}</tr>`
+        return `<tr>${text}</tr>`
       },
       tablecell(token) {
         const content = this.parser.parseInline(token.tokens)
@@ -151,19 +155,14 @@ export function renderDocsMarkdown(
       },
       list(token) {
         const tag = listTag(token.ordered)
-        const items = token.items
-          .map(
-            (item, index) =>
-              `<li class="${LIST_ITEM}"><span class="${LIST_PREFIX}">${listPrefix(token, index)}</span>${this.listitem(item)}</li>`,
-          )
-          .join('')
-        return `<${tag} class="${LIST}">${items}</${tag}>`
+        const items = token.items.map((item) => this.listitem(item)).join('')
+        return `<${tag}${listStartAttribute(token)} class="${LIST_BY_TAG[tag]}">${items}</${tag}>`
       },
       listitem(item) {
-        return `<div class="${LIST_TEXT}">${this.parser.parse(item.tokens)}</div>`
+        return `<li class="${LIST_ITEM}">${this.parser.parse(item.tokens)}</li>`
       },
       hr() {
-        return `<div class="${RULE}">${'─'.repeat(120)}</div>`
+        return `<hr class="${RULE}">`
       },
     },
   })
@@ -196,7 +195,7 @@ function renderCodePane(code: string, lang: string): string {
   const lines = code.split('\n')
   const terminal =
     SHELL_LANGS.has(lang) && lines.some((line) => line.startsWith('$ '))
-  return `<section class="${pane().root({ className: 'my-4' })}"><pre class="${PRE}">${renderCodeLines(lines, lang, terminal)}</pre></section>`
+  return `<section class="${pane().root({ className: `my-5 ${BLOCK_WIDTH}` })}"><pre class="${PRE}">${renderCodeLines(lines, lang, terminal)}</pre></section>`
 }
 
 // The newline lives inside each block span: between block boxes a preserved
@@ -269,20 +268,14 @@ function resolveDocsHref(pagePath: string, href: string): string {
   return href
 }
 
-function listTag(ordered: boolean): string {
+function listTag(ordered: boolean): ListTag {
   if (ordered) return 'ol'
   return 'ul'
 }
 
-function listPrefix(token: Tokens.List, index: number): string {
-  if (token.ordered) return `${listStart(token.start) + index}.`
-  if (index === token.items.length - 1) return '└──'
-  return '├──'
-}
-
-function listStart(start: number | ''): number {
-  if (start === '') return 1
-  return start
+function listStartAttribute(token: Tokens.List): string {
+  if (!token.ordered || token.start === '' || token.start === 1) return ''
+  return ` start="${token.start}"`
 }
 
 function tocLevel(depth: number): 2 | 3 | null {

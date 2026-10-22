@@ -14,7 +14,7 @@ const DESCRIPTION =
 const SOCIAL_DESCRIPTION =
   'Know if your deploy breaks another service, before you deploy. Static contract testing: no running services, no test environment.'
 
-const CONTENT = 'mx-auto w-full max-w-[1080px] px-6'
+const CONTENT = 'mx-auto w-full max-w-[1120px] px-4'
 
 export function landingPageHead() {
   return pageHead('/', TITLE, DESCRIPTION, SOCIAL_DESCRIPTION)
@@ -22,7 +22,7 @@ export function landingPageHead() {
 
 export function LandingPage() {
   return (
-    <div className="landing flex min-h-screen flex-col bg-page text-[14px] leading-[1.6] text-primary">
+    <div className="flex min-h-screen flex-col">
       <SiteNav />
       <main>
         <div className={CONTENT}>

@@ -53,7 +53,7 @@ export function DocsPage({ page }: DocsPageProps) {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[radial-gradient(900px_360px_at_50%_-120px,var(--color-glow),transparent_70%)] bg-no-repeat leading-[1.7]">
       <DocsTopBar
         navOpen={navOpen}
         onToggleNav={() => setNavOpen((previous) => !previous)}

@@ -32,7 +32,7 @@ export function TryIt() {
         locally with Docker.
       </p>
       <div className="flex flex-wrap items-stretch gap-x-4 gap-y-2.5">
-        <div className="flex min-w-0 flex-[1_1_420px] items-center justify-between gap-3 border border-[#232323] bg-[#0e0e0e] py-1.5 pr-1.5 pl-4">
+        <div className="flex min-w-0 flex-[1_1_420px] items-center justify-between gap-3 rounded-pane border border-line bg-pane py-1.5 pr-1.5 pl-4 shadow-sheen">
           <pre className="overflow-x-auto text-[14px]">
             <span className="text-accent">$</span>{' '}
             <code ref={command}>{TRY_COMMAND}</code>
@@ -48,7 +48,7 @@ export function TryIt() {
       </div>
       <div className="flex flex-col gap-2">
         <div className="text-[12px] text-muted">or, without curl | sh:</div>
-        <pre className="overflow-x-auto border border-dashed border-[#232323] px-4 py-3 text-[13px] leading-[1.7] text-secondary">
+        <pre className="overflow-x-auto rounded-pane border border-dashed border-line px-4 py-3 text-[13px] leading-[1.7] text-secondary">
           <span className="text-accent">$</span> {CLONE_COMMAND}
           {'\n'}
           <span className="text-accent">$</span> {RUN_COMMAND}
@@ -91,7 +91,7 @@ function CopyButton({ command }: CopyButtonProps) {
         type="button"
         onClick={copy}
         aria-label="Copy install command"
-        className="pressable min-h-11 cursor-pointer border border-[#2a2a2a] px-3.5 py-2.5 text-[13px] leading-normal whitespace-nowrap text-primary hover:border-accent hover:text-accent"
+        className="pressable min-h-11 cursor-pointer rounded-[8px] border border-line px-3.5 py-2.5 font-mono text-[13px] leading-normal whitespace-nowrap text-primary hover:border-accent hover:text-accent"
       >
         {COPY_LABEL[outcome]}
       </button>

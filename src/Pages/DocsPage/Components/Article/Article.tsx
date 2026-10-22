@@ -1,5 +1,5 @@
 import type { MouseEvent } from 'react'
-import { useRouter } from '@tanstack/react-router'
+import { Link, useRouter } from '@tanstack/react-router'
 import { docsMarkdownHref } from '#/docs'
 import type { DocsPageContent } from '#/docs'
 import { PrevNext } from '../PrevNext'
@@ -22,16 +22,19 @@ export function Article({ page, html }: ArticleProps) {
   }
 
   return (
-    <main className="min-w-0 px-4 pt-6 pb-12 md:px-12 md:pt-8 md:pb-16">
+    <main className="min-w-0 px-4 pt-6 pb-24 md:px-12 md:pt-10">
       <div>
-        <div className="mb-3 truncate text-[12px] tracking-[0.08em] text-muted uppercase">
-          {breadcrumb(page)}
+        <div className="mb-2 text-[13px] text-muted">
+          <Link to="/docs" className="pressable hover:text-primary">
+            Docs
+          </Link>
+          {page.group !== null && ` / ${page.group}`}
         </div>
-        <h1 className="mb-3 text-[24px] leading-[1.15] font-medium tracking-[-0.01em] text-pretty text-primary md:text-[40px]">
+        <h1 className="mb-3 text-[clamp(34px,4.6vw,52px)] leading-[1.05] font-semibold tracking-[-0.04em] text-pretty ink-gradient">
           {page.title}
         </h1>
         {page.description !== null && (
-          <p className="mb-8 text-[14px] leading-[1.7] text-pretty text-secondary">
+          <p className="mb-7 max-w-[64ch] text-[18px] leading-[1.7] text-pretty text-secondary">
             {page.description}
           </p>
         )}
@@ -51,9 +54,4 @@ export function Article({ page, html }: ArticleProps) {
       </div>
     </main>
   )
-}
-
-function breadcrumb(page: DocsPageContent): string {
-  if (page.group === null) return `docs / ${page.label}`
-  return `${page.group} / ${page.label}`
 }

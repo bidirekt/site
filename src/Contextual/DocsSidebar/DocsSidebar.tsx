@@ -16,8 +16,8 @@ type SidebarRow =
 type Position = 'middle' | 'last'
 
 const ROW =
-  'pressable flex px-3 py-0.5 text-[13px] leading-[1.7] hover:bg-hover'
-const PREFIX = 'flex-none whitespace-pre text-muted'
+  'pressable flex rounded-md px-3 py-[3px] text-[14px] leading-[1.6] hover:bg-pane hover:text-primary'
+const PREFIX = 'flex-none font-mono text-[13px] whitespace-pre text-muted'
 const LABEL = 'min-w-0 truncate'
 const BRANCH: Record<Position, string> = { middle: '├── ', last: '└── ' }
 const CHILD_INDENT: Record<Position, string> = { middle: '│   ', last: '    ' }
@@ -37,9 +37,9 @@ export function DocsSidebar({
   return (
     <nav
       onKeyDown={moveFocusByArrow}
-      className={`${visibility(open)} bg-page pt-4 pb-6 md:sticky md:top-11 md:max-h-[calc(100vh-44px)] md:overflow-x-hidden md:overflow-y-auto`}
+      className={`${visibility(open)} pt-4 pb-6 md:sticky md:top-[60px] md:max-h-[calc(100vh-60px)] md:overflow-x-hidden md:overflow-y-auto`}
     >
-      <div className="px-3 pt-1 pb-2 text-[12px] tracking-[0.08em] whitespace-nowrap text-muted uppercase">
+      <div className="px-3 pt-1 pb-2 text-[13px] font-medium whitespace-nowrap text-primary">
         pages
       </div>
       {sidebarRows(collapsed).map((row) => (
@@ -50,7 +50,7 @@ export function DocsSidebar({
           onToggleGroup={onToggleGroup}
         />
       ))}
-      <div className="mx-3 mt-4 overflow-hidden border-t border-line pt-3 text-[12px] leading-[1.7] whitespace-pre text-muted">
+      <div className="mx-3 mt-6 overflow-hidden text-[12px] leading-[1.7] whitespace-pre text-muted">
         {'↑↓ move  ⏎ open  / search'}
       </div>
     </nav>
@@ -73,7 +73,7 @@ function SidebarRowView({
       <button
         type="button"
         onClick={() => onToggleGroup(row.label)}
-        className={`${ROW} w-full cursor-pointer text-left text-primary`}
+        className={`${ROW} w-full cursor-pointer text-left font-medium text-primary`}
       >
         <span className={PREFIX}>{row.prefix}</span>
         <span className={LABEL}>{row.label}</span>
@@ -141,7 +141,7 @@ function positionOf(index: number, length: number): Position {
 }
 
 function pageColor(active: boolean): string {
-  if (active) return 'text-accent'
+  if (active) return 'bg-pane text-accent'
   return 'text-secondary'
 }
 

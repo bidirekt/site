@@ -10,7 +10,7 @@ const TITLE = 'privacy'
 const DESCRIPTION =
   'What bidirekt.com measures with Google Analytics, the cookies it sets only if you accept, and your rights under the LGPD and the GDPR.'
 const LINKEDIN_URL = 'https://www.linkedin.com/in/alefcastelo/'
-const PANE_TEXT = 'text-[13px] leading-[1.7] text-secondary text-pretty'
+const PANE_TEXT = 'text-[15px] leading-[1.7] text-secondary text-pretty'
 const COOKIES = [
   {
     name: '_ga',
@@ -32,9 +32,9 @@ export function PrivacyPage() {
   return (
     <main className="flex min-h-screen flex-col">
       <SiteNav />
-      <section className="mx-auto w-full max-w-[1080px] px-6 pt-12 pb-8 md:pt-24 md:pb-16">
+      <section className="mx-auto w-full max-w-[1120px] px-4 pt-12 pb-8 md:pt-24 md:pb-16">
         <Eyebrow className="mb-6">{TITLE}</Eyebrow>
-        <h1 className="mb-8 text-[24px] leading-[1.15] font-medium tracking-[-0.01em] text-pretty md:text-[40px]">
+        <h1 className="mb-8 text-[clamp(34px,4.6vw,52px)] leading-[1.05] font-semibold tracking-[-0.04em] text-pretty ink-gradient">
           No cookies until you accept.
         </h1>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
@@ -46,7 +46,7 @@ export function PrivacyPage() {
             </p>
             <div className="mt-auto flex flex-wrap gap-2">
               <Button variant="primary" href={LINKEDIN_URL}>
-                [ linkedin ↗ ]
+                LinkedIn ↗
               </Button>
             </div>
           </Pane>
@@ -64,10 +64,12 @@ export function PrivacyPage() {
             </p>
           </Pane>
           <Pane bodyClassName="flex flex-1 flex-col gap-3">
-            <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-[13px] leading-[1.7] text-secondary">
+            <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-[15px] leading-[1.7] text-secondary">
               {COOKIES.map((cookie) => (
                 <div key={cookie.name} className="contents">
-                  <dt className="text-primary">{cookie.name}</dt>
+                  <dt className="font-mono text-[0.9em] text-primary">
+                    {cookie.name}
+                  </dt>
                   <dd>
                     {cookie.duration} · {cookie.purpose}
                   </dd>
@@ -99,7 +101,7 @@ export function PrivacyPage() {
               your browser can delete the ones already set.
             </p>
             <CookieSettingsButton className="mt-auto self-start">
-              [ cookie settings ]
+              Cookie settings
             </CookieSettingsButton>
           </Pane>
           <Pane bodyClassName="flex flex-1 flex-col gap-3">

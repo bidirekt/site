@@ -149,7 +149,7 @@ export function HandshakePane({ className }: HandshakePaneProps) {
 
   return (
     <div
-      className={`max-w-full overflow-hidden p-4 text-[13px] leading-[1.45] ${className ?? ''}`}
+      className={`max-w-full overflow-hidden p-4 font-mono text-[13px] leading-[1.45] ${className ?? ''}`}
     >
       <div className="mx-auto max-w-full" style={{ width: STAGE_WIDTH_PX }}>
         <div className="flex justify-between text-[12px] whitespace-pre text-muted">

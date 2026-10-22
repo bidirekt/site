@@ -30,9 +30,9 @@ export function TerminalPane() {
 
   return (
     <section aria-label="Terminal demo" className="hidden pb-[88px] md:block">
-      <div className="min-w-0 overflow-hidden border border-[#262626] bg-pane shadow-[0_20px_50px_rgba(0,0,0,0.55)]">
+      <div className="min-w-0 overflow-hidden rounded-pane border border-line bg-pane shadow-[inset_0_1px_0_var(--color-sheen),0_20px_50px_rgba(0,0,0,0.55)]">
         <div
-          className="flex gap-[7px] border-b border-[#222] bg-[#161616] px-3.5 py-2.5"
+          className="flex gap-[7px] border-b border-line bg-raised px-3.5 py-2.5"
           aria-hidden="true"
         >
           <span className={`${DOT} bg-[#3a3a3a]`} />

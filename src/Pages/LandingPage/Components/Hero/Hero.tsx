@@ -9,7 +9,7 @@ const PITCH =
   'Each service declares what it provides and what it reads. bidirekt compares them in seconds. No running services, no test environment.'
 const FOOTNOTE = 'self-hosted · single Go binary'
 
-const LINK_BUTTON = 'pressable border px-3.5 py-2.5 text-[13px]'
+const LINK_BUTTON = 'pressable rounded-pane border px-3.5 py-2.5 text-[14px]'
 
 export function Hero() {
   return (
@@ -17,7 +17,7 @@ export function Hero() {
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] items-center gap-12">
         <div className="flex flex-col gap-6">
           <Eyebrow>{EYEBROW}</Eyebrow>
-          <h1 className="text-[40px] leading-[1.2] font-medium tracking-[-0.01em] text-[#f5f5f5]">
+          <h1 className="text-[40px] leading-[1.2] font-semibold tracking-[-0.02em] text-primary">
             {HEADLINE}
           </h1>
           <p className="max-w-[520px] text-[15px] leading-[1.75] text-secondary">
@@ -35,7 +35,7 @@ export function Hero() {
                 href={GITHUB_URL}
                 target="_blank"
                 rel="noreferrer"
-                className={`${LINK_BUTTON} border-[#2a2a2a] text-primary hover:text-accent`}
+                className={`${LINK_BUTTON} border-line text-primary hover:text-accent`}
               >
                 [ github ↗ ]
               </a>

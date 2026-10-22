@@ -46,7 +46,7 @@ export function NotFound() {
   return (
     <main className="flex min-h-screen items-center justify-center p-4">
       <Pane>
-        <Button href="/">[ back to / ]</Button>
+        <Button href="/">Back to home</Button>
       </Pane>
     </main>
   )

@@ -3,7 +3,7 @@ import { tv } from 'tailwind-variants'
 
 export const pane = tv({
   slots: {
-    root: 'flex min-w-0 flex-col border border-line bg-pane',
+    root: 'flex min-w-0 flex-col rounded-pane border border-line bg-pane shadow-sheen',
     body: 'p-4',
     statusBar:
       'flex items-center gap-2 border-t border-line px-3 py-1.5 text-[12px] leading-[1.6] text-muted',

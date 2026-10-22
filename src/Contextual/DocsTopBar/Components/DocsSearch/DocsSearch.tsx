@@ -18,14 +18,14 @@ const ARROW_STEP: Partial<Record<string, number>> = {
 }
 const ROW: Record<SearchRow['kind'], string> = {
   page: 'block px-3 pt-1.5 pb-0.5',
-  section: 'flex px-3 text-[12px] leading-[1.7]',
+  section: 'flex px-3 text-[13px] leading-[1.7]',
 }
 const ROW_COLOR: Record<SearchRow['kind'], string> = {
   page: 'text-primary',
   section: 'text-secondary',
 }
 const EXCERPT =
-  'block text-[12px] leading-[1.6] text-secondary [&_mark]:bg-transparent [&_mark]:text-accent'
+  'block text-[13px] leading-[1.6] text-secondary [&_mark]:bg-transparent [&_mark]:text-accent'
 
 export function DocsSearch() {
   const router = useRouter()
@@ -100,8 +100,8 @@ export function DocsSearch() {
   return (
     <div className="flex min-w-0 flex-1 justify-center">
       <div className="w-full max-w-[420px] md:relative">
-        <label className="flex h-7 cursor-text items-center gap-2 border border-line bg-pane px-2.5 focus-within:border-accent">
-          <span className="text-accent">❯</span>
+        <label className="flex h-[38px] cursor-text items-center gap-2.5 rounded-[10px] border border-line bg-pane px-3 shadow-sheen focus-within:border-accent">
+          <span className="font-mono text-accent">❯</span>
           <input
             ref={inputRef}
             value={query}
@@ -110,9 +110,11 @@ export function DocsSearch() {
             onBlur={() => setFocused(false)}
             onKeyDown={onSearchKeyDown}
             placeholder="search docs"
-            className="min-w-0 flex-1 bg-transparent text-[13px] text-primary placeholder:text-muted"
+            className="min-w-0 flex-1 bg-transparent text-[14px] text-primary placeholder:text-muted"
           />
-          <span className="hidden text-[12px] text-muted md:block">/</span>
+          <kbd className="hidden rounded-[4px] bg-raised px-1.5 text-[12px] text-secondary md:block">
+            /
+          </kbd>
         </label>
         {panelOpen && (
           <div
@@ -121,7 +123,7 @@ export function DocsSearch() {
           >
             <Pane bodyClassName="max-h-[60vh] overflow-y-auto p-0 py-1">
               {message !== null && (
-                <div className="px-3 py-1 text-[12px] leading-[1.6] text-muted">
+                <div className="px-3 py-1 text-[13px] leading-[1.6] text-muted">
                   {message}
                 </div>
               )}
@@ -173,7 +175,7 @@ function SearchRowContent({ row }: { row: SearchRow }) {
   if (row.kind === 'section') {
     return (
       <>
-        <span className="flex-none whitespace-pre text-muted">
+        <span className="flex-none font-mono whitespace-pre text-muted">
           {row.prefix}
         </span>
         <span className="min-w-0 truncate">{row.title}</span>
@@ -182,7 +184,7 @@ function SearchRowContent({ row }: { row: SearchRow }) {
   }
   return (
     <>
-      <span className="block text-[13px]">{row.title}</span>
+      <span className="block text-[14px]">{row.title}</span>
       <span
         className={EXCERPT}
         dangerouslySetInnerHTML={{ __html: row.excerpt }}
