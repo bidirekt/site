@@ -46,7 +46,11 @@ export function LandingPage() {
         </div>
         <div className={CONTENT}>
           <TryIt />
-          <Faq />
+        </div>
+        <div className={BAND}>
+          <div className={CONTENT}>
+            <Faq />
+          </div>
         </div>
       </main>
       <SiteFooter />

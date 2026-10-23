@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-type SectionHeadingProps = { id: string; title: string; lede: ReactNode }
+type SectionHeadingProps = { id: string; title: string; lede?: ReactNode }
 
 export function SectionHeading({ id, title, lede }: SectionHeadingProps) {
   return (
@@ -11,7 +11,9 @@ export function SectionHeading({ id, title, lede }: SectionHeadingProps) {
       >
         {title}
       </h2>
-      <p className="mb-7 max-w-[62ch] text-[17px] text-secondary">{lede}</p>
+      {lede !== undefined && (
+        <p className="mb-7 max-w-[62ch] text-[17px] text-secondary">{lede}</p>
+      )}
     </>
   )
 }

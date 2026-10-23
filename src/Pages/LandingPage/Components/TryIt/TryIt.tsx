@@ -1,5 +1,5 @@
-import { Eyebrow } from '#/Components/Eyebrow'
 import { CopyCommand } from '../CopyCommand'
+import { SectionHeading } from '../SectionHeading'
 
 const TRY_COMMAND = 'curl -sL bidirekt.com/try | sh'
 const SCRIPT_URL = '/try'
@@ -8,29 +8,32 @@ const RUN_COMMAND = 'cd petstore-example && docker compose up'
 
 export function TryIt() {
   return (
-    <section id="try" className="flex flex-col gap-5 pt-[88px]">
-      <Eyebrow>try it</Eyebrow>
-      <p className="max-w-[620px] leading-[1.75] text-secondary">
-        See a breaking change caught in one command. Runs the petstore example
-        locally with Docker.
-      </p>
-      <div className="flex flex-wrap items-stretch gap-x-4 gap-y-2.5">
-        <CopyCommand command={TRY_COMMAND} className="flex-[1_1_420px]" />
+    <section
+      id="try"
+      aria-labelledby="try-title"
+      className="py-16 min-[721px]:py-24"
+    >
+      <SectionHeading
+        id="try-title"
+        title="See it catch a break on your machine"
+        lede="One command runs the petstore example locally with Docker."
+      />
+      <CopyCommand command={TRY_COMMAND} className="text-[16px]" />
+      <p className="mt-7 mb-2 text-[14px] text-muted">
+        Prefer not to pipe to sh?{' '}
         <a
           href={SCRIPT_URL}
-          className="pressable self-center text-[13px] text-secondary hover:text-accent"
+          className="pressable text-[15px] text-secondary hover:text-accent"
         >
-          [ view script ]
+          Read the script
         </a>
-      </div>
-      <div className="flex flex-col gap-2">
-        <div className="text-[12px] text-muted">or, without curl | sh:</div>
-        <pre className="overflow-x-auto rounded-pane border border-dashed border-line px-4 py-3 text-[13px] leading-[1.7] text-secondary">
-          <span className="text-accent">$</span> {CLONE_COMMAND}
-          {'\n'}
-          <span className="text-accent">$</span> {RUN_COMMAND}
-        </pre>
-      </div>
+        , or:
+      </p>
+      <pre className="overflow-x-auto rounded-[8px] bg-pane px-4 py-3.5 font-mono text-[14px] leading-[1.8] whitespace-pre text-secondary">
+        <span className="text-accent">$</span> {CLONE_COMMAND}
+        {'\n'}
+        <span className="text-accent">$</span> {RUN_COMMAND}
+      </pre>
     </section>
   )
 }
