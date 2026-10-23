@@ -24,9 +24,15 @@ export function LandingPage() {
     <div className="flex min-h-screen flex-col">
       <SiteNav />
       <main>
-        <div className={CONTENT}>
-          <Hero />
-          <LiveCheck />
+        <div className="relative isolate overflow-hidden">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -z-10 stage-light"
+          />
+          <div className={CONTENT}>
+            <Hero />
+            <LiveCheck />
+          </div>
         </div>
         <div className="border-t border-line">
           <div className={CONTENT}>

@@ -31,6 +31,36 @@
   padding-bottom: 0.05em;
 }
 
+@utility stage-light {
+  background:
+    radial-gradient(
+      640px 340px at 50% -40px,
+      color-mix(in srgb, var(--color-accent) 16%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      1000px 520px at 50% 62%,
+      color-mix(in srgb, var(--color-accent) 5%, transparent),
+      transparent 70%
+    );
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--color-sheen) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-sheen) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: center top;
+    mask-image: radial-gradient(
+      ellipse 70% 50% at 50% 12%,
+      #000 25%,
+      transparent 75%
+    );
+  }
+}
+
 * {
   box-sizing: border-box;
   scrollbar-width: thin;

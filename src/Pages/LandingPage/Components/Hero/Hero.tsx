@@ -1,50 +1,44 @@
-import { Eyebrow } from '#/Components/Eyebrow'
-import { HandshakePane } from '../HandshakePane'
+import { CopyCommand } from '../CopyCommand'
 
-const GITHUB_URL = 'https://github.com/bidirekt'
-const EYEBROW = 'declarative · static · bidirectional contract testing'
-const HEADLINE =
-  'Know if your deploy breaks another service, before you deploy.'
-const PITCH =
-  'Each service declares what it provides and what it reads. bidirekt compares them in seconds. No running services, no test environment.'
-const FOOTNOTE = 'self-hosted · single Go binary'
+const TRY_COMMAND = 'curl -sL bidirekt.com/try | sh'
+const FINEPRINT =
+  'Runs the petstore example locally with Docker. Self-hosted broker, single Go binary.'
 
-const LINK_BUTTON = 'pressable rounded-pane border px-3.5 py-2.5 text-[14px]'
+const RISE = 'animate-rise motion-reduce:animate-none'
 
 export function Hero() {
   return (
-    <section className="pt-[88px] pb-14">
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] items-center gap-12">
-        <div className="flex flex-col gap-6">
-          <Eyebrow>{EYEBROW}</Eyebrow>
-          <h1 className="text-[40px] leading-[1.2] font-semibold tracking-[-0.02em] text-primary">
-            {HEADLINE}
-          </h1>
-          <p className="max-w-[520px] text-[15px] leading-[1.75] text-secondary">
-            {PITCH}
-          </p>
-          <div className="flex flex-col gap-3.5">
-            <div className="flex flex-wrap gap-2.5">
-              <a
-                href="/docs"
-                className={`${LINK_BUTTON} border-accent text-accent`}
-              >
-                [ read the docs ]
-              </a>
-              <a
-                href={GITHUB_URL}
-                target="_blank"
-                rel="noreferrer"
-                className={`${LINK_BUTTON} border-line text-primary hover:text-accent`}
-              >
-                [ github ↗ ]
-              </a>
-            </div>
-            <p className="text-[12px] text-muted">{FOOTNOTE}</p>
-          </div>
-        </div>
-        <HandshakePane />
+    <section className="grid grid-cols-[minmax(0,1fr)] justify-items-center gap-[22px] pt-14 pb-8 text-center min-[721px]:pt-[104px] min-[721px]:pb-12">
+      <h1
+        className={`text-[clamp(44px,7.4vw,88px)] leading-none font-semibold tracking-[-0.045em] text-balance ink-gradient ${RISE}`}
+      >
+        Know before you deploy.
+      </h1>
+      <p
+        className={`max-w-[58ch] text-[17px] text-pretty text-secondary min-[721px]:text-[18px] ${RISE} [animation-delay:70ms]`}
+      >
+        Integration testing for microservices, without the test environment.
+        Each service declares, in a YAML file, what it provides and what it
+        reads. Bidirekt compares the files and tells you{' '}
+        <strong className="font-medium text-primary">
+          which service your deploy breaks and how to fix it
+        </strong>
+        . No running services, no end-to-end suite.
+      </p>
+      <div
+        className={`mt-2 flex max-w-full flex-wrap items-center justify-center gap-x-5 gap-y-3 ${RISE} [animation-delay:140ms]`}
+      >
+        <CopyCommand command={TRY_COMMAND} lit />
+        <a
+          href="/docs"
+          className="pressable text-[15px] text-secondary hover:text-accent"
+        >
+          Read the docs →
+        </a>
       </div>
+      <p className={`text-[14px] text-muted ${RISE} [animation-delay:210ms]`}>
+        {FINEPRINT}
+      </p>
     </section>
   )
 }

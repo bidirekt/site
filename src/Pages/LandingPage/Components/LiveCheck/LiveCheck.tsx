@@ -126,7 +126,7 @@ export function LiveCheck() {
       <h2 id="check-title" className="sr-only">
         Live contract check
       </h2>
-      <div className="rounded-[18px] bg-linear-to-b from-accent/40 via-line via-35% to-white/3 p-px shadow-[0_40px_100px_-30px_rgba(245,165,36,0.16),0_24px_60px_rgba(0,0,0,0.5)]">
+      <div className="animate-rise rounded-[18px] bg-linear-to-b [animation-delay:300ms] motion-reduce:animate-none from-accent/40 via-line via-35% to-white/3 p-px shadow-[0_40px_100px_-30px_rgba(245,165,36,0.16),0_24px_60px_rgba(0,0,0,0.5)]">
         <div className="rounded-[17px] bg-[rgba(13,13,12,0.9)] p-2 md:p-3">
           <div
             role="group"
