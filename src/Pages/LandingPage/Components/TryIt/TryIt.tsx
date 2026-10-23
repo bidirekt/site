@@ -1,10 +1,14 @@
 import { CopyCommand } from '../CopyCommand'
 import { SectionHeading } from '../SectionHeading'
 
-const TRY_COMMAND = 'curl -sL bidirekt.com/try | sh'
-const SCRIPT_URL = 'https://github.com/bidirekt/site/blob/main/public/try'
+const DEMO_COMMAND = 'curl -sL bidirekt.com/demo | sh'
+const DEMO_SCRIPT_URL = 'https://github.com/bidirekt/site/blob/main/public/demo'
 const CLONE_COMMAND = 'git clone https://github.com/bidirekt/petstore-example'
-const RUN_COMMAND = 'cd petstore-example && ./try.sh'
+const RUN_COMMAND = 'cd petstore-example && ./demo.sh'
+const TRY_COMMAND = 'curl -sL bidirekt.com/try | sh'
+const TRY_SCRIPT_URL = 'https://github.com/bidirekt/site/blob/main/public/try'
+
+const SCRIPT_LINK = 'pressable text-[15px] text-secondary hover:text-accent'
 
 export function TryIt() {
   return (
@@ -16,15 +20,18 @@ export function TryIt() {
       <SectionHeading
         id="try-title"
         title="See it catch a break on your machine"
-        lede="One command sets up the petstore example with Docker and walks you through a breaking change and its fix."
+        lede={
+          <>
+            One command runs the petstore example with Docker: a breaking
+            change, <code className="whitespace-nowrap">can-i-deploy</code>{' '}
+            catching it, and the fix, step by step.
+          </>
+        }
       />
-      <CopyCommand command={TRY_COMMAND} className="text-[16px]" />
+      <CopyCommand command={DEMO_COMMAND} className="text-[16px]" />
       <p className="mt-7 mb-2 text-[14px] text-muted">
         Prefer not to pipe to sh?{' '}
-        <a
-          href={SCRIPT_URL}
-          className="pressable text-[15px] text-secondary hover:text-accent"
-        >
+        <a href={DEMO_SCRIPT_URL} className={SCRIPT_LINK}>
           Read the script
         </a>
         , or:
@@ -34,6 +41,15 @@ export function TryIt() {
         {'\n'}
         <span className="text-accent">$</span> {RUN_COMMAND}
       </pre>
+      <div className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-3">
+        <p className="text-[17px] text-secondary">
+          Ready for your own services?
+        </p>
+        <CopyCommand command={TRY_COMMAND} />
+        <a href={TRY_SCRIPT_URL} className={SCRIPT_LINK}>
+          Read the script
+        </a>
+      </div>
     </section>
   )
 }

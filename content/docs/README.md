@@ -8,7 +8,9 @@ Bidirekt is a declarative, static, bidirectional contract testing tool. The page
 
 ## Start
 
+- [Demo](start/demo.md) — `curl -sL bidirekt.com/demo | sh` runs the petstore example: a break caught by `can-i-deploy`, then fixed.
 - [What is Bidirekt](start/what-is-bidirekt.md) — what Bidirekt is and the question its broker answers before a deployment.
+- [Try on your project](start/try.md) — `curl -sL bidirekt.com/try | sh` installs the CLI, the broker's compose file and the agent skill in your project.
 - [Install the CLI](start/install-the-cli.md) — install `bidirekt` with curl or from the GitHub Release, and point it at your broker.
 - [Run the broker](start/run-the-broker.md) — run the broker's Docker image in production, with its Postgres database.
 - [Running local](start/running-local.md) — start Postgres and the broker on your machine to try them.

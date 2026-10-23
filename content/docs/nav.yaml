@@ -2,8 +2,12 @@
   path: README.md
 - label: Start
   items:
+    - label: Demo
+      path: start/demo.md
     - label: What is Bidirekt
       path: start/what-is-bidirekt.md
+    - label: Try on your project
+      path: start/try.md
     - label: Install the CLI
       path: start/install-the-cli.md
     - label: Run the broker

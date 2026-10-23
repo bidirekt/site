@@ -6,6 +6,8 @@ Workflow per participant, in this order: `create-participant` (once) → `valida
 
 ## Setup
 
+See it first: `curl -sL bidirekt.com/demo | sh` runs the petstore example with Docker, from a `can-i-deploy` break to the fixed version ([Demo](https://bidirekt.com/docs/start/demo.md)). Set up a project in one command: `curl -sL bidirekt.com/try | sh` downloads the broker's compose file to `bidirekt/compose.yaml`, installs the CLI and the agent skill, and prints the next steps ([Try on your project](https://bidirekt.com/docs/start/try.md)). The steps one by one:
+
 Install the CLI (Linux and macOS, `x86_64` and `arm64`):
 
 ```
