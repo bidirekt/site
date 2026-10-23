@@ -6,7 +6,6 @@
 @import '@fontsource/ibm-plex-sans/600.css';
 @import '@fontsource/jetbrains-mono/400.css';
 @import '@fontsource/jetbrains-mono/500.css';
-@import 'asciinema-player/dist/bundle/asciinema-player.css';
 
 /* Touch screens fire :hover on tap and keep it stuck; only a fine pointer hovers. */
 @custom-variant hover {
@@ -30,6 +29,36 @@
   background-clip: text;
   color: transparent;
   padding-bottom: 0.05em;
+}
+
+@utility stage-light {
+  background:
+    radial-gradient(
+      640px 340px at 50% -40px,
+      color-mix(in srgb, var(--color-accent) 16%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      1000px 520px at 50% 62%,
+      color-mix(in srgb, var(--color-accent) 5%, transparent),
+      transparent 70%
+    );
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--color-sheen) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-sheen) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: center top;
+    mask-image: radial-gradient(
+      ellipse 70% 50% at 50% 12%,
+      #000 25%,
+      transparent 75%
+    );
+  }
 }
 
 * {
@@ -64,28 +93,6 @@ body {
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-}
-
-.asciinema-player-theme-bidirekt {
-  --term-color-foreground: var(--color-primary);
-  --term-color-background: var(--color-pane);
-  --term-color-0: #3a3a3a;
-  --term-color-1: var(--color-failure);
-  --term-color-2: var(--color-success);
-  --term-color-3: var(--color-accent);
-  --term-color-4: #60a5fa;
-  --term-color-5: #c084fc;
-  --term-color-6: #22d3ee;
-  --term-color-7: var(--color-secondary);
-  --term-color-8: var(--color-muted);
-  --term-color-15: #ffffff;
-}
-
-/* Reduced motion opens on the last frame; the control bar still plays it. */
-@media (prefers-reduced-motion: reduce) {
-  .asciinema-player-theme-bidirekt .ap-overlay-start {
-    display: none;
-  }
 }
 
 ::selection {
