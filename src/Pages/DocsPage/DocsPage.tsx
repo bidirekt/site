@@ -65,14 +65,14 @@ export function DocsPage({ page }: DocsPageProps) {
         onClick={() => setNavOpen(false)}
         className={`fixed inset-0 z-34 hidden bg-black/55 transition-opacity duration-200 max-[820px]:block ${scrimState(navOpen)}`}
       />
-      <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 items-start gap-10 px-4 min-[821px]:grid-cols-[232px_minmax(0,1fr)_200px] min-[1081px]:grid-cols-[248px_minmax(0,1fr)_200px] min-[1081px]:gap-12">
+      <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 items-start gap-10 px-4 min-[821px]:grid-cols-[232px_minmax(0,1fr)] min-[1081px]:grid-cols-[248px_minmax(0,1fr)_200px] min-[1081px]:gap-12">
         <DocsSidebar
           id={SIDEBAR_ID}
           activePath={page.path}
           open={navOpen}
           onNavigate={() => setNavOpen(false)}
         />
-        <Article page={page} html={html} />
+        <Article page={page} html={html} toc={toc} />
         <DocsToc toc={toc} />
       </div>
     </div>

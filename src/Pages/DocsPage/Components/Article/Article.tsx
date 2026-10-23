@@ -3,11 +3,17 @@ import { Link, useRouter } from '@tanstack/react-router'
 import { docsMarkdownHref } from '#/docs'
 import type { DocsPageContent } from '#/docs'
 import { COPY_CODE_ATTRIBUTE, COPY_LABEL } from '#/markdown'
+import type { TocEntry } from '#/markdown'
+import { DocsTocInline } from '#/Contextual/DocsToc'
 import { PrevNext } from '../PrevNext'
 import { EditFooter } from '../EditFooter'
 import { NotWrittenYet } from '../NotWrittenYet'
 
-type ArticleProps = { page: DocsPageContent; html: string }
+type ArticleProps = {
+  page: DocsPageContent
+  html: string
+  toc: Array<TocEntry>
+}
 
 const COPIED_LABEL = 'Copied'
 const COPY_FAILED_LABEL = 'Copy failed'
@@ -17,7 +23,7 @@ const copyFeedbackTimers = new WeakMap<
   ReturnType<typeof setTimeout>
 >()
 
-export function Article({ page, html }: ArticleProps) {
+export function Article({ page, html, toc }: ArticleProps) {
   const router = useRouter()
 
   function onArticleClick(event: MouseEvent<HTMLElement>) {
@@ -54,6 +60,7 @@ export function Article({ page, html }: ArticleProps) {
             {page.description}
           </p>
         )}
+        <DocsTocInline toc={toc} />
         {page.isPlaceholder && <NotWrittenYet page={page} />}
         {!page.isPlaceholder && (
           <article
