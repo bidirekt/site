@@ -1,5 +1,4 @@
 import { Button } from '#/Components/Button'
-import { Eyebrow } from '#/Components/Eyebrow'
 import { Pane } from '#/Components/Pane'
 import { CookieSettingsButton } from '#/Contextual/CookieBanner'
 import { SiteFooter } from '#/Contextual/SiteFooter'
@@ -33,7 +32,6 @@ export function PrivacyPage() {
     <main className="flex min-h-svh flex-col">
       <SiteNav />
       <section className="mx-auto w-full max-w-[1120px] px-4 pt-12 pb-8 md:pt-24 md:pb-16">
-        <Eyebrow className="mb-6">{TITLE}</Eyebrow>
         <h1 className="mb-8 text-[clamp(34px,4.6vw,52px)] leading-[1.05] font-semibold tracking-[-0.04em] text-pretty ink-gradient">
           No cookies until you accept.
         </h1>
