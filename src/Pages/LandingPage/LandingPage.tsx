@@ -1,10 +1,9 @@
 import { SiteFooter } from '#/Contextual/SiteFooter'
 import { SiteNav } from '#/Contextual/SiteNav'
 import { pageHead } from '#/site'
-import { ContractsComparison } from './Components/ContractsComparison'
 import { Faq } from './Components/Faq'
 import { Hero } from './Components/Hero'
-import { TerminalPane } from './Components/TerminalPane'
+import { LiveCheck } from './Components/LiveCheck'
 import { ThreeSteps } from './Components/ThreeSteps'
 import { TryIt } from './Components/TryIt'
 
@@ -27,12 +26,7 @@ export function LandingPage() {
       <main>
         <div className={CONTENT}>
           <Hero />
-          <TerminalPane />
-        </div>
-        <div className="border-t border-line">
-          <div className={CONTENT}>
-            <ContractsComparison />
-          </div>
+          <LiveCheck />
         </div>
         <div className="border-t border-line">
           <div className={CONTENT}>
