@@ -53,7 +53,7 @@ export function DocsPage({ page }: DocsPageProps) {
   }, [navOpen])
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(900px_360px_at_50%_-120px,var(--color-glow),transparent_70%)] bg-no-repeat leading-[1.7]">
+    <div className="min-h-svh bg-[radial-gradient(900px_360px_at_50%_-120px,var(--color-glow),transparent_70%)] bg-no-repeat leading-[1.7]">
       <DocsTopBar
         navId={SIDEBAR_ID}
         navOpen={navOpen}

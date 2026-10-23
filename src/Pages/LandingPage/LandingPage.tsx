@@ -23,7 +23,7 @@ export function landingPageHead() {
 
 export function LandingPage() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-svh flex-col">
       <SiteNav />
       <main>
         <div className="relative isolate overflow-hidden">

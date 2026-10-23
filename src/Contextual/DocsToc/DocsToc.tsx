@@ -32,7 +32,7 @@ export function DocsToc({ toc }: DocsTocProps) {
   return (
     <nav
       aria-label={TITLE}
-      className="sticky top-[60px] hidden max-h-[calc(100vh-60px)] overflow-y-auto py-11 text-[13px] min-[1081px]:block"
+      className="sticky top-[60px] hidden max-h-[calc(100svh-60px)] overflow-y-auto py-11 text-[13px] min-[1081px]:block"
     >
       <b className="mb-2 block font-medium text-primary">{TITLE}</b>
       <ul>
