@@ -8,7 +8,7 @@ const INDENT: Record<TocEntry['level'], string> = { 2: 'pl-0', 3: 'pl-4' }
 export function DocsToc({ toc }: DocsTocProps) {
   if (toc.length === 0) return null
   return (
-    <aside className="hidden pt-8 pr-4 pb-6 md:sticky md:top-[60px] md:block md:max-h-[calc(100vh-60px)] md:overflow-y-auto">
+    <aside className="hidden pt-8 pr-4 pb-6 min-[821px]:sticky min-[821px]:top-[60px] min-[821px]:block min-[821px]:max-h-[calc(100vh-60px)] min-[821px]:overflow-y-auto">
       <div className="mb-2 text-[13px] font-medium whitespace-nowrap text-primary">
         on this page
       </div>

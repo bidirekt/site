@@ -5,9 +5,9 @@ import { parseFrontmatter } from '#/frontmatter'
 import { SITE_URL } from '#/site'
 import navSource from '../content/docs/nav.yaml?raw'
 
-export type DocsNode =
-  | { label: string; path: string }
-  | { label: string; items: Array<{ label: string; path: string }> }
+export type DocsLeaf = { label: string; path: string; isPlaceholder: boolean }
+
+export type DocsNode = DocsLeaf | { label: string; items: Array<DocsLeaf> }
 
 export type DocsEntry = { path: string; label: string; group: string | null }
 
@@ -49,7 +49,7 @@ const markdownByPath = new Map(
 
 export const DOCS_TREE: Array<DocsNode> = parseDocsNav(
   navSource,
-  new Set(markdownByPath.keys()),
+  markdownByPath,
 )
 
 export const DOCS_ENTRIES: Array<DocsEntry> = DOCS_TREE.flatMap(entriesOf)
@@ -107,7 +107,7 @@ export function loadDocsPage(path: string): DocsPageContent | null {
     title: meta.title ?? firstTopHeadingText(body) ?? entry.label,
     description: meta.description ?? null,
     body,
-    isPlaceholder: body.trim() === PLACEHOLDER_BODY,
+    isPlaceholder: isPlaceholderBody(body),
     prev: entryAt(index - 1),
     next: entryAt(index + 1),
     group: entry.group,
@@ -118,18 +118,18 @@ export function loadDocsPage(path: string): DocsPageContent | null {
 
 export function parseDocsNav(
   source: string,
-  files: Set<string>,
+  files: Map<string, string>,
 ): Array<DocsNode> {
   const nodes: unknown = parse(source)
   if (!Array.isArray(nodes)) throw new Error('nav.yaml: needs a list of nodes')
-  const tree = nodes.map((node, index) => navNode(node, `${index + 1}`))
+  const tree = nodes.map((node, index) => navNode(node, `${index + 1}`, files))
   const paths = new Set(tree.flatMap(entriesOf).map((entry) => entry.path))
   for (const path of paths) {
     if (!files.has(path)) {
       throw new Error(`nav.yaml: "${path}" has no file under content/docs`)
     }
   }
-  for (const file of files) {
+  for (const file of files.keys()) {
     if (!paths.has(file)) {
       throw new Error(`content/docs/${file} is not in nav.yaml`)
     }
@@ -242,23 +242,33 @@ function firstTopHeadingText(body: string): string | null {
   return null
 }
 
-function navNode(value: unknown, id: string): DocsNode {
+function navNode(
+  value: unknown,
+  id: string,
+  files: Map<string, string>,
+): DocsNode {
   const { label, path, items } = navFields(value)
   if (typeof label !== 'string') {
     throw new Error(`nav.yaml: node ${id} needs "label"`)
   }
-  if (typeof path === 'string') return { label, path }
+  if (typeof path === 'string') return docsLeaf(label, path, files)
   if (!Array.isArray(items)) {
     throw new Error(`nav.yaml: node ${id} needs "path" or "items"`)
   }
   if (items.length === 0) throw new Error(`nav.yaml: node ${id} has no items`)
   return {
     label,
-    items: items.map((item, index) => navLeaf(item, `${id}.${index + 1}`)),
+    items: items.map((item, index) =>
+      navLeaf(item, `${id}.${index + 1}`, files),
+    ),
   }
 }
 
-function navLeaf(value: unknown, id: string): { label: string; path: string } {
+function navLeaf(
+  value: unknown,
+  id: string,
+  files: Map<string, string>,
+): DocsLeaf {
   const { label, path } = navFields(value)
   if (typeof label !== 'string') {
     throw new Error(`nav.yaml: node ${id} needs "label"`)
@@ -266,7 +276,24 @@ function navLeaf(value: unknown, id: string): { label: string; path: string } {
   if (typeof path !== 'string') {
     throw new Error(`nav.yaml: node ${id} needs "path"`)
   }
-  return { label, path }
+  return docsLeaf(label, path, files)
+}
+
+function docsLeaf(
+  label: string,
+  path: string,
+  files: Map<string, string>,
+): DocsLeaf {
+  const raw = files.get(path) ?? ''
+  return {
+    label,
+    path,
+    isPlaceholder: isPlaceholderBody(parseFrontmatter(raw).body),
+  }
+}
+
+function isPlaceholderBody(body: string): boolean {
+  return body.trim() === PLACEHOLDER_BODY
 }
 
 function navFields(value: unknown): NavFields {

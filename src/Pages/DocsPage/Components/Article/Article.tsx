@@ -38,7 +38,7 @@ export function Article({ page, html }: ArticleProps) {
   }
 
   return (
-    <main className="min-w-0 px-4 pt-6 pb-24 md:px-12 md:pt-10">
+    <main className="min-w-0 pt-6 pb-24 min-[821px]:pt-10">
       <div>
         <div className="mb-2 text-[13px] text-muted">
           <Link to="/docs" className="pressable hover:text-primary">
