@@ -1,17 +1,18 @@
 import { SiteFooter } from '#/Contextual/SiteFooter'
 import { SiteNav } from '#/Contextual/SiteNav'
 import { pageHead } from '#/site'
+import { Comparison } from './Components/Comparison'
 import { Faq } from './Components/Faq'
 import { Hero } from './Components/Hero'
 import { LiveCheck } from './Components/LiveCheck'
 import { ThreeSteps } from './Components/ThreeSteps'
 import { TryIt } from './Components/TryIt'
 
-const TITLE = 'bidirekt — catch breaking API changes before production'
+const TITLE = 'Bidirekt — integration testing for microservices'
 const DESCRIPTION =
-  'bidirekt is static, bidirectional contract testing. Each service declares what it provides and what it reads in one YAML file; a self-hosted broker answers can-i-deploy in seconds, with no running services and no test environment.'
+  'Integration testing for microservices without a test environment. Contract testing in both directions: know which service a deploy breaks, and how to fix it.'
 const SOCIAL_DESCRIPTION =
-  'Know if your deploy breaks another service, before you deploy. Static contract testing: no running services, no test environment.'
+  'Know before you deploy. Integration testing for microservices, without the test environment.'
 
 const CONTENT = 'mx-auto w-full max-w-[1120px] px-4'
 
@@ -33,6 +34,9 @@ export function LandingPage() {
             <Hero />
             <LiveCheck />
           </div>
+        </div>
+        <div className={CONTENT}>
+          <Comparison />
         </div>
         <div className="border-t border-line">
           <div className={CONTENT}>
