@@ -1,6 +1,6 @@
 import { CopyCommand } from '../CopyCommand'
 
-const TRY_COMMAND = 'curl -sL bidirekt.com/try | sh'
+const DEMO_COMMAND = 'curl -sL bidirekt.com/demo | sh'
 const FINEPRINT =
   'Runs the petstore example locally with Docker. Self-hosted broker, single Go binary.'
 
@@ -28,7 +28,7 @@ export function Hero() {
       <div
         className={`mt-2 flex max-w-full flex-wrap items-center justify-center gap-x-5 gap-y-3 ${RISE} [animation-delay:140ms]`}
       >
-        <CopyCommand command={TRY_COMMAND} lit />
+        <CopyCommand command={DEMO_COMMAND} lit />
         <a
           href="/docs"
           className="pressable text-[15px] text-secondary hover:text-accent"

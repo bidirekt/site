@@ -1,9 +1,12 @@
 #!/bin/sh
-# Runs the Bidirekt petstore example: curl -sL bidirekt.com/try | sh
+# Sets up Bidirekt in your project: curl -sL bidirekt.com/try | sh
 set -eu
 
-TARBALL_URL=https://codeload.github.com/bidirekt/petstore-example/tar.gz/refs/heads/main
-DEFAULT_DIR=./petstore-example
+CLI_VERSION=v0.1.0-rc.2
+COMPOSE_URL=https://raw.githubusercontent.com/bidirekt/broker/main/docker-compose.yaml
+INSTALL_URL=https://raw.githubusercontent.com/bidirekt/cli/main/install.sh
+# install.sh's default directory, which may be off PATH.
+BIN_DIR=$HOME/.local/bin
 
 fail() {
   echo "bidirekt: $1" >&2
@@ -11,56 +14,80 @@ fail() {
 }
 
 # Asks on /dev/tty because stdin is this script when it is piped to sh.
-ask_dir() {
+confirm() {
   answer=
   if (: </dev/tty) 2>/dev/null; then
-    printf 'Where should the example go? [%s] ' "$DEFAULT_DIR" >/dev/tty
+    printf 'Set up Bidirekt in %s? [Y/n] ' "$PWD" >/dev/tty
     read -r answer </dev/tty || answer=
   fi
-  dir=${answer:-$DEFAULT_DIR}
-  case $dir in
-    "~") dir=$HOME ;;
-    "~/"*) dir=$HOME/${dir#"~/"} ;;
+  case $answer in
+    [Nn]*) exit 0 ;;
   esac
 }
 
 # Wrapped in a function so a truncated download never runs half a script.
 main() {
-  command -v docker >/dev/null 2>&1 ||
-    fail "docker is not installed. Get Docker at https://docs.docker.com/get-docker/"
-  docker compose version >/dev/null 2>&1 ||
-    fail "docker compose is not available. Get it at https://docs.docker.com/compose/install/"
+  confirm
 
-  ask_dir
-
-  if [ -e "$dir" ]; then
-    [ -x "$dir/try.sh" ] ||
-      fail "$dir exists but has no try.sh; pick another folder or remove that one."
-    echo "Using the existing $dir (not overwritten)."
+  if [ -e bidirekt/compose.yaml ]; then
+    echo "Kept the existing bidirekt/compose.yaml."
   else
-    if command -v curl >/dev/null 2>&1; then
-      fetch="curl -fsSL"
-    elif command -v wget >/dev/null 2>&1; then
-      fetch="wget -qO-"
-    else
-      fail "neither curl nor wget is installed; install one of them to download the example."
-    fi
-
-    echo "Downloading the petstore example into $dir ..."
-    tmp=$(mktemp -d "$dir.XXXXXX")
-    trap 'rm -rf "$tmp"' EXIT
-    $fetch "$TARBALL_URL" | tar -xz --strip-components=1 -C "$tmp"
-    chmod 755 "$tmp"
-    mv "$tmp" "$dir"
-    trap - EXIT
+    compose=$(curl -fsSL "$COMPOSE_URL") || fail "could not download $COMPOSE_URL"
+    mkdir -p bidirekt
+    printf '%s\n' "$compose" >bidirekt/compose.yaml
+    echo "Downloaded the broker's compose file to bidirekt/compose.yaml."
   fi
 
-  cd "$dir"
-  # Without a terminal on stdin the CLI runs without a TTY and prints no colors.
-  if (: </dev/tty) 2>/dev/null; then
-    exec ./try.sh </dev/tty
+  bin=$(command -v bidirekt) || bin=$BIN_DIR/bidirekt
+  if [ "$("$bin" version 2>/dev/null)" = "bidirekt version ${CLI_VERSION#v}" ]; then
+    echo "bidirekt ${CLI_VERSION#v} is already installed."
+    command -v bidirekt >/dev/null 2>&1 ||
+      printf '%s\n' "$BIN_DIR is not on your PATH. Add it in your shell profile:" "  export PATH=\"$BIN_DIR:\$PATH\""
+  else
+    # Not curl | sh: a failed download would run an empty script and exit 0.
+    installer=$(curl -fsSL "$INSTALL_URL") || fail "could not download $INSTALL_URL"
+    # A failed install, such as an OS or architecture without a build, says why and the setup goes on.
+    printf '%s\n' "$installer" | sh -s -- "$CLI_VERSION" || true
   fi
-  exec ./try.sh
+
+  if command -v npx >/dev/null 2>&1; then
+    npx -y skills add bidirekt/skills -a claude-code codex -y
+  else
+    echo "Install the agent skill with: npx skills add bidirekt/skills -a claude-code codex (needs Node.js)"
+  fi
+
+  docker compose version >/dev/null 2>&1 ||
+    echo "The broker runs with Docker: https://docs.docker.com/get-docker/"
+
+  cat <<'EOF'
+
+Bidirekt is set up. Next:
+
+1. Start the broker
+   docker compose -f bidirekt/compose.yaml up -d
+
+2. Point the CLI at it
+   bidirekt configure --profile local --broker-url http://localhost:8080
+   export BIDIREKT_PROFILE=local
+
+3. Create the environment and one participant per service
+   bidirekt create-environment production
+   bidirekt create-participant <service>
+
+4. Ask your coding agent
+   Use the bidirekt skill to write the contract for this service.
+
+5. Publish the contract
+   bidirekt publish <files> --participant <service> --version <version>
+
+6. Check before you deploy
+   bidirekt can-i-deploy <service> --version <version> --environment production
+
+7. After the deploy, record it
+   bidirekt record-deployment <service> --version <version> --environment production
+
+Walkthrough: https://bidirekt.com/docs/start/try
+EOF
 }
 
 main

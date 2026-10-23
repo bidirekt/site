@@ -1,0 +1,71 @@
+#!/bin/sh
+# Runs the Bidirekt petstore demo: curl -sL bidirekt.com/demo | sh
+set -eu
+
+TARBALL_URL=https://codeload.github.com/bidirekt/petstore-example/tar.gz/refs/heads/main
+DEFAULT_DIR=./petstore-example
+
+fail() {
+  echo "bidirekt: $1" >&2
+  exit 1
+}
+
+# Asks on /dev/tty because stdin is this script when it is piped to sh.
+ask_dir() {
+  answer=
+  if (: </dev/tty) 2>/dev/null; then
+    printf 'Where should the example go? [%s] ' "$DEFAULT_DIR" >/dev/tty
+    read -r answer </dev/tty || answer=
+  fi
+  dir=${answer:-$DEFAULT_DIR}
+  case $dir in
+    \~) dir=$HOME ;;
+    \~/*) dir=$HOME/${dir#\~/} ;;
+  esac
+  # The download lands next to the folder, never inside it.
+  dir=${dir%/}
+}
+
+# Wrapped in a function so a truncated download never runs half a script.
+main() {
+  command -v docker >/dev/null 2>&1 ||
+    fail "docker is not installed. Get Docker at https://docs.docker.com/get-docker/"
+  docker compose version >/dev/null 2>&1 ||
+    fail "docker compose is not available. Get it at https://docs.docker.com/compose/install/"
+
+  ask_dir
+
+  # try.sh marks the example from before demo.sh.
+  if [ -e "$dir" ] && [ ! -f "$dir/demo.sh" ] && [ ! -f "$dir/try.sh" ]; then
+    fail "$dir exists and is not the petstore example; pick another folder."
+  fi
+
+  if command -v curl >/dev/null 2>&1; then
+    fetch="curl -fsSL"
+  elif command -v wget >/dev/null 2>&1; then
+    fetch="wget -qO-"
+  else
+    fail "neither curl nor wget is installed; install one of them to download the example."
+  fi
+
+  echo "Downloading the petstore example into $dir ..."
+  tmp=$(mktemp -d "$dir.XXXXXX")
+  trap 'rm -rf "$tmp"' EXIT
+  # Not piped into tar: a failed download must stop here, before the folder is replaced.
+  $fetch "$TARBALL_URL" >"$tmp/example.tar.gz"
+  mkdir "$tmp/example"
+  tar -xzf "$tmp/example.tar.gz" --strip-components=1 -C "$tmp/example"
+  rm -rf "$dir"
+  mv "$tmp/example" "$dir"
+  rm -rf "$tmp"
+  trap - EXIT
+
+  cd "$dir"
+  # Without a terminal on stdin the CLI runs without a TTY and prints no colors.
+  if (: </dev/tty) 2>/dev/null; then
+    exec ./demo.sh </dev/tty
+  fi
+  exec ./demo.sh
+}
+
+main

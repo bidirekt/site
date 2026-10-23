@@ -44,3 +44,19 @@ jobs:
         env:
           VITE_SITE_LAUNCHED: ${{ vars.SITE_LAUNCHED }}
           VITE_GA_MEASUREMENT_ID: ${{ vars.GA_MEASUREMENT_ID }}
+
+  try:
+    runs-on: ubuntu-latest
+    container: ubuntu:24.04
+    steps:
+      - run: apt-get update && apt-get install -y --no-install-recommends ca-certificates curl
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: |
+          mkdir project
+          cd project
+          sh ../public/try < /dev/null | tee ../try.out
+          grep -qx 'Bidirekt is set up. Next:' ../try.out
+          test -s bidirekt/compose.yaml
+          test "$(~/.local/bin/bidirekt version)" = "bidirekt version $(sed -n 's/^CLI_VERSION=v//p' ../public/try)"
+        # Unlike the default, an explicit bash runs with -o pipefail, so a failing /try fails the step despite tee.
+        shell: bash
