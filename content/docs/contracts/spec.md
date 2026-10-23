@@ -171,7 +171,7 @@ provides:
           200: Pet
 ```
 
-```
+```error title="publish error"
 contract validation failed
   - petstore_api.yaml: invalid endpoint "/pets/{petId}" at provides rest, dynamic path segments must use *
 ```
@@ -218,7 +218,7 @@ Pet:
         type: string
 ```
 
-```
+```error title="publish error"
 contract validation failed
   - petstore_api.yaml: missing "type" at schemas Pet properties tags, expected one of: object, array, map, string, integer, float, number, boolean
 ```
@@ -245,7 +245,7 @@ Pet:
         type: string
 ```
 
-```
+```error title="publish error"
 contract validation failed
   - petstore_api.yaml: "items" is not allowed on a string schema at schemas Pet properties tags, use it with "type: array"
 ```
@@ -259,7 +259,7 @@ Two flags, `true` or `false`, say what a value may lack, and they are independen
 
 `optional` on array items ([Arrays](#arrays)), on map values ([Maps](#maps)) or on a named schema is rejected at publish, `optional: false` too. A named schema is not optional by itself: the property that uses it is, with `optional: true` beside its `ref`:
 
-```
+```error title="publish error"
 contract validation failed
   - petstore_api.yaml: "optional" is not allowed on a schema at schemas Pet, mark optional the property that uses it, beside its "ref"
 ```
@@ -300,7 +300,7 @@ Schema names are unique across every file of a publish, and `request`, `response
 
 A schema name follows the same rule as a property name ([Objects](#objects)). The name lives only in the contract, so the fix is to rename the schema:
 
-```
+```error title="publish error"
 contract validation failed
   - petstore_api.yaml: invalid schema name "Pet.v2" at schemas, must not contain ".", "[", "]", "{", "}" or ";"
 ```
@@ -336,7 +336,7 @@ Pet:
 
 A property name or a schema name must not be empty, must not contain `.`, `[`, `]`, `{`, `}` or `;`, and must not contain control characters. The six characters are reserved for the paths the broker compares and shows: `.`, `[]` and `{}` write `$.owner.name`, `$[].photoUrl` and `$.pets{}.name`. Any other name is valid, such as `content-type`, `@type`, `$ref` or `first name`:
 
-```
+```error title="publish error"
 contract validation failed
   - petstore_api.yaml: invalid property name "user.name" at schemas Pet properties, must not contain ".", "[", "]", "{", "}" or ";"
 ```
@@ -345,7 +345,7 @@ An empty name ends with `must not be empty`, and a name with a control character
 
 An `object` without `properties`, or with `properties: {}`, is rejected:
 
-```
+```error title="publish error"
 contract validation failed
   - petstore_web.yaml: object schema without properties at schemas Pet properties metadata, declare the keys you read, or use "type: map" with "values" if the keys vary
 ```
@@ -377,7 +377,7 @@ Pet:
 
 `items` does not accept `optional`. When the array may be missing, the property that holds it is optional; when an element may be `null`, `items` is `nullable: true`:
 
-```
+```error title="publish error"
 contract validation failed
   - petstore_api.yaml: "optional" is not allowed on array items at schemas Pet properties tags items, mark the property that holds the array optional, or use "nullable: true" for an item that may be null
 ```
@@ -401,14 +401,14 @@ describes
 
 A `map` without `values` is rejected:
 
-```
+```error title="publish error"
 contract validation failed
   - petstore_api.yaml: map schema without values at schemas PetsByName
 ```
 
 A contract written before `map` existed declares a map as `type: object` with `values`. It is rejected with two lines at the same property, one for `values` and one for the missing `properties`, and the fix is to write `type: map` in place of `type: object`:
 
-```
+```error title="publish error"
 contract validation failed
   - petstore_web.yaml: "values" is not allowed on an object schema at schemas Owner properties pets, use it with "type: map"
   - petstore_web.yaml: object schema without properties at schemas Owner properties pets, declare the keys you read, or use "type: map" with "values" if the keys vary
@@ -416,7 +416,7 @@ contract validation failed
 
 `values` does not accept `optional`. When the map may be missing, the property that holds it is optional; when a value may be `null`, `values` is `nullable: true`:
 
-```
+```error title="publish error"
 contract validation failed
   - petstore_api.yaml: "optional" is not allowed on map values at schemas Pet properties scores values, mark the property that holds the map optional, or use "nullable: true" for a value that may be null
 ```
@@ -425,7 +425,7 @@ A map only matches a map. Two maps compare their values like the items of an arr
 
 A map on one side and an `object` on the other is a type mismatch on the property itself, and nothing inside it is compared. Here `petstore_api` sends `pets` as an `object` with the properties `bob` and `sky`, and `petstore_web` reads it as a map:
 
-```
+```error title="can-i-deploy output"
 petstore_api 1.5.0 cannot be deployed to production
 
 petstore_web (1.4.0, deployed):
@@ -450,7 +450,7 @@ Pet:
       ref: Owner
 ```
 
-```
+```error title="publish error"
 contract validation failed
   - petstore_api.yaml: "type" is not allowed beside "ref" at schemas Pet properties owner
 ```
@@ -508,7 +508,7 @@ provides:
 
 Writing `request: NewPet` in `pets_errors.yaml` too declares the request of `POST /pets` twice:
 
-```
+```error title="publish error"
 contract validation failed
   - pets_errors.yaml: duplicate resource "provides POST /pets request", also declared in pets.yaml
 ```

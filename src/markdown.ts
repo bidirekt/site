@@ -11,9 +11,17 @@ export type Segment<TTone extends string> = { text: string; tone: TTone }
 type RenderOptions = { pagePath: string; title: string }
 type RenderResult = { html: string; toc: Array<TocEntry> }
 type CodeLine = { classes: string; inner: string }
+type CodeInfo = { lang: string; title: string | null }
+type CodeKind = 'code' | 'error'
 type ListTag = 'ul' | 'ol'
 
-const HEADING_BASE = 'max-w-[70ch] font-semibold text-primary scroll-mt-[84px]'
+export const COPY_CODE_ATTRIBUTE = 'data-copy-code'
+export const COPY_LABEL = 'Copy'
+
+const HEADING_BASE =
+  'group max-w-[70ch] font-semibold text-primary scroll-mt-[84px]'
+const HEADING_ANCHOR =
+  'ml-2 font-normal text-muted no-underline opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-visible:opacity-100 motion-reduce:transition-none'
 const HEADING_BY_DEPTH: Partial<Record<number, string>> = {
   1: 'mb-4 text-[40px] leading-[1.1] tracking-[-0.03em]',
   2: 'mt-14 mb-3.5 text-[28px] leading-[1.2] tracking-[-0.02em]',
@@ -31,7 +39,26 @@ const LINK =
 const BLOCK_WIDTH = 'max-w-[760px]'
 const PRE =
   'overflow-x-auto px-4 py-3.5 text-[13.5px] leading-[1.7] whitespace-pre text-primary'
+const CODE_PANE = `my-5 overflow-hidden ${BLOCK_WIDTH}`
+const CODE_HEADER =
+  'flex items-center justify-between py-1.5 pr-2 pl-3.5 font-mono text-[12px] font-medium'
+const CODE_PANE_BY_KIND: Record<CodeKind, string> = {
+  code: CODE_PANE,
+  error: `${CODE_PANE} border-failure/22 bg-failure-bg`,
+}
+const CODE_HEADER_BY_KIND: Record<CodeKind, string> = {
+  code: `${CODE_HEADER} bg-raised text-muted`,
+  error: `${CODE_HEADER} bg-failure/14 text-failure`,
+}
+const CODE_TITLE_BY_KIND: Record<CodeKind, string> = {
+  code: 'text-secondary',
+  error: 'text-failure',
+}
+const COPY_BUTTON =
+  'pressable cursor-pointer rounded-[5px] px-2 py-1 font-sans text-[12px] font-medium text-secondary hover:bg-pane hover:text-primary'
 const CODE_LINE = 'block min-h-[1.7em]'
+const ERROR_HEADLINE = 'text-failure'
+const ERROR_DETAIL = 'text-secondary'
 const PROMPT_LINE = 'text-primary'
 const OUTPUT_LINE = 'text-primary'
 const TERMINAL_OUTPUT_LINE = 'text-secondary'
@@ -69,6 +96,10 @@ const YAML_TONE_CLASS: Record<YamlTone, string | null> = {
   plain: null,
 }
 const SHELL_LANGS = new Set(['', 'sh', 'shell', 'bash', 'console', 'text'])
+const ERROR_LANG = 'error'
+const CAN_I_DEPLOY_TITLE = 'can-i-deploy output'
+const CODE_INFO = /^(\S*)(.*)$/
+const CODE_TITLE_ATTRIBUTE = /title="([^"]*)"/
 const YAML_KEY_LINE = /^(\s*)(-\s+)?("?[^:"]+"?)(:)(.*)$/
 const HTML_ESCAPES: Record<string, string> = {
   '&': '&amp;',
@@ -98,7 +129,7 @@ export function renderDocsMarkdown(
         const level = tocLevel(depth)
         if (level !== null) toc.push({ id, text: stripBackticks(text), level })
         const classes = HEADING_BY_DEPTH[depth] ?? HEADING_DEEPER
-        return `<h${depth} id="${id}" class="${HEADING_BASE} ${classes}">${this.parser.parseInline(tokens)}</h${depth}>`
+        return `<h${depth} id="${id}" class="${HEADING_BASE} ${classes}">${this.parser.parseInline(tokens)}${headingAnchor(id, text, level)}</h${depth}>`
       },
       paragraph({ tokens }) {
         return `<p class="${PARAGRAPH}">${this.parser.parseInline(tokens)}</p>`
@@ -191,31 +222,83 @@ export function shellLine(line: string): Array<Segment<ShellTone>> {
   ]
 }
 
-function renderCodePane(code: string, lang: string): string {
+function headingAnchor(
+  id: string,
+  text: string,
+  level: TocEntry['level'] | null,
+): string {
+  if (level === null) return ''
+  const label = escapeHtml(`Link to ${stripBackticks(text)}`)
+  return `<a href="#${id}" class="${HEADING_ANCHOR}" aria-label="${label}" data-pagefind-ignore>#</a>`
+}
+
+function renderCodePane(code: string, info: string): string {
+  const { lang, title } = codeInfo(info)
   const lines = code.split('\n')
   const terminal =
     SHELL_LANGS.has(lang) && lines.some((line) => line.startsWith('$ '))
-  return `<section class="${pane().root({ className: `my-5 ${BLOCK_WIDTH}` })}"><pre class="${PRE}">${renderCodeLines(lines, lang, terminal)}</pre></section>`
+  const kind = codeKind(lang)
+  const label = codeLabel({ lang, title }, terminal, kind)
+  return `<section class="${pane().root({ className: CODE_PANE_BY_KIND[kind] })}"><div class="${CODE_HEADER_BY_KIND[kind]}" data-pagefind-ignore>${label}<button type="button" class="${COPY_BUTTON}" ${COPY_CODE_ATTRIBUTE} aria-live="polite">${COPY_LABEL}</button></div><pre class="${PRE}">${renderCodeLines(lines, { lang, title }, terminal)}</pre></section>`
+}
+
+function codeInfo(info: string): CodeInfo {
+  const [, lang, rest] = CODE_INFO.exec(info.trim()) ?? ['', '', '']
+  const title = CODE_TITLE_ATTRIBUTE.exec(rest)?.[1] ?? null
+  return { lang, title }
+}
+
+function codeKind(lang: string): CodeKind {
+  if (lang === ERROR_LANG) return 'error'
+  return 'code'
+}
+
+function codeLabel(
+  { lang, title }: CodeInfo,
+  terminal: boolean,
+  kind: CodeKind,
+): string {
+  if (title !== null) {
+    return `<span class="${CODE_TITLE_BY_KIND[kind]}">${escapeHtml(title)}</span>`
+  }
+  return `<span>${languageLabel(lang, terminal)}</span>`
+}
+
+function languageLabel(lang: string, terminal: boolean): string {
+  if (terminal) return 'terminal'
+  if (lang === 'yaml' || lang === 'json' || lang === ERROR_LANG) return lang
+  return 'text'
 }
 
 // The newline lives inside each block span: between block boxes a preserved
 // newline would lay out as an extra empty line.
 function renderCodeLines(
   lines: Array<string>,
-  lang: string,
+  info: CodeInfo,
   terminal: boolean,
 ): string {
   const last = lines.length - 1
   return lines
     .map((line, index) => {
-      const { classes, inner } = codeLine(line, lang, terminal)
+      const { classes, inner } = codeLine(line, index, info, terminal)
       const lineClasses = [CODE_LINE, classes].join(' ').trim()
       return `<span class="${lineClasses}">${inner}${newlineUnlessLast(index, last)}</span>`
     })
     .join('')
 }
 
-function codeLine(line: string, lang: string, terminal: boolean): CodeLine {
+function codeLine(
+  line: string,
+  index: number,
+  { lang, title }: CodeInfo,
+  terminal: boolean,
+): CodeLine {
+  if (lang === ERROR_LANG) {
+    return {
+      classes: errorLineClasses(line, index, title),
+      inner: escapeHtml(line),
+    }
+  }
   if (lang === 'yaml') {
     const inner = yamlLine(line)
       .map((segment) => toneHtml(segment, YAML_TONE_CLASS))
@@ -224,6 +307,19 @@ function codeLine(line: string, lang: string, terminal: boolean): CodeLine {
   }
   if (terminal) return terminalLine(line)
   return { classes: OUTPUT_LINE, inner: escapeHtml(line) }
+}
+
+// A can-i-deploy fragment starts with a counterpart header, not with the
+// error: only its verdict line, when shown, is the headline.
+function errorLineClasses(
+  line: string,
+  index: number,
+  title: string | null,
+): string {
+  const verdict = VERDICT_LINE.find(({ pattern }) => pattern.test(line))
+  if (verdict !== undefined) return verdict.classes
+  if (index === 0 && title !== CAN_I_DEPLOY_TITLE) return ERROR_HEADLINE
+  return ERROR_DETAIL
 }
 
 function terminalLine(line: string): CodeLine {

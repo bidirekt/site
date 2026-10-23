@@ -2,17 +2,33 @@ import type { MouseEvent } from 'react'
 import { Link, useRouter } from '@tanstack/react-router'
 import { docsMarkdownHref } from '#/docs'
 import type { DocsPageContent } from '#/docs'
+import { COPY_CODE_ATTRIBUTE, COPY_LABEL } from '#/markdown'
 import { PrevNext } from '../PrevNext'
 import { EditFooter } from '../EditFooter'
 import { NotWrittenYet } from '../NotWrittenYet'
 
 type ArticleProps = { page: DocsPageContent; html: string }
 
+const COPIED_LABEL = 'Copied'
+const COPY_FAILED_LABEL = 'Copy failed'
+const COPY_FEEDBACK_MS = 1500
+const copyFeedbackTimers = new WeakMap<
+  HTMLElement,
+  ReturnType<typeof setTimeout>
+>()
+
 export function Article({ page, html }: ArticleProps) {
   const router = useRouter()
 
   function onArticleClick(event: MouseEvent<HTMLElement>) {
     if (!(event.target instanceof Element)) return
+    const copyButton = event.target.closest<HTMLElement>(
+      `[${COPY_CODE_ATTRIBUTE}]`,
+    )
+    if (copyButton !== null) {
+      copyCodeBlock(copyButton)
+      return
+    }
     const anchor = event.target.closest('a')
     if (anchor === null) return
     const href = anchor.getAttribute('href')
@@ -53,5 +69,29 @@ export function Article({ page, html }: ArticleProps) {
         />
       </div>
     </main>
+  )
+}
+
+function copyCodeBlock(button: HTMLElement) {
+  const text = button.closest('section')?.querySelector('pre')?.textContent
+  if (text === undefined) return
+  try {
+    navigator.clipboard.writeText(text).then(
+      () => showCopyFeedback(button, COPIED_LABEL),
+      () => showCopyFeedback(button, COPY_FAILED_LABEL),
+    )
+  } catch {
+    showCopyFeedback(button, COPY_FAILED_LABEL)
+  }
+}
+
+function showCopyFeedback(button: HTMLElement, label: string) {
+  button.textContent = label
+  clearTimeout(copyFeedbackTimers.get(button))
+  copyFeedbackTimers.set(
+    button,
+    setTimeout(() => {
+      button.textContent = COPY_LABEL
+    }, COPY_FEEDBACK_MS),
   )
 }
