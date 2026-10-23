@@ -1,5 +1,13 @@
 - label: Overview
   path: README.md
+- label: Guides
+  items:
+    - label: Installation
+      path: guides/installation.md
+    - label: Getting started
+      path: guides/getting-started.md
+    - label: CI integration
+      path: guides/ci-integration.md
 - label: Concepts
   items:
     - label: Contract testing
@@ -14,11 +22,3 @@
   items:
     - label: CLI reference
       path: reference/cli.md
-- label: Guides
-  items:
-    - label: Installation
-      path: guides/installation.md
-    - label: Getting started
-      path: guides/getting-started.md
-    - label: CI integration
-      path: guides/ci-integration.md

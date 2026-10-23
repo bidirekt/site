@@ -1,1 +1,1 @@
-export { DocsToc } from './DocsToc'
+export { DocsToc, DocsTocInline } from './DocsToc'

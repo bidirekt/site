@@ -18,7 +18,7 @@ export function contactPageHead() {
 
 export function ContactPage() {
   return (
-    <main className="flex min-h-screen flex-col">
+    <main className="flex min-h-svh flex-col">
       <SiteNav />
       <section className="mx-auto w-full max-w-[1120px] px-4 pt-12 pb-8 md:pt-24 md:pb-16">
         <h1 className="mb-8 text-[clamp(34px,4.6vw,52px)] leading-[1.05] font-semibold tracking-[-0.04em] text-pretty ink-gradient">
