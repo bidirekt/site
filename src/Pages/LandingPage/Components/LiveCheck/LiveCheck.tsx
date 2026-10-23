@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import { tv } from 'tailwind-variants'
 import { pane } from '#/Components/Pane'
+import { ExitChip } from '../ExitChip'
 
 type WeightType = 'string' | 'integer'
 type CheckState = { weightType: WeightType; readsStatus: boolean }
@@ -76,16 +77,6 @@ const yamlLine = tv({
       plain: '',
       hit: 'bg-failure-bg shadow-[inset_2px_0_0_var(--color-failure)]',
       gone: 'text-muted [&>*]:line-through',
-    },
-  },
-})
-
-const exitChip = tv({
-  base: 'rounded-full px-2 py-0.5 font-mono text-[12px] font-medium',
-  variants: {
-    deployable: {
-      true: 'bg-success/12 text-success',
-      false: 'bg-failure-bg text-failure',
     },
   },
 })
@@ -205,9 +196,7 @@ export function LiveCheck() {
           <div className={pane().root({ className: 'mt-3 overflow-hidden' })}>
             <div className={PANE_HEAD}>
               <span className="font-mono">can-i-deploy</span>
-              <span className={exitChip({ deployable: breakCount === 0 })}>
-                exit {exitCode(breakCount)}
-              </span>
+              <ExitChip code={exitCode(breakCount)} />
             </div>
             <pre
               ref={output}

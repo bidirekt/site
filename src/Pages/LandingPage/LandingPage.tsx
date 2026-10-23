@@ -1,11 +1,11 @@
 import { SiteFooter } from '#/Contextual/SiteFooter'
 import { SiteNav } from '#/Contextual/SiteNav'
 import { pageHead } from '#/site'
+import { Commands } from './Components/Commands'
 import { Comparison } from './Components/Comparison'
 import { Faq } from './Components/Faq'
 import { Hero } from './Components/Hero'
 import { LiveCheck } from './Components/LiveCheck'
-import { ThreeSteps } from './Components/ThreeSteps'
 import { TryIt } from './Components/TryIt'
 
 const TITLE = 'Bidirekt — integration testing for microservices'
@@ -15,6 +15,7 @@ const SOCIAL_DESCRIPTION =
   'Know before you deploy. Integration testing for microservices, without the test environment.'
 
 const CONTENT = 'mx-auto w-full max-w-[1120px] px-4'
+const BAND = 'border-t border-line bg-linear-to-b from-pane to-page'
 
 export function landingPageHead() {
   return pageHead('/', TITLE, DESCRIPTION, SOCIAL_DESCRIPTION)
@@ -38,12 +39,14 @@ export function LandingPage() {
         <div className={CONTENT}>
           <Comparison />
         </div>
-        <div className="border-t border-line">
+        <div className={BAND}>
           <div className={CONTENT}>
-            <ThreeSteps />
-            <TryIt />
-            <Faq />
+            <Commands />
           </div>
+        </div>
+        <div className={CONTENT}>
+          <TryIt />
+          <Faq />
         </div>
       </main>
       <SiteFooter />
