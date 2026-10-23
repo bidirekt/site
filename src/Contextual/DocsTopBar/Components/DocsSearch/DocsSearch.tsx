@@ -1,57 +1,62 @@
 import { useEffect, useRef, useState } from 'react'
-import type { KeyboardEvent, MouseEvent } from 'react'
+import type { KeyboardEvent, MouseEvent, SyntheticEvent } from 'react'
 import { useRouter } from '@tanstack/react-router'
-import { Pane } from '#/Components/Pane'
+import { tv } from 'tailwind-variants'
+import { DOCS_ENTRIES, docsHref } from '#/docs'
 import { searchDocs } from './pagefind'
 import type { SearchHit } from './pagefind'
 
-type SearchRow =
-  | { kind: 'page'; href: string; title: string; excerpt: string }
-  | { kind: 'section'; href: string; title: string; prefix: string }
+type SearchRow = { href: string; title: string; context: string }
 
+const RESULTS_ID = 'docs-search-results'
 const ONLY_IN_THE_BUILD =
-  'search only exists in the build: npm run build && npm run preview'
-const NO_RESULTS = 'no results'
+  'Search only exists in the build: npm run build && npm run preview'
 const ARROW_STEP: Partial<Record<string, number>> = {
   ArrowDown: 1,
   ArrowUp: -1,
 }
-const ROW: Record<SearchRow['kind'], string> = {
-  page: 'block px-3 pt-1.5 pb-0.5',
-  section: 'flex px-3 text-[13px] leading-[1.7]',
-}
-const ROW_COLOR: Record<SearchRow['kind'], string> = {
-  page: 'text-primary',
-  section: 'text-secondary',
-}
-const EXCERPT =
-  'block text-[13px] leading-[1.6] text-secondary [&_mark]:bg-transparent [&_mark]:text-accent'
+const KEY =
+  'rounded-[4px] bg-raised px-1.5 py-px font-mono text-[12px] font-medium text-secondary'
+const PAGE_ROWS: Array<SearchRow> = DOCS_ENTRIES.map((entry) => ({
+  href: docsHref(entry.path),
+  title: entry.label,
+  context: entry.group ?? '',
+}))
+const GROUP_BY_HREF = new Map(PAGE_ROWS.map((row) => [row.href, row.context]))
+
+const resultLink = tv({
+  base: 'flex justify-between gap-3 rounded-[7px] px-3 py-[9px] text-[14px]',
+  variants: {
+    active: {
+      true: 'bg-raised text-primary',
+      false: 'text-secondary',
+    },
+  },
+})
 
 export function DocsSearch() {
   const router = useRouter()
-  const inputRef = useRef<HTMLInputElement>(null)
-  const listRef = useRef<HTMLDivElement>(null)
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  const listRef = useRef<HTMLUListElement>(null)
+  const openerRef = useRef<HTMLElement | null>(null)
   const [query, setQuery] = useState('')
-  const [focused, setFocused] = useState(false)
   const [hits, setHits] = useState<Array<SearchHit> | null>(null)
   const [activeIndex, setActiveIndex] = useState(0)
-  const rows = searchRows(hits ?? [])
-  const message = panelMessage(hits)
-  const panelOpen =
-    focused && query.trim() !== '' && (message !== null || rows.length > 0)
+  const term = query.trim()
+  const rows = searchRows(term, hits)
+  const message = emptyMessage(term, hits)
 
   useEffect(() => {
-    function focusSearchOnSlash(event: globalThis.KeyboardEvent) {
-      if (event.key !== '/' || isTextField(event.target)) return
+    function openOnShortcut(event: globalThis.KeyboardEvent) {
+      if (!isOpenShortcut(event)) return
       event.preventDefault()
-      inputRef.current?.focus()
+      openPalette()
     }
-    window.addEventListener('keydown', focusSearchOnSlash)
-    return () => window.removeEventListener('keydown', focusSearchOnSlash)
+    window.addEventListener('keydown', openOnShortcut)
+    return () => window.removeEventListener('keydown', openOnShortcut)
   }, [])
 
   useEffect(() => {
-    const term = query.trim()
     if (term === '' || import.meta.env.DEV) return
     let superseded = false
     void searchDocs(term).then((found) => {
@@ -62,16 +67,28 @@ export function DocsSearch() {
     return () => {
       superseded = true
     }
-  }, [query])
+  }, [term])
+
+  function openPalette() {
+    if (dialogRef.current === null || dialogRef.current.open) return
+    openerRef.current = focusedElement()
+    changeQuery('')
+    dialogRef.current.showModal()
+  }
+
+  function closePalette() {
+    dialogRef.current?.close()
+    openerRef.current?.focus()
+  }
 
   function changeQuery(value: string) {
     setQuery(value)
+    setActiveIndex(0)
     if (value.trim() === '') setHits(null)
   }
 
   function openRow(row: SearchRow) {
-    changeQuery('')
-    inputRef.current?.blur()
+    closePalette()
     void router.navigate({ href: row.href })
   }
 
@@ -81,79 +98,121 @@ export function DocsSearch() {
     listRef.current?.children.item(next)?.scrollIntoView({ block: 'nearest' })
   }
 
-  function onSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+  function onQueryKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Escape') {
-      event.currentTarget.blur()
+      event.preventDefault()
+      closePalette()
       return
     }
-    if (!panelOpen || rows.length === 0) return
     if (event.key === 'Enter') {
-      openRow(rows[activeIndex])
+      event.preventDefault()
+      if (rows.length > 0) openRow(rows[activeIndex])
       return
     }
     const step = ARROW_STEP[event.key]
-    if (step === undefined) return
+    if (step === undefined || rows.length === 0) return
     event.preventDefault()
     moveActive(step)
   }
 
+  function closeOnBackdropClick(event: MouseEvent<HTMLDialogElement>) {
+    if (event.target === event.currentTarget) closePalette()
+  }
+
+  function closeOnCancel(event: SyntheticEvent<HTMLDialogElement>) {
+    event.preventDefault()
+    closePalette()
+  }
+
   return (
-    <div className="flex min-w-0 flex-1 justify-center">
-      <div className="w-full max-w-[420px] md:relative">
-        <label className="flex h-[38px] cursor-text items-center gap-2.5 rounded-[10px] border border-line bg-pane px-3 shadow-sheen focus-within:border-accent">
-          <span className="font-mono text-accent">❯</span>
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={(event) => changeQuery(event.target.value)}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            onKeyDown={onSearchKeyDown}
-            placeholder="search docs"
-            className="min-w-0 flex-1 bg-transparent text-[14px] text-primary placeholder:text-muted"
+    <>
+      <button
+        type="button"
+        aria-haspopup="dialog"
+        onClick={openPalette}
+        className="mx-auto flex h-[38px] min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-[10px] border border-line bg-pane px-3 text-left text-[14px] text-muted shadow-sheen transition-colors duration-150 ease-out hover:bg-raised motion-reduce:transition-none min-[821px]:max-w-[420px]"
+      >
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 16 16"
+          fill="none"
+          aria-hidden="true"
+          className="flex-none"
+        >
+          <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
+          <path
+            d="m11 11 3 3"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
           />
-          <kbd className="hidden rounded-[4px] bg-raised px-1.5 text-[12px] text-secondary md:block">
-            /
-          </kbd>
-        </label>
-        {panelOpen && (
-          <div
-            onMouseDown={keepInputFocused}
-            className="absolute inset-x-0 top-full md:mt-1"
-          >
-            <Pane bodyClassName="max-h-[60vh] overflow-y-auto p-0 py-1">
-              {message !== null && (
-                <div className="px-3 py-1 text-[13px] leading-[1.6] text-muted">
-                  {message}
-                </div>
-              )}
-              <div ref={listRef}>
-                {rows.map((row, index) => (
-                  <SearchRowLink
-                    key={row.href}
-                    row={row}
-                    active={index === activeIndex}
-                    onOpen={() => openRow(row)}
-                    onHover={() => setActiveIndex(index)}
-                  />
-                ))}
-              </div>
-            </Pane>
-          </div>
-        )}
-      </div>
-    </div>
+        </svg>
+        <span className="flex-1 truncate">Search docs</span>
+        <kbd className={`${KEY} max-[820px]:hidden`}>/</kbd>
+      </button>
+      <dialog
+        ref={dialogRef}
+        aria-label="Search docs"
+        onClick={closeOnBackdropClick}
+        onCancel={closeOnCancel}
+        className="mx-auto mt-[max(12vh,env(safe-area-inset-top,0px))] w-[calc(100%-32px)] max-w-[560px] overflow-hidden rounded-[14px] border border-line bg-pane/90 text-primary shadow-[0_24px_60px_rgba(0,0,0,0.6)] backdrop-blur-[16px] backdrop:bg-black/60"
+      >
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => changeQuery(event.target.value)}
+          onKeyDown={onQueryKeyDown}
+          placeholder="Search pages and sections…"
+          autoComplete="off"
+          aria-label="Search"
+          aria-controls={RESULTS_ID}
+          className="h-[52px] w-full border-b border-raised bg-transparent px-4 text-[16px] text-primary outline-none! placeholder:text-muted [&::-webkit-search-cancel-button]:hidden"
+        />
+        <ul
+          ref={listRef}
+          id={RESULTS_ID}
+          role="listbox"
+          className="max-h-[50vh] overflow-y-auto p-1.5"
+        >
+          {message !== null && (
+            <li className="px-3 py-3.5 text-[14px] text-muted">{message}</li>
+          )}
+          {rows.map((row, index) => (
+            <li key={row.href}>
+              <ResultLink
+                row={row}
+                active={index === activeIndex}
+                onOpen={() => openRow(row)}
+                onHover={() => setActiveIndex(index)}
+              />
+            </li>
+          ))}
+        </ul>
+        <div className="flex gap-3.5 bg-raised px-3.5 py-2 text-[12px] text-muted">
+          <span>
+            <kbd className={KEY}>↑</kbd> <kbd className={KEY}>↓</kbd> move
+          </span>
+          <span>
+            <kbd className={KEY}>↵</kbd> open
+          </span>
+          <span>
+            <kbd className={KEY}>esc</kbd> close
+          </span>
+        </div>
+      </dialog>
+    </>
   )
 }
 
-type SearchRowLinkProps = {
+type ResultLinkProps = {
   row: SearchRow
   active: boolean
   onOpen: () => void
   onHover: () => void
 }
 
-function SearchRowLink({ row, active, onOpen, onHover }: SearchRowLinkProps) {
+function ResultLink({ row, active, onOpen, onHover }: ResultLinkProps) {
   function onClick(event: MouseEvent<HTMLAnchorElement>) {
     event.preventDefault()
     onOpen()
@@ -162,67 +221,60 @@ function SearchRowLink({ row, active, onOpen, onHover }: SearchRowLinkProps) {
   return (
     <a
       href={row.href}
+      role="option"
+      aria-selected={active}
+      tabIndex={-1}
       onClick={onClick}
-      onMouseEnter={onHover}
-      className={`${ROW[row.kind]} ${rowColor(row, active)}`}
+      onMouseMove={onHover}
+      className={resultLink({ active })}
     >
-      <SearchRowContent row={row} />
+      <span className="min-w-0">{row.title}</span>
+      <small className="text-[12px] whitespace-nowrap text-muted">
+        {row.context}
+      </small>
     </a>
   )
 }
 
-function SearchRowContent({ row }: { row: SearchRow }) {
-  if (row.kind === 'section') {
-    return (
-      <>
-        <span className="flex-none font-mono whitespace-pre text-muted">
-          {row.prefix}
-        </span>
-        <span className="min-w-0 truncate">{row.title}</span>
-      </>
-    )
-  }
-  return (
-    <>
-      <span className="block text-[14px]">{row.title}</span>
-      <span
-        className={EXCERPT}
-        dangerouslySetInnerHTML={{ __html: row.excerpt }}
-      />
-    </>
-  )
-}
-
-function searchRows(hits: Array<SearchHit>): Array<SearchRow> {
-  return hits.flatMap((hit): Array<SearchRow> => [
-    { kind: 'page', href: hit.href, title: hit.title, excerpt: hit.excerpt },
-    ...hit.sections.map((section, index): SearchRow => ({
-      kind: 'section',
+function searchRows(
+  term: string,
+  hits: Array<SearchHit> | null,
+): Array<SearchRow> {
+  if (term === '') return PAGE_ROWS
+  if (hits === null) return []
+  return hits.flatMap((hit) => [
+    {
+      href: hit.href,
+      title: hit.title,
+      context: GROUP_BY_HREF.get(hit.href) ?? '',
+    },
+    ...hit.sections.map((section) => ({
       href: section.href,
       title: section.title,
-      prefix: branchPrefix(index, hit.sections.length),
+      context: hit.title,
     })),
   ])
 }
 
-function panelMessage(hits: Array<SearchHit> | null): string | null {
+function emptyMessage(
+  term: string,
+  hits: Array<SearchHit> | null,
+): string | null {
+  if (term === '') return null
   if (import.meta.env.DEV) return ONLY_IN_THE_BUILD
-  if (hits?.length === 0) return NO_RESULTS
+  if (hits?.length === 0) return `No page or section matches "${term}".`
   return null
 }
 
-function branchPrefix(index: number, count: number): string {
-  if (index === count - 1) return '└── '
-  return '├── '
+function focusedElement(): HTMLElement | null {
+  if (document.activeElement instanceof HTMLElement)
+    return document.activeElement
+  return null
 }
 
-function rowColor(row: SearchRow, active: boolean): string {
-  if (active) return 'bg-hover text-accent'
-  return ROW_COLOR[row.kind]
-}
-
-function keepInputFocused(event: MouseEvent) {
-  event.preventDefault()
+function isOpenShortcut(event: globalThis.KeyboardEvent): boolean {
+  if (event.key === 'k' && (event.metaKey || event.ctrlKey)) return true
+  return event.key === '/' && !isTextField(event.target)
 }
 
 function isTextField(target: EventTarget | null): boolean {
