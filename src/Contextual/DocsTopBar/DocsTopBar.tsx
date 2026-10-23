@@ -50,7 +50,10 @@ export function DocsTopBar({
             </span>
             bidirekt
           </a>
-          <a href="/docs" className="pressable text-muted hover:text-primary">
+          <a
+            href="/docs"
+            className="pressable text-muted hover:text-primary max-[820px]:hidden"
+          >
             / docs
           </a>
         </div>

@@ -27,7 +27,7 @@ const KEY =
 // Below 820px the sidebar is a drawer; visibility keeps the closed drawer out
 // of the tab order and waits for the closing slide before it hides.
 const sidebar = tv({
-  base: 'overflow-y-auto py-8 min-[821px]:sticky min-[821px]:top-[60px] min-[821px]:max-h-[calc(100vh-60px)] max-[820px]:fixed max-[820px]:inset-y-0 max-[820px]:left-0 max-[820px]:z-35 max-[820px]:w-[min(300px,86vw)] max-[820px]:bg-page max-[820px]:px-5 max-[820px]:py-6 max-[820px]:shadow-[1px_0_0_var(--color-pane)]',
+  base: 'overflow-y-auto py-8 min-[821px]:sticky min-[821px]:top-[60px] min-[821px]:max-h-[calc(100svh-60px)] max-[820px]:fixed max-[820px]:inset-y-0 max-[820px]:left-0 max-[820px]:z-35 max-[820px]:w-[min(300px,86vw)] max-[820px]:bg-page max-[820px]:px-5 max-[820px]:py-6 max-[820px]:shadow-[1px_0_0_var(--color-pane)]',
   variants: {
     open: {
       true: 'max-[820px]:visible max-[820px]:translate-x-0 max-[820px]:[transition:translate_300ms_cubic-bezier(0.32,0.72,0,1),visibility_0s] max-[820px]:motion-reduce:[transition:visibility_0s]',
