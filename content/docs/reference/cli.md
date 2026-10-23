@@ -124,7 +124,7 @@ contract validation failed
 
 The files are checked in two steps. First the shape of each file: its keys, endpoints, methods, statuses and schema nodes. Only when every file passes come the checks between names: a resource or a schema declared twice, a property given two types by two files of a consumer, and a schema name that no schema declares. While any file has a shape violation, the report lists only the shape violations; after they are fixed, the next run lists the others. If `petstore_api.yaml` above also named an undeclared schema, `200: Pett`, the second run would print:
 
-```
+```error title="publish error"
 contract validation failed
   - petstore_api.yaml: unresolved schema "Pett" referenced by provides GET /pets/* 200
 ```
@@ -221,7 +221,7 @@ A fix is a change in the code first, then in the contract, so that the contract 
 
 A removed endpoint is reported once, right below `<METHOD> <endpoint>`, not under each request and response status it had. Any other break of that endpoint stays under its body or in its block:
 
-```
+```error title="can-i-deploy output"
 petstore_web (2.3.0, deployed):
   POST /pets
     - petstore_api removed POST /pets, but petstore_web still calls it
@@ -231,7 +231,7 @@ petstore_web (2.3.0, deployed):
 
 When the provider declares the endpoint and method but not the status the participant reads, or no request body, the break says what is missing and which statuses the provider answers, instead of `doesn't provide it`. A status only the provider declares obliges no consumer:
 
-```
+```error title="can-i-deploy output"
 petstore_api (1.4.0, deployed):
   POST /files
     request:
@@ -251,7 +251,7 @@ A property is only required where its parent is present. When the producing side
 
 `<field>` is the field of `<participant>` at that path: the schema name and the path inside that schema, the place to edit in the participant's own contract. `Pet.vaccinations[].name` is a member of each array item, `Pets{}.name` a member of each map value, and at the root it is only the schema name:
 
-```
+```error title="can-i-deploy output"
 Address.city — petstore_web reads it, but petstore_api doesn't provide it
   → petstore_web: stop reading it, or handle its absence in the code and mark it optional
   → petstore_api: provide it
@@ -387,13 +387,13 @@ Broker: https://broker.example.com (from --broker-url)
 
 When none of them has a URL, the command fails without calling anything, in a terminal or in a pipeline alike; it never asks. Run `configure` once, then run the command again:
 
-```
+```error title="CLI error"
 no broker configured — pass --broker-url, set BIDIREKT_BROKER_URL, or run "bidirekt configure"
 ```
 
 When the config file has other profiles, a second line names them and how to pick one:
 
-```
+```error title="CLI error"
 the config file has the profile local — pass --profile local or set BIDIREKT_PROFILE=local
 the config file has the profiles acme, local — pass --profile <name> or set BIDIREKT_PROFILE=<name>
 ```

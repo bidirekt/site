@@ -1,10 +1,65 @@
 @import 'tailwindcss';
 @import './Assets/theme.css';
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/400-italic.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
 @import '@fontsource/jetbrains-mono/400.css';
 @import '@fontsource/jetbrains-mono/500.css';
-@import '@fontsource/jetbrains-mono/600.css';
-@import '@fontsource/jetbrains-mono/700.css';
-@import 'asciinema-player/dist/bundle/asciinema-player.css';
+
+/* Touch screens fire :hover on tap and keep it stuck; only a fine pointer hovers. */
+@custom-variant hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+
+@utility pressable {
+  @apply transition-[color,background-color,border-color,scale] duration-150 ease-out active:scale-[0.97] motion-reduce:transition-none;
+}
+
+@utility ink-gradient {
+  background: linear-gradient(
+    180deg,
+    var(--color-primary) 35%,
+    var(--color-secondary)
+  );
+  background-clip: text;
+  color: transparent;
+  padding-bottom: 0.05em;
+}
+
+@utility stage-light {
+  background:
+    radial-gradient(
+      640px 340px at 50% -40px,
+      color-mix(in srgb, var(--color-accent) 16%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      1000px 520px at 50% 62%,
+      color-mix(in srgb, var(--color-accent) 5%, transparent),
+      transparent 70%
+    );
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--color-sheen) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-sheen) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: center top;
+    mask-image: radial-gradient(
+      ellipse 70% 50% at 50% 12%,
+      #000 25%,
+      transparent 75%
+    );
+  }
+}
 
 * {
   box-sizing: border-box;
@@ -34,44 +89,10 @@ body {
   margin: 0;
   background: var(--color-page);
   color: var(--color-primary);
-  font-family: var(--font-mono);
-  font-size: 14px;
-  line-height: normal;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-}
-
-/* The landing follows its own design palette; the docs keep the theme's. */
-.landing {
-  --color-page: #0a0a0a;
-  --color-pane: #111111;
-  --color-line: #1e1e1e;
-  --color-primary: #e6e6e6;
-  --color-secondary: #a3a3a3;
-  --color-muted: #7c7c7c;
-  --color-success: #4ade80;
-  --color-failure: #f05252;
-}
-
-.asciinema-player-theme-bidirekt {
-  --term-color-foreground: var(--color-primary);
-  --term-color-background: var(--color-pane);
-  --term-color-0: #3a3a3a;
-  --term-color-1: var(--color-failure);
-  --term-color-2: var(--color-success);
-  --term-color-3: var(--color-accent);
-  --term-color-4: #60a5fa;
-  --term-color-5: #c084fc;
-  --term-color-6: #22d3ee;
-  --term-color-7: var(--color-secondary);
-  --term-color-8: var(--color-muted);
-  --term-color-15: #ffffff;
-}
-
-/* Reduced motion opens on the last frame; the control bar still plays it. */
-@media (prefers-reduced-motion: reduce) {
-  .asciinema-player-theme-bidirekt .ap-overlay-start {
-    display: none;
-  }
 }
 
 ::selection {
@@ -79,8 +100,7 @@ body {
   color: #000;
 }
 
-input,
-button,
-a {
-  outline: none;
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }

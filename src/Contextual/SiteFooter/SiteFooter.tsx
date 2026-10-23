@@ -5,7 +5,7 @@ import { REPOS, useLatestReleases } from './useLatestReleases'
 import type { LatestRelease, Repo } from './useLatestReleases'
 
 const GITHUB_URL = 'https://github.com/bidirekt'
-const FOOTER_LINK = 'text-secondary hover:text-accent'
+const FOOTER_LINK = 'pressable text-secondary hover:text-primary'
 const SEPARATOR = ' · '
 
 export function SiteFooter() {
@@ -13,7 +13,7 @@ export function SiteFooter() {
 
   return (
     <footer className="mt-auto border-t border-line">
-      <div className="mx-auto flex max-w-[1080px] flex-wrap justify-between gap-3 px-6 py-[18px] text-[12px] text-muted">
+      <div className="mx-auto flex max-w-[1120px] flex-wrap justify-between gap-x-6 gap-y-3 px-4 py-8 text-[14px] text-muted">
         <div className="flex flex-wrap gap-x-4 gap-y-1">
           {latest.length > 0 && <LatestReleases releases={latest} />}
           <span>
@@ -26,7 +26,7 @@ export function SiteFooter() {
             ))}
           </span>
         </div>
-        <div className="flex flex-wrap gap-[18px]">
+        <div className="flex flex-wrap gap-5">
           <a href="/docs" className={FOOTER_LINK}>
             docs
           </a>

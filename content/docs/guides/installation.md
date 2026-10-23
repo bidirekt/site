@@ -18,7 +18,7 @@ The script downloads that release for your system, checks it against the release
 
 The version is written with or without the `v`: `v0.1.0-rc.1` and `0.1.0-rc.1` install the same release. Without a version, the script installs the latest release, but only pre-releases are published so far, so it stops and names the newest one:
 
-```
+```error title="install.sh output"
 only pre-releases are published at https://github.com/bidirekt/cli/releases. Install the newest one with:
   curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/main/install.sh | sh -s -- v0.1.0-rc.1
 ```
@@ -73,13 +73,13 @@ Broker: https://broker.acme.example (profile: acme)
 
 **Without a broker.** A command that has no broker fails without calling anything, on your machine and in a pipeline alike; it never asks:
 
-```
+```error title="CLI error"
 no broker configured — pass --broker-url, set BIDIREKT_BROKER_URL, or run "bidirekt configure"
 ```
 
 When the config file has other profiles, a second line names them and how to pick one:
 
-```
+```error title="CLI error"
 the config file has the profile local — pass --profile local or set BIDIREKT_PROFILE=local
 ```
 

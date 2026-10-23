@@ -11,7 +11,7 @@ const DESCRIPTION =
 const LINKEDIN_URL = 'https://www.linkedin.com/in/alefcastelo/'
 const CLI_RELEASES_URL = 'https://github.com/bidirekt/cli/releases'
 const BROKER_RELEASES_URL = 'https://github.com/bidirekt/broker/releases'
-const PANE_TEXT = 'text-[13px] leading-[1.7] text-secondary text-pretty'
+const PANE_TEXT = 'text-[15px] leading-[1.7] text-secondary text-pretty'
 
 export function contactPageHead() {
   return pageHead('/contact', `${TITLE} · bidirekt`, DESCRIPTION)
@@ -19,11 +19,11 @@ export function contactPageHead() {
 
 export function ContactPage() {
   return (
-    <main className="flex min-h-screen flex-col">
+    <main className="flex min-h-svh flex-col">
       <SiteNav />
-      <section className="mx-auto w-full max-w-[1080px] px-6 pt-12 pb-8 md:pt-24 md:pb-16">
+      <section className="mx-auto w-full max-w-[1120px] px-4 pt-12 pb-8 md:pt-24 md:pb-16">
         <Eyebrow className="mb-6">{TITLE}</Eyebrow>
-        <h1 className="mb-8 text-[24px] leading-[1.15] font-medium tracking-[-0.01em] text-pretty md:text-[40px]">
+        <h1 className="mb-8 text-[clamp(34px,4.6vw,52px)] leading-[1.05] font-semibold tracking-[-0.04em] text-pretty ink-gradient">
           Talk to the author, follow the releases.
         </h1>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
@@ -34,7 +34,7 @@ export function ContactPage() {
             </p>
             <div className="mt-auto flex flex-wrap gap-2">
               <Button variant="primary" href={LINKEDIN_URL}>
-                [ linkedin ↗ ]
+                LinkedIn ↗
               </Button>
             </div>
           </Pane>
@@ -47,8 +47,8 @@ export function ContactPage() {
               notifies you of a new version.
             </p>
             <div className="mt-auto flex flex-wrap gap-2">
-              <Button href={CLI_RELEASES_URL}>[ cli releases ↗ ]</Button>
-              <Button href={BROKER_RELEASES_URL}>[ broker releases ↗ ]</Button>
+              <Button href={CLI_RELEASES_URL}>CLI releases ↗</Button>
+              <Button href={BROKER_RELEASES_URL}>Broker releases ↗</Button>
             </div>
           </Pane>
         </div>

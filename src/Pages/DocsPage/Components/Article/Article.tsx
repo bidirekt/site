@@ -1,18 +1,40 @@
 import type { MouseEvent } from 'react'
-import { useRouter } from '@tanstack/react-router'
+import { Link, useRouter } from '@tanstack/react-router'
 import { docsMarkdownHref } from '#/docs'
 import type { DocsPageContent } from '#/docs'
+import { COPY_CODE_ATTRIBUTE, COPY_LABEL } from '#/markdown'
+import type { TocEntry } from '#/markdown'
+import { DocsTocInline } from '#/Contextual/DocsToc'
 import { PrevNext } from '../PrevNext'
 import { EditFooter } from '../EditFooter'
 import { NotWrittenYet } from '../NotWrittenYet'
 
-type ArticleProps = { page: DocsPageContent; html: string }
+type ArticleProps = {
+  page: DocsPageContent
+  html: string
+  toc: Array<TocEntry>
+}
 
-export function Article({ page, html }: ArticleProps) {
+const COPIED_LABEL = 'Copied'
+const COPY_FAILED_LABEL = 'Copy failed'
+const COPY_FEEDBACK_MS = 1500
+const copyFeedbackTimers = new WeakMap<
+  HTMLElement,
+  ReturnType<typeof setTimeout>
+>()
+
+export function Article({ page, html, toc }: ArticleProps) {
   const router = useRouter()
 
   function onArticleClick(event: MouseEvent<HTMLElement>) {
     if (!(event.target instanceof Element)) return
+    const copyButton = event.target.closest<HTMLElement>(
+      `[${COPY_CODE_ATTRIBUTE}]`,
+    )
+    if (copyButton !== null) {
+      copyCodeBlock(copyButton)
+      return
+    }
     const anchor = event.target.closest('a')
     if (anchor === null) return
     const href = anchor.getAttribute('href')
@@ -22,19 +44,23 @@ export function Article({ page, html }: ArticleProps) {
   }
 
   return (
-    <main className="min-w-0 px-4 pt-6 pb-12 md:px-12 md:pt-8 md:pb-16">
+    <main className="min-w-0 pt-6 pb-24 min-[821px]:pt-10">
       <div>
-        <div className="mb-3 truncate text-[12px] tracking-[0.08em] text-muted uppercase">
-          {breadcrumb(page)}
+        <div className="mb-2 text-[13px] text-muted">
+          <Link to="/docs" className="pressable hover:text-primary">
+            Docs
+          </Link>
+          {page.group !== null && ` / ${page.group}`}
         </div>
-        <h1 className="mb-3 text-[24px] leading-[1.15] font-medium tracking-[-0.01em] text-pretty text-primary md:text-[40px]">
+        <h1 className="mb-3 text-[clamp(34px,4.6vw,52px)] leading-[1.05] font-semibold tracking-[-0.04em] text-pretty ink-gradient">
           {page.title}
         </h1>
         {page.description !== null && (
-          <p className="mb-8 text-[14px] leading-[1.7] text-pretty text-secondary">
+          <p className="mb-7 max-w-[64ch] text-[18px] leading-[1.7] text-pretty text-secondary">
             {page.description}
           </p>
         )}
+        <DocsTocInline toc={toc} />
         {page.isPlaceholder && <NotWrittenYet page={page} />}
         {!page.isPlaceholder && (
           <article
@@ -53,7 +79,26 @@ export function Article({ page, html }: ArticleProps) {
   )
 }
 
-function breadcrumb(page: DocsPageContent): string {
-  if (page.group === null) return `docs / ${page.label}`
-  return `${page.group} / ${page.label}`
+function copyCodeBlock(button: HTMLElement) {
+  const text = button.closest('section')?.querySelector('pre')?.textContent
+  if (text === undefined) return
+  try {
+    navigator.clipboard.writeText(text).then(
+      () => showCopyFeedback(button, COPIED_LABEL),
+      () => showCopyFeedback(button, COPY_FAILED_LABEL),
+    )
+  } catch {
+    showCopyFeedback(button, COPY_FAILED_LABEL)
+  }
+}
+
+function showCopyFeedback(button: HTMLElement, label: string) {
+  button.textContent = label
+  clearTimeout(copyFeedbackTimers.get(button))
+  copyFeedbackTimers.set(
+    button,
+    setTimeout(() => {
+      button.textContent = COPY_LABEL
+    }, COPY_FEEDBACK_MS),
+  )
 }

@@ -7,7 +7,6 @@ type PagefindSection = {
 
 type PagefindPage = {
   url: string
-  excerpt: string
   meta: { title: string }
   sub_results: Array<PagefindSection>
 }
@@ -25,7 +24,6 @@ type SearchSection = { href: string; title: string }
 export type SearchHit = {
   href: string
   title: string
-  excerpt: string
   sections: Array<SearchSection>
 }
 
@@ -59,7 +57,6 @@ function searchHitFromPage(page: PagefindPage): SearchHit {
   return {
     href: siteHrefFromPagefindUrl(page.url),
     title: page.meta.title,
-    excerpt: page.excerpt,
     sections: topSections(page.sub_results).map((section) => ({
       href: siteHrefFromPagefindUrl(section.url),
       title: section.title,

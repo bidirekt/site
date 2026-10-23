@@ -10,6 +10,8 @@ import { Article } from './Components/Article'
 
 type DocsPageProps = { page: DocsPageContent }
 
+const SIDEBAR_ID = 'docs-sidebar'
+
 export function docsPageHead(page: DocsPageContent | undefined) {
   if (page === undefined) return {}
   const head = pageHead(
@@ -27,8 +29,8 @@ export function docsPageHead(page: DocsPageContent | undefined) {
 
 export function DocsPage({ page }: DocsPageProps) {
   const [navOpen, setNavOpen] = useState(false)
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
-  const renderedPath = useRef(page.path)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const wasNavOpen = useRef(false)
 
   const { html, toc } = useMemo(
     () =>
@@ -40,34 +42,44 @@ export function DocsPage({ page }: DocsPageProps) {
   )
 
   useEffect(() => {
-    if (renderedPath.current === page.path) return
-    renderedPath.current = page.path
-    setNavOpen(false)
-  }, [page.path])
-
-  function toggleGroup(label: string) {
-    setCollapsed((previous) => ({
-      ...previous,
-      [label]: previous[label] !== true,
-    }))
-  }
+    if (wasNavOpen.current && !navOpen) menuButtonRef.current?.focus()
+    wasNavOpen.current = navOpen
+    if (!navOpen) return
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setNavOpen(false)
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [navOpen])
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-svh bg-[radial-gradient(900px_360px_at_50%_-120px,var(--color-glow),transparent_70%)] bg-no-repeat leading-[1.7]">
       <DocsTopBar
+        navId={SIDEBAR_ID}
         navOpen={navOpen}
         onToggleNav={() => setNavOpen((previous) => !previous)}
+        menuButtonRef={menuButtonRef}
       />
-      <div className="mx-auto grid w-full max-w-[1360px] grid-cols-1 md:grid-cols-[240px_minmax(0,1fr)_200px] md:items-start">
+      <div
+        aria-hidden="true"
+        onClick={() => setNavOpen(false)}
+        className={`fixed inset-0 z-34 hidden bg-black/55 transition-opacity duration-200 max-[820px]:block ${scrimState(navOpen)}`}
+      />
+      <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 items-start gap-10 px-4 min-[821px]:grid-cols-[232px_minmax(0,1fr)] min-[1081px]:grid-cols-[248px_minmax(0,1fr)_200px] min-[1081px]:gap-12">
         <DocsSidebar
+          id={SIDEBAR_ID}
           activePath={page.path}
-          collapsed={collapsed}
-          onToggleGroup={toggleGroup}
           open={navOpen}
+          onNavigate={() => setNavOpen(false)}
         />
-        <Article page={page} html={html} />
+        <Article page={page} html={html} toc={toc} />
         <DocsToc toc={toc} />
       </div>
     </div>
   )
+}
+
+function scrimState(navOpen: boolean): string {
+  if (navOpen) return 'opacity-100'
+  return 'pointer-events-none opacity-0'
 }
