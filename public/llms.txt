@@ -197,11 +197,15 @@ Core rule: the side that reads a body decides what must be in it. Response: prov
 
 ## Docs
 
-- [Specification](https://bidirekt.com/docs/contracts/spec.md): the contract file in full, with examples.
-- [CLI reference](https://bidirekt.com/docs/reference/cli.md): every command, flag, output and error.
+- [Your first contract](https://bidirekt.com/docs/contracts/your-first-contract.md): what a contract file holds, with examples.
+- [Resources](https://bidirekt.com/docs/contracts/resources.md), [Endpoints](https://bidirekt.com/docs/contracts/endpoints.md), [Requests](https://bidirekt.com/docs/contracts/requests.md), [Responses](https://bidirekt.com/docs/contracts/responses.md), [Bodies not described](https://bidirekt.com/docs/contracts/bodies-not-described.md), [Several files](https://bidirekt.com/docs/contracts/several-files.md), [What is not compared](https://bidirekt.com/docs/contracts/what-is-not-compared.md): the rest of the contract file.
+- [Primitives](https://bidirekt.com/docs/schemas/primitives.md), [Objects](https://bidirekt.com/docs/schemas/objects.md), [Arrays](https://bidirekt.com/docs/schemas/arrays.md), [Maps](https://bidirekt.com/docs/schemas/maps.md), [References](https://bidirekt.com/docs/schemas/references.md): the schemas of the bodies.
+- [File format](https://bidirekt.com/docs/reference/file-format.md): how a contract file is checked and parsed.
+- [CLI reference](https://bidirekt.com/docs/reference/cli.md): help output, broker address, exit codes, and every command.
+- [validate](https://bidirekt.com/docs/ship/validate.md), [publish](https://bidirekt.com/docs/ship/publish.md), [can-i-deploy](https://bidirekt.com/docs/ship/can-i-deploy.md), [record-deployment](https://bidirekt.com/docs/ship/record-deployment.md): the pipeline commands, flags, output and errors.
 
 ## Optional
 
-- [Installation](https://bidirekt.com/docs/guides/installation.md): install the CLI and run the broker.
-- [How the broker works](https://bidirekt.com/docs/concepts/how-the-broker-works.md): what the broker stores and compares.
-- [Contract testing](https://bidirekt.com/docs/concepts/contract-testing.md): why bidirectional, static contracts.
+- [Install the CLI](https://bidirekt.com/docs/start/install-the-cli.md) and [Run the broker](https://bidirekt.com/docs/start/run-the-broker.md): install the CLI and run the broker.
+- [How the broker works](https://bidirekt.com/docs/concepts/participant.md): what the broker stores and compares.
+- [Contract testing](https://bidirekt.com/docs/concepts/the-problem.md): why bidirectional, static contracts.

@@ -1,24 +1,80 @@
 - label: Overview
   path: README.md
-- label: Guides
+- label: Start
   items:
-    - label: Installation
-      path: guides/installation.md
-    - label: Getting started
-      path: guides/getting-started.md
-    - label: CI integration
-      path: guides/ci-integration.md
-- label: Concepts
+    - label: What is Bidirekt
+      path: start/what-is-bidirekt.md
+    - label: Install the CLI
+      path: start/install-the-cli.md
+    - label: Run the broker
+      path: start/run-the-broker.md
+    - label: Running local
+      path: start/running-local.md
+    - label: Agent skill
+      path: start/agent-skill.md
+- label: Write contracts
   items:
-    - label: Contract testing
-      path: concepts/contract-testing.md
-    - label: How the broker works
-      path: concepts/how-the-broker-works.md
-- label: Contracts
+    - label: Your first contract
+      path: contracts/your-first-contract.md
+    - label: Resources
+      path: contracts/resources.md
+    - label: Endpoints
+      path: contracts/endpoints.md
+    - label: Requests
+      path: contracts/requests.md
+    - label: Responses
+      path: contracts/responses.md
+    - label: Bodies not described
+      path: contracts/bodies-not-described.md
+    - label: Several files
+      path: contracts/several-files.md
+    - label: What is not compared
+      path: contracts/what-is-not-compared.md
+- label: Schemas
   items:
-    - label: Specification
-      path: contracts/spec.md
+    - label: Primitives
+      path: schemas/primitives.md
+    - label: Objects
+      path: schemas/objects.md
+    - label: Arrays
+      path: schemas/arrays.md
+    - label: Maps
+      path: schemas/maps.md
+    - label: References
+      path: schemas/references.md
+- label: Ship
+  items:
+    - label: Participants & environments
+      path: ship/participants-and-environments.md
+    - label: validate
+      path: ship/validate.md
+    - label: publish
+      path: ship/publish.md
+    - label: can-i-deploy
+      path: ship/can-i-deploy.md
+    - label: record-deployment
+      path: ship/record-deployment.md
+- label: Understand
+  items:
+    - label: The problem
+      path: concepts/the-problem.md
+    - label: Consumer- vs provider-driven
+      path: concepts/consumer-vs-provider-driven.md
+    - label: Bidirectional contract testing
+      path: concepts/bidirectional-contract-testing.md
+    - label: Participant
+      path: concepts/participant.md
+    - label: Contract, version & snapshot
+      path: concepts/contract-version-snapshot.md
+    - label: Environment
+      path: concepts/environment.md
+    - label: Deployment
+      path: concepts/deployment.md
 - label: Reference
   items:
     - label: CLI reference
       path: reference/cli.md
+    - label: File format
+      path: reference/file-format.md
+    - label: Postgres in production
+      path: reference/postgres-in-production.md

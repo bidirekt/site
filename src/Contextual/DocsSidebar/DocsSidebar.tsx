@@ -14,8 +14,7 @@ type DocsSidebarProps = {
 
 type Position = 'middle' | 'last'
 
-const START_PATH = 'guides/installation.md'
-const START_HASH = 'running-local'
+const START_PATH = 'start/running-local.md'
 const GLYPH: Record<Position, string> = { middle: '├─', last: '└─' }
 const ARROW_STEP: Partial<Record<string, number>> = {
   ArrowDown: 1,
@@ -69,8 +68,7 @@ export function DocsSidebar({
     >
       <Link
         {...docsLinkProps(START_PATH)}
-        hash={START_HASH}
-        activeOptions={{ exact: true, includeHash: true }}
+        activeOptions={{ exact: true }}
         className="pressable mb-6 block rounded-pane border border-accent/28 bg-[linear-gradient(180deg,rgba(245,165,36,0.1),var(--color-pane)_70%)] px-3.5 py-3 shadow-sheen hover:bg-raised hover:bg-none"
       >
         <b className="block text-[15px] font-medium text-accent">

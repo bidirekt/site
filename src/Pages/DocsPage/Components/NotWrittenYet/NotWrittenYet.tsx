@@ -24,10 +24,7 @@ export function NotWrittenYet({ page }: NotWrittenYetProps) {
         </p>
         <div className="mt-2 whitespace-pre [&>span]:font-mono [&>span]:text-muted">
           <span>{'├── '}</span>
-          <Link
-            {...docsLinkProps('concepts/how-the-broker-works.md')}
-            className={LINK}
-          >
+          <Link {...docsLinkProps('concepts/participant.md')} className={LINK}>
             How the broker works
           </Link>
           {'\n'}
