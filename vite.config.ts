@@ -10,8 +10,6 @@ export default defineConfig({
       prerender: {
         enabled: true,
         crawlLinks: true,
-        // /try is the try-it install script, not a page; it does not exist yet.
-        filter: (page) => page.path !== '/try',
       },
       pages: [{ path: '/404', prerender: { outputPath: '/404.html' } }],
     }),

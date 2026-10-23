@@ -2,7 +2,7 @@ import { CopyCommand } from '../CopyCommand'
 import { SectionHeading } from '../SectionHeading'
 
 const TRY_COMMAND = 'curl -sL bidirekt.com/try | sh'
-const SCRIPT_URL = '/try'
+const SCRIPT_URL = 'https://github.com/bidirekt/site/blob/main/public/try'
 const CLONE_COMMAND = 'git clone https://github.com/bidirekt/petstore-example'
 const RUN_COMMAND = 'cd petstore-example && docker compose up'
 
