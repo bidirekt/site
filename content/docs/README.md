@@ -10,6 +10,12 @@ A provider declares the endpoints it serves, with their request and response sch
 
 No server, local or remote, needs to be running to answer `can-i-deploy`. Both sides, consumer and provider, write the same declarative contract file, by hand or generated, and the broker compares the declarations statically.
 
+## Guides
+
+- [Installation](guides/installation.md) — how to install the `bidirekt` CLI and run the broker.
+- [Getting started](guides/getting-started.md) — from an empty broker to a first `can-i-deploy`. *(not written yet)*
+- [CI integration](guides/ci-integration.md) — publishing contracts and gating deployments from a pipeline. *(not written yet)*
+
 ## Concepts
 
 - [Contract testing](concepts/contract-testing.md) — what problem contract testing solves, the two known approaches, why this project is neither, and what bidirectional means here.
@@ -22,9 +28,3 @@ No server, local or remote, needs to be running to answer `can-i-deploy`. Both s
 ## Reference
 
 - [CLI reference](reference/cli.md) — every `bidirekt` command, flag, output and exit code.
-
-## Guides
-
-- [Installation](guides/installation.md) — how to install the `bidirekt` CLI and run the broker.
-- [Getting started](guides/getting-started.md) — from an empty broker to a first `can-i-deploy`. *(not written yet)*
-- [CI integration](guides/ci-integration.md) — publishing contracts and gating deployments from a pipeline. *(not written yet)*
