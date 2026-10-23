@@ -56,6 +56,10 @@ main() {
   fi
 
   cd "$dir"
+  # Without a terminal on stdin the CLI runs without a TTY and prints no colors.
+  if (: </dev/tty) 2>/dev/null; then
+    exec ./try.sh </dev/tty
+  fi
   exec ./try.sh
 }
 
