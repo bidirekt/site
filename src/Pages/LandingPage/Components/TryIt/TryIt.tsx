@@ -4,7 +4,7 @@ import { SectionHeading } from '../SectionHeading'
 const TRY_COMMAND = 'curl -sL bidirekt.com/try | sh'
 const SCRIPT_URL = 'https://github.com/bidirekt/site/blob/main/public/try'
 const CLONE_COMMAND = 'git clone https://github.com/bidirekt/petstore-example'
-const RUN_COMMAND = 'cd petstore-example && docker compose up'
+const RUN_COMMAND = 'cd petstore-example && ./try.sh'
 
 export function TryIt() {
   return (
@@ -16,7 +16,7 @@ export function TryIt() {
       <SectionHeading
         id="try-title"
         title="See it catch a break on your machine"
-        lede="One command runs the petstore example locally with Docker."
+        lede="One command sets up the petstore example with Docker and walks you through a breaking change and its fix."
       />
       <CopyCommand command={TRY_COMMAND} className="text-[16px]" />
       <p className="mt-7 mb-2 text-[14px] text-muted">

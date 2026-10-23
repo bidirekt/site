@@ -3,11 +3,25 @@
 set -eu
 
 TARBALL_URL=https://codeload.github.com/bidirekt/petstore-example/tar.gz/refs/heads/main
-DIR=petstore-example
+DEFAULT_DIR=./petstore-example
 
 fail() {
   echo "bidirekt: $1" >&2
   exit 1
+}
+
+# Asks on /dev/tty because stdin is this script when it is piped to sh.
+ask_dir() {
+  answer=
+  if (: </dev/tty) 2>/dev/null; then
+    printf 'Where should the example go? [%s] ' "$DEFAULT_DIR" >/dev/tty
+    read -r answer </dev/tty || answer=
+  fi
+  dir=${answer:-$DEFAULT_DIR}
+  case $dir in
+    "~") dir=$HOME ;;
+    "~/"*) dir=$HOME/${dir#"~/"} ;;
+  esac
 }
 
 # Wrapped in a function so a truncated download never runs half a script.
@@ -17,8 +31,12 @@ main() {
   docker compose version >/dev/null 2>&1 ||
     fail "docker compose is not available. Get it at https://docs.docker.com/compose/install/"
 
-  if [ -e "$DIR" ]; then
-    echo "Using the existing ./$DIR (not overwritten)."
+  ask_dir
+
+  if [ -e "$dir" ]; then
+    [ -x "$dir/try.sh" ] ||
+      fail "$dir exists but has no try.sh; pick another folder or remove that one."
+    echo "Using the existing $dir (not overwritten)."
   else
     if command -v curl >/dev/null 2>&1; then
       fetch="curl -fsSL"
@@ -28,18 +46,17 @@ main() {
       fail "neither curl nor wget is installed; install one of them to download the example."
     fi
 
-    echo "Downloading the petstore example into ./$DIR ..."
-    tmp=$(mktemp -d "$DIR.XXXXXX")
+    echo "Downloading the petstore example into $dir ..."
+    tmp=$(mktemp -d "$dir.XXXXXX")
     trap 'rm -rf "$tmp"' EXIT
     $fetch "$TARBALL_URL" | tar -xz --strip-components=1 -C "$tmp"
     chmod 755 "$tmp"
-    mv "$tmp" "$DIR"
+    mv "$tmp" "$dir"
     trap - EXIT
   fi
 
-  cd "$DIR"
-  echo "Starting the example with docker compose up ..."
-  exec docker compose up
+  cd "$dir"
+  exec ./try.sh
 }
 
 main
