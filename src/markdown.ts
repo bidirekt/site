@@ -80,7 +80,7 @@ const TABLE = 'w-full border-collapse text-[14px] leading-[1.6]'
 const TABLE_HEADER_CELL =
   'bg-raised px-3.5 py-2.5 text-left text-[13px] font-medium text-muted whitespace-nowrap'
 const TABLE_CELL =
-  'border-t border-page px-3.5 py-2.5 align-top text-secondary [&_code]:whitespace-nowrap'
+  'border-t border-page px-3.5 py-2.5 align-top text-secondary [&_code]:[overflow-wrap:normal]'
 const LIST_BY_TAG: Record<ListTag, string> = {
   ul: 'mb-[18px] max-w-[70ch] list-disc pl-5 text-secondary marker:text-muted',
   ol: 'mb-[18px] max-w-[70ch] list-decimal pl-5 text-secondary marker:text-muted',
