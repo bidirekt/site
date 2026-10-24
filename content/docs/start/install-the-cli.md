@@ -1,6 +1,6 @@
 ---
 title: Install the CLI
-description: How to install the bidirekt CLI with curl or from the GitHub Release, and point it at your broker.
+description: How to install the bidirekt CLI with curl, from the GitHub Release or as a Docker image, and point it at your broker.
 ---
 
 Bidirekt has two parts: the `bidirekt` CLI, which every pipeline and developer machine runs, and the broker, one server with its Postgres database that stores contracts and deployments. [CLI](install-the-cli.md) installs the client, [Broker](run-the-broker.md) puts the server in production, [Running local](running-local.md) starts both on your machine to try them, and [Agent skill](agent-skill.md) lets your coding agent write the contracts.
