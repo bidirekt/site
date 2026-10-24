@@ -26,7 +26,7 @@ services:
       retries: 15
 
   broker:
-    image: ghcr.io/bidirekt/broker:0.1.0-rc.3
+    image: ghcr.io/bidirekt/broker:0.1.0
     restart: unless-stopped
     environment:
       BIDIREKT_DATABASE_URL: postgres://bidirekt:bidirekt@postgres:5432/bidirekt?sslmode=disable
@@ -46,7 +46,7 @@ In an empty folder:
 $ curl -O https://raw.githubusercontent.com/bidirekt/broker/main/docker-compose.yaml
 $ docker compose up -d
 $ curl -s http://localhost:8080/health
-{"status":"ok","brokerVersion":"0.1.0-rc.3","apiVersion":1}
+{"status":"ok","brokerVersion":"0.1.0","apiVersion":1}
 ```
 
 The data lives in the `bidirekt_postgres-data` volume, the same from any folder, so it survives `docker compose down` and `up`; `docker compose down -v` erases it. Both containers start again by themselves when Docker restarts. The broker listens on `127.0.0.1` only, so other machines on your network cannot reach it.
