@@ -52,13 +52,11 @@ export function PrivacyPage() {
             <p className={PANE_TEXT}>
               The site uses Google Analytics 4 to count visits and see where
               they come from, such as a YouTube video, a search engine or
-              another site. Its cookies are set only if you accept them in the
-              cookie banner.
+              another site. It runs only after you accept in the cookie banner.
             </p>
             <p className={PANE_TEXT}>
-              Until you choose, and if you reject, Google Analytics runs in
-              consent mode: it sets no cookies and sends Google only cookieless
-              pings, such as the time, your browser and the page you came from.
+              Until you choose, and if you reject, the site doesn't load Google
+              Analytics and sends nothing to Google.
             </p>
           </Pane>
           <Pane bodyClassName="flex flex-1 flex-col gap-3">

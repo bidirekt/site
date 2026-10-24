@@ -17,27 +17,40 @@ const cookieSettingsListeners = new Set<() => void>()
 
 declare global {
   interface Window {
+    dataLayer?: Array<unknown>
     gtag?: (...args: Array<unknown>) => void
   }
 }
 
-export function googleAnalyticsScripts() {
-  if (MEASUREMENT_ID === null) return []
-  return [
-    { children: gtagSetup(MEASUREMENT_ID) },
-    {
-      src: `${GTAG_URL}?id=${encodeURIComponent(MEASUREMENT_ID)}`,
-      async: true,
-    },
-  ]
+export function loadGoogleAnalytics() {
+  if (MEASUREMENT_ID === null || window.gtag) return
+  const dataLayer: Array<unknown> = []
+  window.dataLayer = dataLayer
+  // gtag.js runs only commands pushed as Arguments objects, never as arrays.
+  window.gtag = function () {
+    dataLayer.push(arguments)
+  }
+  window.gtag('consent', 'default', {
+    analytics_storage: 'granted',
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+  })
+  window.gtag('js', new Date())
+  window.gtag('config', MEASUREMENT_ID)
+  const script = document.createElement('script')
+  script.async = true
+  script.src = `${GTAG_URL}?id=${encodeURIComponent(MEASUREMENT_ID)}`
+  document.head.append(script)
 }
 
-export function hasSavedConsentChoice(): boolean {
+export function savedConsentChoice(): ConsentChoice | null {
   try {
     const saved = localStorage.getItem(CONSENT_KEY)
-    return saved === 'accepted' || saved === 'rejected'
+    if (saved === 'accepted' || saved === 'rejected') return saved
+    return null
   } catch {
-    return false
+    return null
   }
 }
 
@@ -48,6 +61,7 @@ export function chooseConsent(choice: ConsentChoice) {
   window.gtag?.('consent', 'update', {
     analytics_storage: ANALYTICS_STORAGE[choice],
   })
+  if (choice === 'accepted') loadGoogleAnalytics()
 }
 
 export function openCookieSettings() {
@@ -59,15 +73,4 @@ export function onOpenCookieSettings(listener: () => void): () => void {
   return () => {
     cookieSettingsListeners.delete(listener)
   }
-}
-
-function gtagSetup(measurementId: string): string {
-  return `window.dataLayer = window.dataLayer || [];
-function gtag() { dataLayer.push(arguments); }
-gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
-try {
-  if (localStorage.getItem(${JSON.stringify(CONSENT_KEY)}) === 'accepted') gtag('consent', 'update', { analytics_storage: 'granted' });
-} catch {}
-gtag('js', new Date());
-gtag('config', ${JSON.stringify(measurementId)});`
 }
