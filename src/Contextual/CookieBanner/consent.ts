@@ -19,6 +19,7 @@ declare global {
   interface Window {
     dataLayer?: Array<unknown>
     gtag?: (...args: Array<unknown>) => void
+    [gaDisable: `ga-disable-${string}`]: boolean | undefined
   }
 }
 
@@ -61,6 +62,9 @@ export function chooseConsent(choice: ConsentChoice) {
   window.gtag?.('consent', 'update', {
     analytics_storage: ANALYTICS_STORAGE[choice],
   })
+  if (MEASUREMENT_ID !== null) {
+    window[`ga-disable-${MEASUREMENT_ID}`] = choice === 'rejected'
+  }
   if (choice === 'accepted') loadGoogleAnalytics()
 }
 
