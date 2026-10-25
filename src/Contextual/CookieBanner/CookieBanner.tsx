@@ -4,8 +4,9 @@ import { Pane } from '#/Components/Pane'
 import {
   ANALYTICS_ON,
   chooseConsent,
-  hasSavedConsentChoice,
+  loadGoogleAnalytics,
   onOpenCookieSettings,
+  savedConsentChoice,
 } from './consent'
 import type { ConsentChoice } from './consent'
 
@@ -17,7 +18,9 @@ export function CookieBanner() {
 
   useEffect(() => {
     if (!ANALYTICS_ON) return
-    if (!hasSavedConsentChoice()) setOpen(true)
+    const saved = savedConsentChoice()
+    if (saved === null) setOpen(true)
+    if (saved === 'accepted') loadGoogleAnalytics()
     return onOpenCookieSettings(() => setOpen(true))
   }, [])
 
