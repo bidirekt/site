@@ -2,7 +2,7 @@
 # Sets up Bidirekt in your project: curl -sL bidirekt.com/try | sh
 set -eu
 
-CLI_VERSION=v0.1.0-rc.2
+CLI_VERSION=v0.1.0
 COMPOSE_URL=https://raw.githubusercontent.com/bidirekt/broker/main/docker-compose.yaml
 INSTALL_URL=https://raw.githubusercontent.com/bidirekt/cli/main/install.sh
 # install.sh's default directory, which may be off PATH.

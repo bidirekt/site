@@ -6,10 +6,10 @@ description: How to run the broker's Docker image in production, with its Postgr
 The broker ships as a Docker image, for `linux/amd64` and `linux/arm64`:
 
 ```
-ghcr.io/bidirekt/broker:0.1.0-rc.3
+ghcr.io/bidirekt/broker:0.1.0
 ```
 
-Each release is tagged `X.Y.Z`, `X.Y`, `X` and `latest`. In production, pin the full version, `0.1.0-rc.3`, and change it on purpose.
+Each release is tagged `X.Y.Z`, `X.Y`, `X` and `latest`. In production, pin the full version, `0.1.0`, and change it on purpose.
 
 The image runs as a non-root user and has no shell. It needs one Postgres database, which it migrates on start. It is configured only through environment variables:
 
@@ -27,7 +27,7 @@ With a managed database, or Postgres on its own server, pass its URL:
 $ docker run -d --name bidirekt-broker --restart unless-stopped \
     -p 127.0.0.1:8080:8080 \
     -e BIDIREKT_DATABASE_URL='postgres://bidirekt:<password>@db.example.com:5432/bidirekt?sslmode=require' \
-    ghcr.io/bidirekt/broker:0.1.0-rc.3
+    ghcr.io/bidirekt/broker:0.1.0
 ```
 
 ## Postgres on the same VPS
@@ -39,7 +39,7 @@ $ docker run -d --name bidirekt-broker --restart unless-stopped \
     -p 127.0.0.1:8080:8080 \
     --add-host host.docker.internal:host-gateway \
     -e BIDIREKT_DATABASE_URL='postgres://bidirekt:<password>@host.docker.internal:5432/bidirekt' \
-    ghcr.io/bidirekt/broker:0.1.0-rc.3
+    ghcr.io/bidirekt/broker:0.1.0
 ```
 
 Postgres must listen on the Docker bridge, not only on `127.0.0.1`: add the bridge address to `listen_addresses` in `postgresql.conf` (for example `listen_addresses = 'localhost,172.17.0.1'`), and allow the Docker network in `pg_hba.conf` (for example `host bidirekt bidirekt 172.16.0.0/12 scram-sha-256`).
@@ -50,7 +50,7 @@ Postgres must listen on the Docker bridge, not only on `127.0.0.1`: add the brid
 
 ```
 $ curl -s http://127.0.0.1:8080/health
-{"status":"ok","brokerVersion":"0.1.0-rc.3","apiVersion":1}
+{"status":"ok","brokerVersion":"0.1.0","apiVersion":1}
 ```
 
 The image's own Docker healthcheck calls it, so `docker ps` shows the container as `healthy`. On `docker stop`, the broker finishes the requests in flight, for up to 8 seconds, and exits.
