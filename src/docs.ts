@@ -2,6 +2,7 @@ import { lexer, walkTokens } from 'marked'
 import type { Token } from 'marked'
 import { parse } from 'yaml'
 import { parseFrontmatter } from '#/frontmatter'
+import { headingIdsOfPage } from '#/headings'
 import { SITE_URL } from '#/site'
 import navSource from '../content/docs/nav.yaml?raw'
 
@@ -53,6 +54,9 @@ export const DOCS_TREE: Array<DocsNode> = parseDocsNav(
 )
 
 export const DOCS_ENTRIES: Array<DocsEntry> = DOCS_TREE.flatMap(entriesOf)
+
+// Only the dev server and the prerender check: a browser would lex every page.
+if (import.meta.env.SSR) assertDocsAnchorsResolve()
 
 export function docsHref(path: string): string {
   if (path === OVERVIEW_PATH) return '/docs'
@@ -135,6 +139,48 @@ export function parseDocsNav(
     }
   }
   return tree
+}
+
+function assertDocsAnchorsResolve(): void {
+  const pages = DOCS_ENTRIES.flatMap((entry) => loadDocsPage(entry.path) ?? [])
+  const headingIdsByPath = new Map(
+    pages.map((page) => [page.path, headingIdsFromPage(page)]),
+  )
+  for (const page of pages) {
+    for (const token of linkAndCodeTokensFromMarkdown(page.body)) {
+      if (token.type !== 'link') continue
+      const target = anchorTargetFromHref(page.path, token.href)
+      if (target === null) continue
+      if (headingIdsByPath.get(target.path)?.has(target.anchor)) continue
+      throw new Error(
+        `content/docs/${page.path}: link "${token.href}" has no heading "#${target.anchor}" in ${target.path}`,
+      )
+    }
+  }
+}
+
+function headingIdsFromPage(page: DocsPageContent): Set<string> {
+  const headingIdOf = headingIdsOfPage(page.title)
+  const ids = new Set<string>()
+  walkTokens(lexer(page.body), (token) => {
+    if (token.type !== 'heading') return
+    const id = headingIdOf({ text: token.text, depth: token.depth })
+    if (id !== null) ids.add(id)
+  })
+  return ids
+}
+
+function anchorTargetFromHref(
+  pagePath: string,
+  href: string,
+): { path: string; anchor: string } | null {
+  if (href.startsWith('#')) return { path: pagePath, anchor: href.slice(1) }
+  if (!isRelativeDocsPageHref(href) || !href.includes('#')) return null
+  const { target, anchor } = targetAndAnchorFromHref(href)
+  return {
+    path: resolveRelativePath(pagePath, target),
+    anchor: anchor.slice(1),
+  }
 }
 
 function entriesOf(node: DocsNode): Array<DocsEntry> {

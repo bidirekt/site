@@ -2,6 +2,7 @@ import { Marked } from 'marked'
 import type { Tokens } from 'marked'
 import { pane } from '#/Components/Pane'
 import { resolveDocsLink } from '#/docs'
+import { headingIdsOfPage } from '#/headings'
 
 export type TocEntry = { id: string; text: string; level: 2 | 3 }
 export type YamlTone = 'key' | 'colon' | 'value' | 'plain'
@@ -114,18 +115,14 @@ export function renderDocsMarkdown(
   options: RenderOptions,
 ): RenderResult {
   const toc: Array<TocEntry> = []
-  const slugCounts = new Map<string, number>()
-  let titleOmitted = false
+  const headingIdOf = headingIdsOfPage(options.title)
 
   const marked = new Marked({
     gfm: true,
     renderer: {
       heading({ tokens, depth, text }) {
-        if (depth === 1 && !titleOmitted && text === options.title) {
-          titleOmitted = true
-          return ''
-        }
-        const id = uniqueSlug(slugCounts, slug(text))
+        const id = headingIdOf({ text, depth })
+        if (id === null) return ''
         const level = tocLevel(depth)
         if (level !== null) toc.push({ id, text: stripBackticks(text), level })
         const classes = HEADING_BY_DEPTH[depth] ?? HEADING_DEEPER
@@ -378,20 +375,6 @@ function tocLevel(depth: number): 2 | 3 | null {
   if (depth === 2) return 2
   if (depth === 3) return 3
   return null
-}
-
-function slug(text: string): string {
-  return stripBackticks(text.toLowerCase())
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-}
-
-function uniqueSlug(counts: Map<string, number>, base: string): string {
-  const seen = counts.get(base) ?? 0
-  counts.set(base, seen + 1)
-  if (seen === 0) return base
-  return `${base}-${seen}`
 }
 
 function stripBackticks(text: string): string {
