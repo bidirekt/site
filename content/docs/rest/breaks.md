@@ -29,7 +29,7 @@ The property blocks that follow name each place where a break happens with one o
 · <METHOD> <endpoint> request at "<property>" (<counterpart>: <counterpart field>)
 ```
 
-A removed resource is reported once, right below `<METHOD> <endpoint>`, not under each request and response status it had. Dropping the `request` or a status that a consumer reads is a removal too, even when the endpoint stays declared, and so is a status that changes: a provider that answers `DELETE /pets/*` with `204:` instead of `200: Pet`, while `petstore_web` still reads response `200`, gets `petstore_api removed DELETE /pets/*, but petstore_web still calls it`. Any other break of that endpoint stays under its body or in its block:
+A removed resource is reported once, right below `<METHOD> <endpoint>`, not under each request and response status it had. Dropping a `request` that a consumer sends, or a status that it reads, is a removal too, even when the endpoint stays declared, and so is a status that changes: a provider that answers `DELETE /pets/*` with `204:` instead of `200: Pet`, while `petstore_web` still reads response `200`, gets `petstore_api removed DELETE /pets/*, but petstore_web still calls it`. Any other break of that endpoint stays under its body or in its block:
 
 ```error title="can-i-deploy output"
 petstore_web (2.3.0, deployed):
@@ -39,7 +39,7 @@ petstore_web (2.3.0, deployed):
       → petstore_web: stop calling it
 ```
 
-When the provider declares the endpoint and method but not the status the participant reads, or no request body, the break says what is missing and which statuses the provider answers, instead of `doesn't provide it`. A status only the provider declares obliges no consumer:
+When the provider declares the endpoint and method but not the status the participant reads, or no request body, the break says what is missing and which statuses the provider answers, instead of `doesn't provide it` ([Which statuses to declare](responses.md#which-statuses-to-declare) says which statuses oblige a consumer):
 
 ```error title="can-i-deploy output"
 petstore_api (1.4.0, deployed):
