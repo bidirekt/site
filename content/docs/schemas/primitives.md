@@ -131,4 +131,4 @@ contract validation failed
 | `number` | `integer` or `float` | type mismatch |
 | `integer` | `float`, or the reverse | type mismatch |
 
-In a response the provider produces and the consumer reads; in a request the consumer produces and the provider reads. Two modules of the same consumer that declare `number` and `integer` for the same property are still rejected as different types ([Several files](../contracts/several-files.md)).
+Two modules of the same consumer that declare `number` and `integer` for the same property are still rejected as different types ([Several files](../contracts/several-files.md)).

@@ -23,7 +23,7 @@ contract validation failed
   - petstore_api.yaml: invalid property name "user.name" at schemas Pet properties, must not contain ".", "[", "]", "{", "}" or ";"
 ```
 
-An empty name ends with `must not be empty`, and a name with a control character with `must not contain control characters`. A property spelled differently from the body is renamed to the key the body has. A key the body really has with one of these characters is left out of the contract when it is fixed, and a property no side declares is not checked ([Which side decides](../ship/can-i-deploy.md#which-side-decides)). Keys that vary go in a `map`, whose keys are not property names ([Maps](maps.md)).
+An empty name ends with `must not be empty`, and a name with a control character with `must not contain control characters`. When the name is a typo, rename the property to the key the body really has. When the body really has a fixed key with one of these characters, leave that key out of the contract: a property no side declares is not checked ([Which side decides](../ship/can-i-deploy.md#which-side-decides)). Keys that vary go in a `map`, whose keys are not property names ([Maps](maps.md)).
 
 An `object` without `properties`, or with `properties: {}`, is rejected:
 

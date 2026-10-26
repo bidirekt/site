@@ -14,9 +14,11 @@ petstore_api contract publish successful
 
 A folder is read with its subfolders, and only its `.yaml` and `.yml` files count; a folder without any fails with `no contract YAML files in folder: "./docs"`. Files and folders can be mixed in one command. The files are read in alphabetical order, and a file reached twice, such as a file passed on its own and again through its folder, is read once, under the name the first argument gives it. A file found in a folder is named by the folder and its path inside it, so `./contracts/` gives `contracts/rest/pets.yaml`; a file passed on its own keeps the name you typed.
 
-Publishing the same version again with different content fails with `contract version already exists with different content`; a version never changes once published.
+One publish sends at most 8 MiB to the broker, the text of every file included; a larger one is refused before any file is checked. The limit holds for every request, [`validate`](validate.md) included.
 
-A file that breaks the [specification](../contracts/your-first-contract.md) is rejected as a whole, with one line per violation:
+Publishing the same version again with different content fails with `cannot post contract to broker: contract version already exists with different content`; a version never changes once published.
+
+A file that breaks the [contract format](../reference/file-format.md) is rejected as a whole, with one line per violation:
 
 ```
 $ bidirekt publish petstore_api.yaml --participant petstore_api --version 1.4.0

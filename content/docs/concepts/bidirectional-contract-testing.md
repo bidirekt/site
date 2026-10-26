@@ -9,5 +9,5 @@ What the broker does is best described as declarative static bidirectional contr
 
 ## Where to go next
 
-- [How the broker works](participant.md): the seven terms the broker uses.
-- [CLI reference](../reference/cli.md): the commands mentioned on this page.
+- [Participant](participant.md): what the broker stores, and the seven terms it uses.
+- [CLI reference](../reference/cli.md): every command.

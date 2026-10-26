@@ -32,11 +32,11 @@ petstore_api (1.4.0, deployed):
     → petstore_api: provide it
       · GET /pets response 200 at "$[].status"
       · GET /pets/* response 200 at "$.status"
-  Pet.weight — petstore_web reads it as string, but petstore_api provides integer (2 places)
-    → petstore_web: read it as integer
+  Pet.weight — petstore_web reads it as string, but petstore_api provides float (2 places)
+    → petstore_web: read it as float
     → petstore_api: provide it as string there
-      · GET /pets response 200 at "$[].weight" (petstore_api: PetRecord.weight)
-      · GET /pets/* response 200 at "$.weight" (petstore_api: PetRecord.weight)
+      · GET /pets response 200 at "$[].weight" (petstore_api: Pet.weight)
+      · GET /pets/* response 200 at "$.weight" (petstore_api: Pet.weight)
 
 petstore_reviews:
   GET /reviews/summary
@@ -46,4 +46,4 @@ petstore_reviews:
         → petstore_reviews: publish it
 ```
 
-Errors that stop the check go to stderr. The participant and the environment are checked before any file: an unknown participant fails with `participant "petstore_web" not found → create it with: bidirekt create-participant petstore_web`, an environment that does not exist with `environment not found`. Then a file that breaks the [specification](../contracts/your-first-contract.md) prints its violations as [`publish`](publish.md) does.
+Errors that stop the check go to stderr. The participant and the environment are checked before any file: an unknown participant fails with `participant "petstore_web" not found → create it with: bidirekt create-participant petstore_web`, an environment that does not exist with `cannot validate contract on broker: environment not found`. Then a file that breaks the [contract format](../reference/file-format.md) prints its violations as [`publish`](publish.md) does.

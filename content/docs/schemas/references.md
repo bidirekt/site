@@ -19,7 +19,7 @@ contract validation failed
   - petstore_api.yaml: "type" is not allowed beside "ref" at schemas Pet properties owner
 ```
 
-The fix is to keep either the `ref` alone or the shape without the `ref`, whichever describes the body. A contract written before this rule was compared by the shape and never read the `ref`, so removing the `ref` keeps what that contract checked.
+The fix is to keep either the `ref` alone or the shape without the `ref`, whichever describes the body.
 
 A `ref` to a name no schema declares is rejected at publish.
 

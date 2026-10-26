@@ -46,7 +46,7 @@ Bidirekt is a declarative, static, bidirectional contract testing tool. The page
 ## Understand
 
 - [The problem](concepts/the-problem.md) — what breaks between two integrating services, and what a contract is.
-- [Consumer- vs provider-driven](concepts/consumer-vs-provider-driven.md) — the two known approaches, and where this project stands.
+- [Consumer- vs provider-driven](concepts/consumer-vs-provider-driven.md) — the two known approaches, and where Bidirekt stands.
 - [Bidirectional contract testing](concepts/bidirectional-contract-testing.md) — what bidirectional, declarative and static mean here.
 - [Participant](concepts/participant.md) — what the broker stores, and the named service that publishes contracts.
 - [Contract, version & snapshot](concepts/contract-version-snapshot.md) — what a participant declares, the label it publishes under, and what the broker compares.
