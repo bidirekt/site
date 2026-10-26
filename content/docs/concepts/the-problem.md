@@ -3,9 +3,7 @@ title: The problem
 description: The problem two integrating services create for each other, and what a contract between them is.
 ---
 
-Contract testing checks that the two sides of an integration agree on what they exchange. These pages explain the problem that contract testing solves, the two approaches you will find in the industry, and the route Bidirekt takes: both sides declare what they provide and what they consume, in the same file format, and nothing runs.
-
-## The problem
+Contract testing checks that the two sides of an integration agree on what they exchange. These pages explain the problem that contract testing solves, the two approaches you will find in the industry, and the route Bidirekt takes ([Bidirectional contract testing](bidirectional-contract-testing.md)).
 
 Take a pet API and a web app that calls it. The app requests `GET /pets/123` and reads two fields from the response: the pet's name and its status. The two are built by different people, tested separately, and deployed separately.
 

@@ -10,7 +10,7 @@ $ bidirekt create-participant petstore_api
 petstore_api participant created
 ```
 
-- `name`: the participant's name, in `snake_case` (lowercase letters, digits and single underscores). Anything else fails with `cannot post participant to broker: participant name must be snake_case`.
+- `name`: the participant's [name](../concepts/how-the-broker-works.md#participant), in `snake_case`. Anything else fails with `cannot post participant to broker: participant name must be snake_case`.
 
 Running it again for an existing name prints `petstore_api participant already exists` and exits `0`, so a pipeline can run it on every build.
 

@@ -3,9 +3,9 @@ title: CLI reference
 description: The bidirekt help output, broker address, config file, exit codes and output, with every command and where it is documented.
 ---
 
-`bidirekt` is the command-line client of the broker. [Overview](#overview) has the help output, exit codes and output streams, and [Commands](#commands) lists every command, in the order a pipeline uses them.
+`bidirekt` is the command-line client of the broker. [Overview](#overview) has the help output, [Broker address](#broker-address) and [Config file](#config-file) how the CLI finds its broker, [Exit codes and output](#exit-codes-and-output) the exit codes and output streams, and [Commands](#commands) lists every command, in the order a pipeline uses them.
 
-Every command that talks to the broker needs to know which broker: there is no default. Save it once with [`configure`](#configure), or pass it with `--broker-url` or `BIDIREKT_BROKER_URL`; see [Broker address](#overview) for the order that wins.
+Every command that talks to the broker needs to know which broker: there is no default. Save it once with [`configure`](#configure), or pass it with `--broker-url` or `BIDIREKT_BROKER_URL`; see [Broker address](#broker-address) for the order that wins.
 
 ## Overview
 
@@ -40,7 +40,9 @@ Flags:
 Use "bidirekt [command] --help" for more information about a command.
 ```
 
-**Broker address.** The first of these wins: `--broker-url`, then the `BIDIREKT_BROKER_URL` environment variable, then the URL saved in the active profile. The active profile is `--profile`, then `BIDIREKT_PROFILE`, then `default`. The flags go before or after the command, and the variables suit a pipeline:
+## Broker address
+
+The first of these wins: `--broker-url`, then the `BIDIREKT_BROKER_URL` environment variable, then the URL saved in the active profile. The active profile is `--profile`, then `BIDIREKT_PROFILE`, then `default`. The flags go before or after the command, and the variables suit a pipeline:
 
 ```
 $ bidirekt --broker-url https://broker.example.com publish contracts/*.yaml --participant petstore_api --version 1.4.0
@@ -71,7 +73,9 @@ the config file has the profiles acme, local — pass --profile <name> or set BI
 
 The first form is printed for one other profile, the second for several. A profile named with `--profile` or `BIDIREKT_PROFILE` that is not in the config file fails the same way with `profile "acme" not found in <path>`. An invalid URL fails wherever it comes from, naming the source: `invalid broker URL "broker.example.com" (from BIDIREKT_BROKER_URL) — use http:// or https:// followed by a host`.
 
-**Config file.** Profiles live in `~/.config/bidirekt/config.json` (`$XDG_CONFIG_HOME/bidirekt/config.json` when `XDG_CONFIG_HOME` is set), or in the file `BIDIREKT_CONFIG_FILE` names. `configure` creates it readable only by you:
+## Config file
+
+Profiles live in `~/.config/bidirekt/config.json` (`$XDG_CONFIG_HOME/bidirekt/config.json` when `XDG_CONFIG_HOME` is set), or in the file `BIDIREKT_CONFIG_FILE` names. `configure` creates it readable only by you:
 
 ```json
 {
@@ -85,9 +89,11 @@ The first form is printed for one other profile, the second for several. A profi
 
 A `.env` file in the current directory is not read. A request that gets no answer is cancelled after 30 seconds.
 
-**Exit codes.** `0` on success, help and version; `1` for everything else, including a refused publish and a `can-i-deploy` answer of no.
+## Exit codes and output
 
-**Output.** Success lines go to stdout and failures to stderr, except the `can-i-deploy` and `validate` reports, which always go to stdout. The `Broker:` line goes to stderr, before anything else, on success too. In a terminal, success is green and failures are red; `NO_COLOR` turns color off and `CLICOLOR_FORCE=1` keeps it on when the output is piped.
+The CLI exits `0` on success, help and version; `1` for everything else, including a refused publish and a `can-i-deploy` answer of no.
+
+Success lines go to stdout and failures to stderr, except the `can-i-deploy` and `validate` reports, which always go to stdout. The `Broker:` line goes to stderr, before anything else, on success too. In a terminal, success is green and failures are red; `NO_COLOR` turns color off and `CLICOLOR_FORCE=1` keeps it on when the output is piped.
 
 ## Commands
 

@@ -14,7 +14,7 @@ type DocsSidebarProps = {
 
 type Position = 'middle' | 'last'
 
-const START_PATH = 'start/running-local.md'
+const START_PATH = 'start/try.md'
 const GLYPH: Record<Position, string> = { middle: '├─', last: '└─' }
 const ARROW_STEP: Partial<Record<string, number>> = {
   ArrowDown: 1,
@@ -75,7 +75,8 @@ export function DocsSidebar({
           Start in 5 minutes →
         </b>
         <span className="block text-[13px] text-secondary">
-          Install the CLI and run a broker on your machine.
+          Install the CLI, the broker's compose file and the agent skill in one
+          command.
         </span>
       </Link>
       <ul className="text-[14px]">
