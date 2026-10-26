@@ -82,7 +82,7 @@ const yamlLine = tv({
 })
 
 const toggle = tv({
-  base: 'pressable -mx-1 cursor-pointer rounded-[4px] bg-accent/10 px-1 ring-1 ring-accent/45 ring-inset hover:bg-accent/14',
+  base: 'pressable cursor-pointer',
   variants: {
     off: { true: 'text-muted', false: 'text-accent' },
   },
