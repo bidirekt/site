@@ -51,8 +51,6 @@ $ curl -s http://localhost:8080/health
 
 The data lives in the `bidirekt_postgres-data` volume, the same from any folder, so it survives `docker compose down` and `up`; `docker compose down -v` erases it. Both containers start again by themselves when Docker restarts. The broker listens on `127.0.0.1` only, so other machines on your network cannot reach it.
 
-An older copy of this file had no `name:`, so its data is in `<folder>_postgres-data`, named after the folder it ran from. Stop that project first with `docker compose down` in its folder, since it holds port 8080.
-
 Give the local broker its own profile, so it never mixes with your real one:
 
 ```

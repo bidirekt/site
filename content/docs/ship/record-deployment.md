@@ -8,9 +8,9 @@ $ bidirekt record-deployment petstore_web --version 2.3.0 --environment producti
 petstore_web deployment recorded to production
 ```
 
-- `participant`: the participant you deployed.
-- `--version`: the version you deployed. It must be published, or the command fails with `version not found`.
-- `--environment`: where you deployed it. It must exist, or the command fails with `environment not found`.
+- `participant`: the participant you deployed. It must exist, or the command fails with `cannot post deployment to broker: participant not found`.
+- `--version`: the version you deployed. It must be published, or the command fails with `cannot post deployment to broker: version not found`.
+- `--environment`: where you deployed it. It must exist, or the command fails with `cannot post deployment to broker: environment not found`.
 
 Run it after the deployment succeeds. It never checks compatibility and never blocks.
 

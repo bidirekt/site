@@ -5,7 +5,7 @@ description: How to ask whether a version can be deployed to an environment, how
 
 `can-i-deploy` is the broker's answer to one question: can this version of this participant be deployed to this environment without breaking anything deployed there? To answer it, the broker takes the snapshot behind the version and compares it with every counterpart in the environment: the providers this participant consumes from and the consumers of what it provides, each read as the version currently deployed there.
 
-The answer is yes only if every counterpart is compatible; nothing to check means yes, so a participant that only provides, with no consumer of it deployed in the environment, passes. A yes names the counterparts it compared with, or says that nothing was deployed to compare with. When the answer is no, it names every failing counterpart, with the version of it deployed in the environment, and each break: the endpoint, the method, the request or response status, and the reason. A removed endpoint is the exception: it is named once, with its method, and no request or response status. A property break is named once per field, with every endpoint, method and request or response status where it happens. A pipeline gates its deployment on this answer. The report and every line a break can carry are in [The command](#the-command).
+The answer is yes only if every counterpart is compatible; nothing to check means yes, so a participant that only provides, with no consumer of it deployed in the environment, passes. A yes names the counterparts it compared with, or says that nothing was deployed to compare with. When the answer is no, it names every failing counterpart, with the version of it deployed in the environment, and each break: the endpoint, the method, the request or response status, and the reason. A removed resource is the exception: it is named once, with its endpoint and method, and no request or response status, even when the endpoint stays and only one status or its request was dropped. A property break is named once per field, with every endpoint, method and request or response status where it happens. A pipeline gates its deployment on this answer. The report and every line a break can carry are in [The command](#the-command).
 
 ## The command
 
@@ -19,7 +19,7 @@ compared with: petstore_api, petstore_reviews
 - `--version`: the published version you are about to deploy.
 - `--environment`: where you are about to deploy it.
 
-It exits `0` when the answer is yes and `1` when it is no; the report goes to stdout either way. A yes names, below it, the counterparts deployed in the environment that it compared with, in alphabetical order, or says there were none: `nothing deployed in production to compare with`. Errors that stop the check go to stderr: a version that was never published fails with `contract not found`, an environment that does not exist with `environment not found`, and an unknown participant with `participant not found`.
+It exits `0` when the answer is yes and `1` when it is no; the report goes to stdout either way. A yes names, below it, the counterparts deployed in the environment that it compared with, in alphabetical order, or says there were none: `nothing deployed in production to compare with`. Errors that stop the check go to stderr, checked in this order: an unknown participant fails with `cannot query can-i-deploy from broker: participant not found`, a version that was never published with `cannot query can-i-deploy from broker: contract not found`, and an environment that does not exist with `cannot query can-i-deploy from broker: environment not found`.
 
 ```
 $ bidirekt can-i-deploy petstore_web --version 2.3.0 --environment production
@@ -36,11 +36,11 @@ petstore_api (1.4.0, deployed):
     → petstore_api: provide it
       · GET /pets response 200 at "$[].status"
       · GET /pets/* response 200 at "$.status"
-  Pet.weight — petstore_web reads it as string, but petstore_api provides integer (2 places)
-    → petstore_web: read it as integer
+  Pet.weight — petstore_web reads it as string, but petstore_api provides float (2 places)
+    → petstore_web: read it as float
     → petstore_api: provide it as string there
-      · GET /pets response 200 at "$[].weight" (petstore_api: PetRecord.weight)
-      · GET /pets/* response 200 at "$.weight" (petstore_api: PetRecord.weight)
+      · GET /pets response 200 at "$[].weight" (petstore_api: Pet.weight)
+      · GET /pets/* response 200 at "$.weight" (petstore_api: Pet.weight)
 
 petstore_reviews:
   GET /reviews/summary
@@ -226,7 +226,7 @@ The participant dropped a resource that a consumer deployed in the environment s
 - Fix of `<participant>`: `keep it until <counterpart> stops calling it`
 - Fix of `<counterpart>`: `stop calling it`
 
-A removed endpoint is reported once, right below `<METHOD> <endpoint>`, not under each request and response status it had. Any other break of that endpoint stays under its body or in its block:
+A removed resource is reported once, right below `<METHOD> <endpoint>`, not under each request and response status it had. A status that changes is a removal too: a provider that answers `DELETE /pets/*` with `204:` instead of `200: Pet`, while `petstore_web` still reads response `200`, gets `petstore_api removed DELETE /pets/*, but petstore_web still calls it`. Any other break of that endpoint stays under its body or in its block:
 
 ```error title="can-i-deploy output"
 petstore_web (2.3.0, deployed):
@@ -259,14 +259,14 @@ A property is only required where its parent is present. When the producing side
 `<field>` is the field of `<participant>` at that path: the schema name and the path inside that schema, the place to edit in the participant's own contract. `Pet.vaccinations[].name` is a member of each array item, `Pets{}.name` a member of each map value, and at the root it is only the schema name:
 
 ```error title="can-i-deploy output"
-Address.city — petstore_web reads it, but petstore_api doesn't provide it
+Owner.address.city — petstore_web reads it, but petstore_api doesn't provide it
   → petstore_web: stop reading it, or handle its absence in the code and mark it optional
   → petstore_api: provide it
     · GET /pets/* response 200 at "$.owner.address.city"
 Pet — petstore_web reads it as object, but petstore_api provides array<object>
   → petstore_web: read it as array<object>
   → petstore_api: provide it as object there
-    · GET /owners/*/pet response 200 at the body (petstore_api: PetRecords)
+    · GET /owners/*/pet response 200 at the body (petstore_api: Pets)
 ```
 
 When `<participant>` has no field at that path, as in the `doesn't provide` and `doesn't send` blocks, the block is named by the field of `<counterpart>`. A difference inside a schema used in several places is one block with its places, one for each request or each response status that reaches it; `<property>` is one of the properties that reach it there. A block holds only requests or only responses: the same difference in a request and in a response is two blocks, each with its own break and fixes. Which side's required properties count is in [Which side decides](#which-side-decides).

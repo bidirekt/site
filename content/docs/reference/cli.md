@@ -134,7 +134,7 @@ petstore_inventory participant renamed to petstore_stock
 ```
 
 - `old`: the current name.
-- `new`: the new name, in `snake_case`. A name that is already taken fails with `participant already exists` and exits `1`; unlike `create-participant`, renaming is not idempotent.
+- `new`: the new name, in `snake_case`. A name that is already taken fails with `cannot post participant rename to broker: participant already exists` and exits `1`; unlike `create-participant`, renaming is not idempotent.
 
 Renaming works only before the participant's first publish. A participant with at least one published contract keeps its name: the rename fails with `cannot post participant rename to broker: participant has published contracts, create a new participant and switch every consumer's consumes to it` and exits `1`.
 

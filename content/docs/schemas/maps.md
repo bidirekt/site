@@ -25,7 +25,7 @@ contract validation failed
   - petstore_api.yaml: map schema without values at schemas PetsByName
 ```
 
-A contract written before `map` existed declares a map as `type: object` with `values`. It is rejected with two lines at the same property, one for `values` and one for the missing `properties`, and the fix is to write `type: map` in place of `type: object`:
+A `type: object` with `values` and no `properties` is rejected with two lines at the same property, one for `values` and one for the missing `properties`; the fix is `type: map` in place of `type: object`:
 
 ```error title="publish error"
 contract validation failed

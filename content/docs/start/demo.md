@@ -45,7 +45,7 @@ The report names the counterpart it breaks, `petstore_web` with the version depl
 
 ## The fix
 
-Step 5 draws the edit on the screen, so you don't need vim, and writes the two lines of `status` under `Pet`:
+Step 5 draws a vim session on the screen, without running vim, and types the two lines of `status` under `Pet`:
 
 ```
 $ vim contracts/petstore_api.yaml

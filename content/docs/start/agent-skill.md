@@ -6,10 +6,10 @@ description: How to install the bidirekt skill that lets a coding agent write an
 The `bidirekt` skill lets a coding agent write and update the service's contract files from its code, check them with the CLI's read-only commands, and fix them from a `can-i-deploy` report. It needs the CLI and a broker, and reads https://bidirekt.com/llms.txt on every run. Install it in the current project:
 
 ```
-$ npx skills add bidirekt/skills
+$ npx skills add bidirekt/skills -a claude-code codex -y
 ```
 
-It writes `.agents/skills/bidirekt/SKILL.md`, `.claude/skills/bidirekt` and `skills-lock.json` in the project.
+It writes `.agents/skills/bidirekt/SKILL.md`, `.claude/skills/bidirekt` and `skills-lock.json` in the project. `-a` picks the agents and `-y` skips the questions; [Try on your project](try.md) runs this same command.
 
 `-g` installs it for every project:
 
