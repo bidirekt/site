@@ -90,7 +90,7 @@ When `petstore_api` gives `name` a nullable type, such as `String?`, but always 
 
 All the files of one [publish](../ship/publish.md) are one contract:
 
-- **One schema namespace.** A file can name a schema declared in another file of the same publish, and a name declared twice is a duplicate; published alone, that file fails with `unresolved schema`, or `unresolved ref` when a `ref` names it.
+- **One schema namespace.** A file can name a schema declared in another file of the same publish; published alone, a file that does fails with `unresolved schema`, or `unresolved ref` when a `ref` names it. A name declared twice is a duplicate.
 - **A provider declares each resource once**, in any of its files ([REST: In several files](../rest/resources.md#in-several-files)).
 - **A consumer merges by union** the fragments of one resource, such as one file per module. In a body it reads, a property is optional only if every fragment that declares it marks it optional, and nullable only if every fragment that declares it accepts `null`. In a body it produces, a property is required only if every fragment that declares its parent sends it, and nullable if any fragment may send `null`; a fragment that leaves out the parent too makes only the parent optional. Two types for one property, even `number` and `integer`, are rejected at publish.
 
@@ -120,7 +120,7 @@ contract validation failed
 
 A `string` is a `string`: a provider that starts returning a fourth value of `status` is compatible with a consumer that handles three, and a `date-time`, an email and free text are the same `string`.
 
-The items below are accepted at publish, and a change in any of them never makes `can-i-deploy` fail:
+A change in any of the items below never makes `can-i-deploy` fail:
 
 - **`description`.** Free text on any node, which the broker ignores.
 - **A schema that no resource or `ref` names.** It is accepted and never compared, so a file with only `schemas` publishes too.
@@ -129,7 +129,7 @@ The items below are accepted at publish, and a change in any of them never makes
 
 ## File rules
 
-- Every key at every level is checked against the grammar of this page, [REST](../rest/resources.md) and [Schemas](../schemas/types.md). A key the grammar does not know, such as `options`, an uppercase `GET`, a top-level `version` or `enum`, is a violation. The report lists every violation in every file, and nothing is stored.
+- Every key at every level is checked against the grammar of this page, [REST](../rest/resources.md) and [Schemas](../schemas/types.md). A key the grammar does not know, such as `options`, an uppercase `GET`, a top-level `version` or `enum`, is a violation. The report lists the violations of every file, and nothing is stored. The checks between files, such as a name declared twice, run once every file has the right shape ([publish](../ship/publish.md)).
 - The extension must be `.yaml` or `.yml`. The CLI refuses a file passed with anything else before contacting the broker: `unsupported contract file extension: "petstore_api.txt"`. Inside a folder, such a file is skipped ([publish](../ship/publish.md)).
 - One YAML document per file. A second document after `---` is rejected with `cannot post contract to broker: malformed contract file: petstore_api.yaml: multiple documents are not supported`.
 - YAML anchors and aliases are rejected with `cannot post contract to broker: malformed contract file: petstore_api.yaml: anchors and aliases are not supported`. To reuse a shape, name it under `schemas` and point to it with [`ref`](../schemas/references.md).

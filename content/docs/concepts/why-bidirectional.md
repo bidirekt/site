@@ -52,7 +52,28 @@ Bidirekt is neither consumer-driven nor provider-driven. **Both sides declare, s
 - **static**, because the broker compares those declarations without executing a service, a mock or a test;
 - **bidirectional**, because both sides publish, and a deployment of either side is checked against the other.
 
-The pet API, `petstore_api`, declares every resource it provides, with the schema of each body: it creates, reads, updates and deletes pets, and a pet has `petId`, `name` and `status`. The web app, `petstore_web`, declares under the name `petstore_api` only the part it depends on: it calls `GET /pets/*`, one of the four methods the API serves, and reads `name` and `status`, two of the three fields. [The contract file](../contracts/the-contract-file.md#example) shows what a provider and a consumer write.
+The pet API, `petstore_api`, declares every resource it provides, with the schema of each body: it creates, reads, updates and deletes pets, and a pet has `petId`, `name` and `status`. The web app, `petstore_web`, declares under the name `petstore_api` only the part it depends on: it calls `GET /pets/*`, one of the four methods the API serves, and reads `name` and `status`, two of the three fields:
+
+```yaml
+consumes:
+  petstore_api:
+    rest:
+      /pets/*:
+        get:
+          responses:
+            200: Pet
+
+schemas:
+  Pet:
+    type: object
+    properties:
+      name:
+        type: string
+      status:
+        type: string
+```
+
+[The contract file](../contracts/the-contract-file.md#example) shows what a provider and a consumer write.
 
 With both declarations in the broker, the rename above is caught before the deployment: if the API publishes a version without `status` and asks [`can-i-deploy`](how-the-broker-works.md#can-i-deploy) whether it can go to production while this app is deployed there, the answer is no, and the report names the field.
 

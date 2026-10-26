@@ -41,7 +41,7 @@ petstore_web (2.3.0, deployed):
       → petstore_web: stop calling it
 ```
 
-When the provider declares the endpoint and method but not the status the participant reads, or no request body, the break says what is missing and which statuses the provider answers, instead of `doesn't provide it` ([Which statuses to declare](resources.md#which-statuses-to-declare) says which statuses oblige a consumer):
+When the provider declares the endpoint and method but not the status the participant reads, no response at all, or no request body, the break says what is missing, and for a missing status which statuses the provider answers, instead of `doesn't provide it` ([Which statuses to declare](resources.md#which-statuses-to-declare) says which statuses oblige a consumer):
 
 ```error title="can-i-deploy output"
 petstore_api (1.4.0, deployed):
