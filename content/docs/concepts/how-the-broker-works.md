@@ -7,9 +7,9 @@ The broker stores what each service declares it provides and consumes, and befor
 
 ## Participant
 
-A participant is a named service that publishes contracts. The name is the whole identity: it is how the broker files everything the participant publishes, and it is how other participants refer to it. The name is in snake_case: lowercase letters, digits and single underscores. A consumer names the provider it consumes from with this exact string, so a typo in a name is a contract with a provider that does not exist.
+A participant is a named service that publishes contracts. The name is the whole identity: it is how the broker files everything the participant publishes, and it is how other participants refer to it. The name is in snake_case: lowercase letters, digits and single underscores. A consumer names the provider it consumes from with this exact string, so a misspelled name publishes and fails at `can-i-deploy` ([Resource breaks](../rest/breaks.md#every-break)).
 
-A participant is not "a provider" or "a consumer". The same participant provides resources to some services and consumes resources from others, and its contract file declares both sides at once.
+A participant is not "a provider" or "a consumer". The same participant provides resources to some services and consumes resources from others, and declares both in one contract ([The contract file](../contracts/the-contract-file.md)).
 
 ## Environment
 
@@ -17,7 +17,7 @@ An environment is a named place where participants are deployed: `production`, `
 
 ## Contract
 
-A contract is what a participant declares about its integrations: the resources it provides and consumes, each with the schemas of its bodies. [Write contracts](../contracts/your-first-contract.md) documents the format. The broker compares properties and their types, never files. Publishing a contract compares nothing; the breaks appear at `can-i-deploy` ([publish](../ship/publish.md)).
+A contract is what a participant declares about its integrations: the resources it provides and consumes, each with the schemas of its bodies. [The contract file](../contracts/the-contract-file.md) documents the format. The broker compares properties and their types, never files. Publishing a contract compares nothing ([publish](../ship/publish.md)).
 
 ## Version
 
@@ -30,7 +30,7 @@ The broker never orders versions. It does not know that `2.0.0` comes after `1.0
 
 ## Snapshot
 
-A snapshot is the stored content of a contract, and it is what a version points at. The broker identifies a snapshot by a checksum of its declarations, not by the text of the file. Formatting, comments, `description`, key order, the order of the files, the way the contract is split across files and a schema that nothing names do not change the checksum. Schema names do: renaming a schema that a resource or a `ref` reaches is a different snapshot, so the same version published with a renamed schema is refused with `cannot post contract to broker: contract version already exists with different content`.
+A snapshot is the stored content of a contract, and it is what a version points at. The broker identifies a snapshot by a checksum of its declarations, not by the text of the file. Formatting, comments, `description`, key order, the order of the files, the way the contract is split across files and a schema that nothing names do not change the checksum. Schema names do: renaming a schema that a resource or a `ref` reaches is a different snapshot, so the same version published with a renamed schema is refused like any other change ([Version](#version)).
 
 Publishing a new version with the same declarations as one already published makes the new version an alias: it points at the same snapshot. The broker compares snapshots, never versions, so the two versions are the same contract for every check. You never name a snapshot yourself; you always name a version, and the broker resolves it.
 

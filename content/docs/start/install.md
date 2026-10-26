@@ -1,6 +1,6 @@
 ---
-title: Install the CLI
-description: How to install the bidirekt CLI with curl, from the GitHub Release or as a Docker image, and point it at your broker.
+title: Install
+description: How to install the bidirekt CLI with curl, from the GitHub Release or as a Docker image, point it at your broker, and install the agent skill that lets a coding agent write and fix the contract files.
 ---
 
 ## With curl
@@ -57,7 +57,7 @@ Broker: https://broker.acme.example (from BIDIREKT_BROKER_URL)
 petstore_web contract publish successful
 ```
 
-Inside the container, `localhost` is the container itself. To reach the broker of [Running local](running-local.md) on `localhost:8080`, add `--network host`; it works on Linux and with Docker Desktop on macOS:
+Inside the container, `localhost` is the container itself. To reach the [local broker](run-the-broker.md#local) on `localhost:8080`, add `--network host`; it works on Linux and with Docker Desktop on macOS:
 
 ```
 $ docker run --rm --network host -v "$PWD:/work" -w /work \
@@ -77,3 +77,27 @@ Broker URL: https://broker.example.com
 ```
 
 In a pipeline, pass `--broker-url` or set `BIDIREKT_BROKER_URL`, or write a profile with `bidirekt configure --broker-url <url>`, which never asks. Profiles, the config file and the order that wins are in the [CLI reference](../reference/cli.md#broker-address).
+
+## Agent skill
+
+The `bidirekt` skill lets a coding agent write and update the service's contract files from its code, check them with the CLI's read-only commands, and fix them from a `can-i-deploy` report. It needs the CLI and a broker, and reads https://bidirekt.com/llms.txt on every run. Install it in the current project:
+
+```
+$ npx skills add bidirekt/skills -a claude-code codex -y
+```
+
+It writes `.agents/skills/bidirekt/SKILL.md`, `.claude/skills/bidirekt` and `skills-lock.json` in the project. `-a` picks the agents and `-y` skips the questions; [Try on your project](try.md) runs this same command.
+
+`-g` installs it for every project:
+
+```
+$ npx skills add bidirekt/skills -g
+```
+
+It writes `~/.agents/skills/bidirekt/SKILL.md`, a link in the skills folder of each agent it finds, such as `~/.claude/skills/`, and `~/.agents/.skill-lock.json`. Which agents get it depends on what the `skills` tool detects on your machine. A line `✗ bidirekt → PromptScript: PromptScript does not support global skill installation` comes from the `skills` tool and can be ignored.
+
+The skill follows the `main` branch of https://github.com/bidirekt/skills. Update it with:
+
+```
+$ npx skills update
+```

@@ -1,6 +1,6 @@
 # Bidirekt
 
-> Bidirekt is a static, bidirectional contract testing tool. Each participant (provider or consumer) writes a YAML contract declaring what it provides and what it consumes, publishes it to a broker with the `bidirekt` CLI, and asks `can-i-deploy` before deploying. Nothing is run: the broker compares declarations.
+> Bidirekt is a declarative, static, bidirectional contract testing tool. Each participant (provider or consumer) writes a YAML contract declaring what it provides and what it consumes, publishes it to a broker with the `bidirekt` CLI, and asks `can-i-deploy` before deploying. Nothing is run: the broker compares declarations.
 
 Workflow per participant, in this order: `create-participant` (once) → `validate` (before commit) → `publish` (every build) → `can-i-deploy` (before deploy) → deploy → `record-deployment` (after deploy succeeds).
 
@@ -85,7 +85,7 @@ Rules for every kind of resource:
 - Resource = one body the two sides exchange; what identifies it depends on its kind. `rest` is the only kind today: a provider writes `provides.rest`, a consumer `consumes.<provider>.rest`. Each resource is compared on its own.
 - Every body a resource declares names a schema declared under `schemas`, never an inline schema, or is `~` = body not described: nothing in it is compared, the resource still exists. On the producing side `~` promises no structure; on the reading side it reads nothing. `""` is an unresolved schema name, not `~`.
 - Consumer key under `consumes` = the provider's participant name, snake_case. Not checked at publish: a typo publishes and fails at `can-i-deploy` with "doesn't provide it".
-- Schema node `type`: `object`, `array`, `map`, `string`, `integer`, `float`, `number`, `boolean`. No enums, no formats. `integer` ≠ `float`, both strict. A `number` reader accepts an `integer`, `float` or `number` producer; a `number` producer breaks an `integer` or `float` reader (JSON sends `50` for a round float: read it as `number`; a producer whose value can be a round float writes `number` too, e.g. PHP `json_encode` sends `50.0` as `50`).
+- Schema node `type`: `object`, `array`, `map`, `string`, `integer`, `float`, `number`, `boolean`. No `enum`, no `format`: both are unknown keys, rejected at publish (`unknown key "enum" at schemas Pet properties status`). `integer` ≠ `float`, both strict. A `number` reader accepts an `integer`, `float` or `number` producer; a `number` producer breaks an `integer` or `float` reader (JSON sends `50` for a round float: read it as `number`; a producer whose value can be a round float writes `number` too, e.g. PHP `json_encode` sends `50.0` as `50`).
 - Each type takes only its own key: `properties` on `object` (at least one), `items` on `array` (required), `values` on `map` (required), none on a primitive; a key on another type → `"items" is not allowed on a string schema at <path>, use it with "type: array"` (`properties` → `object`, `items` → `array`, `values` → `map`). Every node declares `type`, except a `ref`; neither → `missing "type" at <path>, expected one of: object, array, map, string, integer, float, number, boolean`.
 - `object` without `properties`, or with `properties: {}` → `object schema without properties at <path>, declare the keys you read, or use "type: map" with "values" if the keys vary`: declare the keys that arrive in the body (a fixed key with a reserved character in its name stays out, see property and schema names below). The reader marks each key its code doesn't read `optional: true` (e.g. the item keys of an array it only counts), so the producer may drop it; the producer declares the keys it sends. Varying keys → `map` with `values` on both sides.
 - Map (dynamic keys, all values one shape): `type: map` + `values: <node>`, e.g. `PetsByName: {type: map, values: {ref: Pet}}` for `{"bob": {...}, "sky": {...}}`. Keys are strings. No `values` → `map schema without values at <path>`. `type: object` + `values` without `properties` → two lines at the same path, `"values" is not allowed on an object schema at <path>, use it with "type: map"` then `object schema without properties at <path>, …`: write `type: map`. A map only matches a map: values compare like array items; the key is the path segment `{}` (`$.pets{}.name`), the type prints `map<T>`. Map against `object` (either side, in any body) = one type mismatch on the property (`Owner.pets — petstore_api provides it as object, but petstore_web reads map<object>`), nothing inside compared; fix: the same shape on both sides (fixed keys → `object` with `properties`, except a key with a reserved character, left out; varying keys → `map`).
@@ -102,7 +102,7 @@ Rules for every kind of resource:
 - `ref: <SchemaName>` reuses a named schema at any depth; allowed beside it: only `nullable`, `description`, and `optional` when the node is a property (`nullable` makes the node nullable, `optional` the property optional, even when the named schema is not). `type`/`properties`/`items`/`values` beside it is rejected (`"type" is not allowed beside "ref" at schemas Pet properties owner`): keep the `ref` alone or the shape without it, whichever describes the body. Unknown `ref` is rejected.
 - Recursion is allowed: a schema may `ref` itself directly or indirectly (`Comment.replies[] → Comment`, `Post.author → User` / `User.posts[] → Post`). No depth limit.
 - `description` is allowed on any node and ignored.
-- Every unknown key at any level is a violation (`options`, `GET`, top-level `version`). YAML anchors/aliases are rejected; comments are allowed.
+- Every unknown key at any level is a violation (`options`, `GET`, top-level `version`, `enum`, `format`). YAML anchors/aliases are rejected; comments are allowed.
 - Property and schema names: not empty (`must not be empty`), no `.`, `[`, `]`, `{`, `}` or `;` (reserved for the paths the broker compares and shows: `$.owner.name`, `$[].photoUrl`, `$.pets{}.name`), no control characters (`must not contain control characters`). Anything else is valid (`content-type`, `@type`, `$ref`, `first name`):
   - `invalid property name "user.name" at schemas Pet properties, must not contain ".", "[", "]", "{", "}" or ";"`
   - `invalid schema name "Pet.v2" at schemas, must not contain ".", "[", "]", "{", "}" or ";"`
@@ -113,9 +113,9 @@ Several files: all files of one `publish` are one contract, order irrelevant.
 
 - Schema names are one namespace across files; the same name twice is a duplicate.
 - Provider: each resource declared in exactly one file (its resources may be split across files). A file reached twice (passed twice, or passed and also inside a passed folder) is read once, not a duplicate.
-- Consumer: fragments of the same resource merge. In a body the consumer reads: a property is optional only if every fragment marks it optional, nullable only if every fragment marks it nullable. In a body the consumer produces: required only if every fragment sends it (a fragment that lacks its parent too doesn't count), nullable if any fragment marks it nullable. Different types for one property are rejected.
+- Consumer: fragments of the same resource merge by union. In a body the consumer reads: a property is optional only if every fragment that declares it marks it optional, nullable only if every fragment that declares it accepts `null`; a fragment that doesn't declare the property or its parent doesn't count. In a body the consumer produces: required only if every fragment that declares its parent sends it, nullable if any fragment may send `null`; a fragment that omits the parent too makes only the parent optional. Different types for one property (even `number` vs `integer`) are rejected at publish.
 
-Not compared (never breaks): enum values, string formats, `description`, a property the reader does not declare, a schema no resource names.
+Rejected at publish, so never compared: `enum` and `format`, unknown keys (a `string` is any string). Not compared (never breaks): `description`, a property the reader does not declare, a schema no resource or `ref` names.
 
 ### `rest` resources
 
@@ -126,7 +126,7 @@ Not compared (never breaks): enum values, string formats, `description`, a prope
 - Which statuses: a consumer declares a status when its code does something specific with it or reads its body (generic "any error" handling doesn't count); a provider declares the statuses its code actually returns (a branch that never runs is left out). A consumer's status must exist in the provider; a provider-only status obliges no one.
 - Endpoint: starts with `/`, no empty segment and no `;` in a segment (`//`, `/pets;v=2` → `malformed path`). `/` alone is the root, valid. Dynamic segment = `*`, one per segment, unnamed (`/owners/*/pets/*`). `{petId}` and `p*` are rejected; `:petId` is a literal segment that matches nothing. Trailing slash is removed (`/pets/` = `/pets`). Consumer and provider endpoints match only when written identically.
 - Several files: a provider's files may split endpoints, methods or even the statuses of one method between them; the `request` of an endpoint+method lives in one file only.
-- Not compared: headers, query parameters.
+- Not compared: headers, query parameters. The `rest` block has no key for them; a `headers` key is rejected as unknown.
 
 ## CLI
 
@@ -207,20 +207,28 @@ Below each break come its fixes, one line per side, the participant under check 
 - `calls <METHOD> <endpoint>, but <c> is not deployed in <env>` (plus ` (deployed in: <envs>)` when it is deployed elsewhere) → only <c>: `deploy it to <env> first`.
 - `removed <METHOD> <endpoint>, but <c> still calls it` → `keep it until <c> stops calling it`; <c>: `stop calling it`. Printed once, right below `<METHOD> <endpoint>`, outside any `request` / `response <status>` group. Also when the endpoint stays but a status or the `request` that <c> consumes is dropped: `DELETE /pets/*` answering `204:` instead of `200: Pet` while <c> reads `200` is `removed DELETE /pets/*`.
 
-Core rule, for every kind of resource: the side that reads a body decides what must be in it. Which side produces depends on the resource (`rest`: a response is produced by the provider and read by the consumer, a request the reverse). A property the reader requires must be declared by the producer, required too, with a type the reader accepts (the same type; a `number` reader also accepts `integer` and `float`). A property is required only where its parent is present: when the producer does not declare a parent, only the parent can break, nothing inside it is checked (array items and map values included). A property the reader marks optional may be absent, but if both declare it the reader must accept its type. A property the producer marks nullable must be nullable for the reader too. A property the reader does not declare is not checked.
+Core rule, for every kind of resource: the side that reads a body decides what must be in it. Which side produces depends on the resource (`rest`: a response is produced by the provider and read by the consumer, a request the reverse). A property the reader requires must be declared by the producer, required too, with a type the reader accepts (the same type; a `number` reader also accepts `integer` and `float`). A property is required only where its parent is present: when the producer does not declare a parent, only the parent can break (and only if it is required), nothing inside it is checked (array items and map values included). A property the reader marks optional may be absent, but if both declare it the reader must accept its type. A property the producer marks nullable must be nullable for the reader too. A property the reader does not declare is not checked.
 
 ## Docs
 
-- [Your first contract](https://bidirekt.com/docs/contracts/your-first-contract.md): what a contract file holds, with examples.
-- [Resources](https://bidirekt.com/docs/contracts/resources.md), [Several files](https://bidirekt.com/docs/contracts/several-files.md), [Which side decides](https://bidirekt.com/docs/contracts/which-side-decides.md), [What is not compared](https://bidirekt.com/docs/contracts/what-is-not-compared.md): the rules of the contract file for every kind of resource.
-- [Resources](https://bidirekt.com/docs/rest/resources.md), [Endpoints](https://bidirekt.com/docs/rest/endpoints.md), [Requests](https://bidirekt.com/docs/rest/requests.md), [Responses](https://bidirekt.com/docs/rest/responses.md), [What is not compared](https://bidirekt.com/docs/rest/what-is-not-compared.md), [Resource breaks](https://bidirekt.com/docs/rest/breaks.md): the `rest` block.
-- [Nodes](https://bidirekt.com/docs/schemas/nodes.md), [Primitives](https://bidirekt.com/docs/schemas/primitives.md), [Objects](https://bidirekt.com/docs/schemas/objects.md), [Arrays](https://bidirekt.com/docs/schemas/arrays.md), [Maps](https://bidirekt.com/docs/schemas/maps.md), [References](https://bidirekt.com/docs/schemas/references.md): the schemas of the bodies.
-- [File format](https://bidirekt.com/docs/reference/file-format.md): how a contract file is checked and parsed.
-- [CLI reference](https://bidirekt.com/docs/reference/cli.md): help output, broker address, exit codes, and every command.
-- [validate](https://bidirekt.com/docs/ship/validate.md), [publish](https://bidirekt.com/docs/ship/publish.md), [can-i-deploy](https://bidirekt.com/docs/ship/can-i-deploy.md), [Property breaks](https://bidirekt.com/docs/ship/property-breaks.md), [record-deployment](https://bidirekt.com/docs/ship/record-deployment.md): the pipeline commands, flags, output and errors.
-
-## Optional
-
-- [Install the CLI](https://bidirekt.com/docs/start/install-the-cli.md) and [Run in production](https://bidirekt.com/docs/start/run-the-broker.md): install the CLI and run the broker.
-- [How the broker works](https://bidirekt.com/docs/concepts/how-the-broker-works.md): what the broker stores and compares.
-- [Contract testing](https://bidirekt.com/docs/concepts/the-problem.md): why bidirectional, static contracts.
+- [Overview](https://bidirekt.com/docs/README.md): what Bidirekt is, its CLI and its broker, and where to start.
+- [Demo](https://bidirekt.com/docs/start/demo.md): the petstore demo step by step, from a `can-i-deploy` break to the fix.
+- [Try on your project](https://bidirekt.com/docs/start/try.md): what `bidirekt.com/try` installs and the seven steps it prints.
+- [Install](https://bidirekt.com/docs/start/install.md): the CLI with curl, from the GitHub Release or as a Docker image, pointing it at a broker, and the agent skill.
+- [Run the broker](https://bidirekt.com/docs/start/run-the-broker.md): the local Docker Compose broker and its `local` profile, and the broker image in production.
+- [Why bidirectional](https://bidirekt.com/docs/concepts/why-bidirectional.md): what contract testing catches, consumer-driven vs provider-driven, and why both sides declare and nothing runs.
+- [How the broker works](https://bidirekt.com/docs/concepts/how-the-broker-works.md): participant, environment, contract, version, snapshot, counterpart, can-i-deploy, deployment.
+- [The contract file](https://bidirekt.com/docs/contracts/the-contract-file.md): keys and resources, bodies not described, which side decides, describing what the code does, several files, what is not compared, file rules.
+- [Resources](https://bidirekt.com/docs/rest/resources.md): REST endpoints, requests, responses, which statuses to declare, `~` bodies, several files, what is not compared.
+- [Resource breaks](https://bidirekt.com/docs/rest/breaks.md): the six REST breaks that come before any property is compared, and their fixes.
+- [Types](https://bidirekt.com/docs/schemas/types.md): the node types, the keys each takes, and how `integer`, `float` and `number` compare.
+- [Optional and nullable](https://bidirekt.com/docs/schemas/optional-and-nullable.md): what each flag says and where it is accepted.
+- [Objects](https://bidirekt.com/docs/schemas/objects.md): `properties`, and valid property and schema names.
+- [Arrays and maps](https://bidirekt.com/docs/schemas/arrays-and-maps.md): `items`, `values`, and a map against an object.
+- [References](https://bidirekt.com/docs/schemas/references.md): `ref` to a named schema, recursion included.
+- [validate](https://bidirekt.com/docs/ship/validate.md): check files against an environment before committing, without publishing.
+- [publish](https://bidirekt.com/docs/ship/publish.md): publish files or folders as one version, and its errors.
+- [can-i-deploy](https://bidirekt.com/docs/ship/can-i-deploy.md): ask whether a version can be deployed, and how to read the report.
+- [Property breaks](https://bidirekt.com/docs/ship/property-breaks.md): every property break the report can print, with each side's fix.
+- [record-deployment](https://bidirekt.com/docs/ship/record-deployment.md): record a deployment, rollbacks included.
+- [CLI reference](https://bidirekt.com/docs/reference/cli.md): help output, broker address, config file, exit codes and output, every command.

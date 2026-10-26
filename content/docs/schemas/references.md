@@ -37,4 +37,4 @@ Comment:
         ref: Comment
 ```
 
-The loop can also pass through other schemas, such as `Post.author` pointing to `User` and `User.posts` back to `Post`. There is no depth limit, and a difference inside a recursive schema is one block, with one place per resource that reaches it; the same difference in a body the provider produces and in one the consumer produces is two blocks.
+The loop can also pass through other schemas, such as `Post.author` pointing to `User` and `User.posts` back to `Post`. There is no depth limit, and a report shows a difference inside a recursive schema as one block ([The report](../ship/can-i-deploy.md#the-report)).

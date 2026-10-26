@@ -8,7 +8,7 @@ $ bidirekt publish contracts/*.yaml --participant petstore_api --version 1.4.0
 petstore_api contract publish successful
 ```
 
-- `file or folder...`: one or more contract files, `.yaml` or `.yml`, or folders that hold them. All of them publish together as one contract ([Several files](../contracts/several-files.md)); the shell expands globs.
+- `file or folder...`: one or more contract files, `.yaml` or `.yml`, or folders that hold them. All of them publish together as one contract ([Several files](../contracts/the-contract-file.md#several-files)); the shell expands globs.
 - `--participant`: the participant the contract belongs to. It must exist, or the publish fails with `participant "petstore_api" not found → create it with: bidirekt create-participant petstore_api`, before any file is checked.
 - `--version`: any label, usually a commit hash or a release tag. Publish from a commit that holds the contract files: a version never changes, so files that are not committed yet should not take the hash of the commit before them. Commit first, then publish.
 
@@ -20,7 +20,7 @@ Publishing validates the files and stores them; it compares nothing. A contract 
 
 Publishing the same version again with different content fails with `cannot post contract to broker: contract version already exists with different content` ([Version](../concepts/how-the-broker-works.md#version)).
 
-A file that breaks the [contract format](../reference/file-format.md) is rejected as a whole, with one line per violation:
+A file that breaks the [contract format](../contracts/the-contract-file.md#file-rules) is rejected as a whole, with one line per violation:
 
 ```
 $ bidirekt publish petstore_api.yaml --participant petstore_api --version 1.4.0
