@@ -39,8 +39,6 @@ The resource still exists, so a consumer that calls `DELETE /pets/*` matches it.
 | `200: Pet` | `200: ~` | compatible |
 | `200: ~` | `200: Pet` | break: `Pet — petstore_web reads it, but petstore_api doesn't provide it`, at the body |
 
-`204: ""` is not `~`: it names a schema called `""`, which no schema declares, and is rejected.
-
 ## Which statuses to declare
 
 Each status is its own [resource](resources.md), so the statuses each side lists decide what can break. A status the consumer declares must be declared by the provider, or it breaks with `petstore_web reads response 404, but petstore_api answers only 200`; a status only the provider declares obliges no consumer.

@@ -29,7 +29,7 @@ The property blocks that follow name each place where a break happens with one o
 · <METHOD> <endpoint> request at "<property>" (<counterpart>: <counterpart field>)
 ```
 
-A removed resource is reported once, right below `<METHOD> <endpoint>`, not under each request and response status it had. A status that changes is a removal too: a provider that answers `DELETE /pets/*` with `204:` instead of `200: Pet`, while `petstore_web` still reads response `200`, gets `petstore_api removed DELETE /pets/*, but petstore_web still calls it`. Any other break of that endpoint stays under its body or in its block:
+A removed resource is reported once, right below `<METHOD> <endpoint>`, not under each request and response status it had. Dropping the `request` or a status that a consumer reads is a removal too, even when the endpoint stays declared, and so is a status that changes: a provider that answers `DELETE /pets/*` with `204:` instead of `200: Pet`, while `petstore_web` still reads response `200`, gets `petstore_api removed DELETE /pets/*, but petstore_web still calls it`. Any other break of that endpoint stays under its body or in its block:
 
 ```error title="can-i-deploy output"
 petstore_web (2.3.0, deployed):

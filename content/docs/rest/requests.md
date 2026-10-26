@@ -34,8 +34,6 @@ Against a counterpart:
 | `request: ~` | `request: NewFile` | compatible |
 | no `request` | `request: NewFile` | break: `petstore_web sends a request body, but petstore_api declares none` |
 
-`request: ""` is not `~`: it names a schema called `""`, which no schema declares, and is rejected.
-
 ## In several files
 
 A provider declares each resource once ([Several files](../contracts/several-files.md)). A request has no status, so the `request` of an endpoint and method belongs in exactly one file, even when its responses are spread over several. A provider that keeps the `201` of `POST /pets` in one file and its `400` in another writes `request` in only one of them:

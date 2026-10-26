@@ -125,7 +125,7 @@ Not compared (never breaks): enum values, string formats, `description`, a prope
 - Status: integer 100–599, quoted or not. No patterns (`2xx` rejected).
 - Which statuses: a consumer declares a status when its code does something specific with it or reads its body (generic "any error" handling doesn't count); a provider declares the statuses its code actually returns (a branch that never runs is left out). A consumer's status must exist in the provider; a provider-only status obliges no one.
 - Endpoint: starts with `/`, no empty segment and no `;` in a segment (`//`, `/pets;v=2` → `malformed path`). `/` alone is the root, valid. Dynamic segment = `*`, one per segment, unnamed (`/owners/*/pets/*`). `{petId}` and `p*` are rejected; `:petId` is a literal segment that matches nothing. Trailing slash is removed (`/pets/` = `/pets`). Consumer and provider endpoints match only when written identically.
-- Several files: the `request` of an endpoint+method lives in one file only, even when its statuses are split across files.
+- Several files: a provider's files may split endpoints, methods or even the statuses of one method between them; the `request` of an endpoint+method lives in one file only.
 - Not compared: headers, query parameters.
 
 ## CLI
@@ -197,7 +197,7 @@ Below each break come its fixes, one line per side, the participant under check 
 - `may send null, but <c> doesn't accept it` → `stop sending null`; <c>: `handle null in the code, then mark it nullable there`.
 - `doesn't accept null, but <c> may send it` → `handle null in the code, then mark it nullable`; <c>: `stop sending null there`.
 
-`rest` resource breaks come before any property is compared. Each, with the fix of the participant under check, then `<c>`'s:
+`rest` resource breaks come before any property is compared. In the report they print under `<METHOD> <endpoint>`, then `request:` or `response <s>:`, one break per line followed by its fix lines. Each, with the fix of the participant under check, then `<c>`'s:
 
 - `calls <METHOD> <endpoint>, but <c> doesn't provide it` → `stop calling it`; <c>: `publish it`. The endpoint or method doesn't exist in <c>: check endpoint spelling (`*` segments), method and the provider name under `consumes`.
 - `reads response <s>, but <c> answers only <statuses>` (`204`; `201 or 204`; `201, 204 or 404`) → `read response <statuses>`; <c>: `answer <s>`. Endpoint and method exist, that status doesn't.

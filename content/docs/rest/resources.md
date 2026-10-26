@@ -20,6 +20,8 @@ provides:
 
 This declares three resources: the request of `POST /pets`, its `201` response and its `500` response. Each one is compared on its own: a break in the `500` does not involve the `201`.
 
+A provider's files may split its endpoints, the methods of one endpoint and even the statuses of one method between them, as long as each resource is declared once ([Several files](../contracts/several-files.md)). The `request` of an endpoint and method lives in one file ([Requests](requests.md#in-several-files)).
+
 The consumer produces a request and the provider reads it. The provider produces a response and the consumer reads it. The side that reads a body decides what must be in it ([Which side decides](../contracts/which-side-decides.md)).
 
 A report names a REST resource by its method and endpoint, then `request` or `response <status>`, as in `GET /pets/* response 200`. [Resource breaks](breaks.md) shows every break of a REST resource.
