@@ -3,7 +3,7 @@ title: Property breaks
 description: Every break of a property that a can-i-deploy report can print, with the fix of each side.
 ---
 
-This page lists every break of a property that the [report](can-i-deploy.md#the-report) can print, with the fix of each side. Each one is about a body the provider produces or a body the consumer produces (REST: a response or a request, see [Resources](../rest/resources.md)), and counts only where the property's parent is present ([Which side decides](../contracts/which-side-decides.md)). `<participant>` is the participant under check and `<counterpart>` the counterpart it breaks.
+This page lists every break of a property that the [report](can-i-deploy.md#the-report) can print, with the fix of each side. Each one is about a body the provider produces or a body the consumer produces (REST: a response or a request, see [Resources](../rest/resources.md)), and counts only where the property's parent is present ([Which side decides](../contracts/the-contract-file.md#which-side-decides)). `<participant>` is the participant under check and `<counterpart>` the counterpart it breaks.
 
 ## Absent properties
 

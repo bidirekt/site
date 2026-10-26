@@ -98,8 +98,8 @@ Success lines go to stdout and failures to stderr, except the `can-i-deploy` and
 ## Commands
 
 - [`configure`](#configure) — save the broker URL of a profile in the config file.
-- [`create-participant`](../ship/participants-and-environments.md#create-participant) — create a new participant on the broker.
-- [`create-environment`](../ship/participants-and-environments.md#create-environment) — create a new environment on the broker.
+- [`create-participant`](#create-participant) — create a new participant on the broker.
+- [`create-environment`](#create-environment) — create a new environment on the broker.
 - [`validate`](../ship/validate.md) — validate contract files or folders against an environment without publishing them.
 - [`publish`](../ship/publish.md) — publish one or more contract files or folders to the broker.
 - [`can-i-deploy`](../ship/can-i-deploy.md) — check whether a participant version can be deployed to an environment.
@@ -131,6 +131,28 @@ Broker URL [https://broker.acme.example]:
 ```
 
 Without `--broker-url` and outside a terminal, such as with stdin from `/dev/null` in a CI job or an agent's shell, it fails with `no terminal to ask for the broker URL — pass --broker-url`. `BIDIREKT_BROKER_URL` is ignored here: `configure` only writes the config file.
+
+## create-participant
+
+```
+$ bidirekt create-participant petstore_api
+petstore_api participant created
+```
+
+- `name`: the participant's [name](../concepts/how-the-broker-works.md#participant), in `snake_case`. Anything else fails with `cannot post participant to broker: participant name must be snake_case`.
+
+Running it again for an existing name prints `petstore_api participant already exists` and exits `0`, so a pipeline can run it on every build.
+
+## create-environment
+
+```
+$ bidirekt create-environment production
+production environment created
+```
+
+- `name`: the environment's name, such as `production` or `staging`.
+
+Running it again prints `production environment already exists` and exits `0`.
 
 ## rename-participant
 

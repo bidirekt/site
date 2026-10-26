@@ -5,7 +5,7 @@ description: How to ask whether a version can be deployed to an environment, how
 
 `can-i-deploy` is the broker's answer to one question: can this version of this participant be deployed to this environment without breaking anything deployed there? To answer it, the broker takes the [snapshot](../concepts/how-the-broker-works.md#snapshot) behind the version and compares it with every [counterpart](../concepts/how-the-broker-works.md#counterpart) in the environment.
 
-The answer is yes only if every counterpart is compatible; nothing to check means yes, so a participant that only provides, with no consumer of it deployed in the environment, passes. A yes names the counterparts it compared with, or says that nothing was deployed to compare with. When the answer is no, it names every failing counterpart, with the version of it deployed in the environment, and each break, under the resource it is about, with the reason. A property break is named once per field, with every resource where it happens. A pipeline gates its deployment on this answer.
+The answer is yes only if every counterpart is compatible; nothing to check means yes, so a participant that only provides, with no consumer of it deployed in the environment, passes. A pipeline gates its deployment on this answer.
 
 ## The command
 
@@ -19,9 +19,11 @@ compared with: petstore_api, petstore_reviews
 - `--version`: the published version you are about to deploy.
 - `--environment`: where you are about to deploy it.
 
-It exits `0` when the answer is yes and `1` when it is no; the report goes to stdout either way. A yes names, below it, the counterparts deployed in the environment that it compared with, in alphabetical order, or says there were none: `nothing deployed in production to compare with`. Errors that stop the check go to stderr, checked in this order: an unknown participant fails with `cannot query can-i-deploy from broker: participant not found`, a version that was never published with `cannot query can-i-deploy from broker: contract not found`, and an environment that does not exist with `cannot query can-i-deploy from broker: environment not found`.
+It exits `0` when the answer is yes and `1` when it is no; the report goes to stdout either way. Errors that stop the check go to stderr, checked in this order: an unknown participant fails with `cannot query can-i-deploy from broker: participant not found`, a version that was never published with `cannot query can-i-deploy from broker: contract not found`, and an environment that does not exist with `cannot query can-i-deploy from broker: environment not found`.
 
 ## The report
+
+A yes, as in [The command](#the-command), is followed by the counterparts deployed in the environment that it compared with, in alphabetical order, or by `nothing deployed in production to compare with` when there were none. A no is followed by one block per counterpart that is not compatible, with the version of it deployed in the environment; the version is left out when it is not deployed there:
 
 ```
 $ bidirekt can-i-deploy petstore_web --version 2.3.0 --environment production
@@ -52,7 +54,7 @@ petstore_reviews:
         → petstore_reviews: publish it
 ```
 
-One block per counterpart that is not compatible, with the version of it deployed in the environment; the version is left out when it is not deployed there. Each break is one line, written from the side of `<participant>`, the participant under check, against `<counterpart>`, the counterpart it breaks. Below it come the fixes, one line per side, the fix of `<participant>` first. The breaks of a resource come first, under the resource they are about ([REST: Resource breaks](../rest/breaks.md)).
+Each break is one line, written from the side of `<participant>`, the participant under check, against `<counterpart>`, the counterpart it breaks. Below it come the fixes, one line per side, the fix of `<participant>` first. The breaks of a resource come first, under the resource they are about ([REST: Resource breaks](../rest/breaks.md)).
 
 Then the breaks of a property, one block per field, break and fix, in alphabetical order of the field. A block holds one break: the break and its fixes once, then every place where it happens, one line per resource and property. ` (<N> places)` is left out when there is one place:
 
@@ -64,6 +66,8 @@ Then the breaks of a property, one block per field, break and fix, in alphabetic
 ```
 
 A fix is a change in the code first, then in the contract, so that the contract keeps describing what the code does. `<counterpart field>` is the field of `<counterpart>` at that property, the place to edit in its contract, and ` there` points the fix of `<counterpart>` at it; both are left out when `<counterpart>` has no field there. `<resource>` is the resource as its kind writes it ([REST: Resource breaks](../rest/breaks.md#in-the-report)). Every property break and its fixes are in [Property breaks](property-breaks.md).
+
+A difference inside a schema used in several places, or inside a recursive schema, is one block with its places, one per resource that reaches it; `<property>` is one of the properties that reach it there. A block holds only bodies the provider produces or only bodies the consumer produces: the same difference in one of each is two blocks, each with its own break and fixes.
 
 ## Reading a property block
 
@@ -82,4 +86,4 @@ Pet — petstore_web reads it as object, but petstore_api provides array<object>
     · GET /owners/*/pet response 200 at the body (petstore_api: Pets)
 ```
 
-When `<participant>` has no field at that path, as in the `doesn't provide` and `doesn't send` blocks, the block is named by the field of `<counterpart>`. A difference inside a schema used in several places is one block with its places, one per resource that reaches it; `<property>` is one of the properties that reach it there. A block holds only bodies the provider produces or only bodies the consumer produces: the same difference in one of each is two blocks, each with its own break and fixes. Which side's required properties count is in [Which side decides](../contracts/which-side-decides.md).
+When `<participant>` has no field at that path, as in the `doesn't provide` and `doesn't send` blocks, the block is named by the field of `<counterpart>`. Which side's required properties count is in [Which side decides](../contracts/the-contract-file.md#which-side-decides).
