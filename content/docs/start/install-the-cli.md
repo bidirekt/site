@@ -3,8 +3,6 @@ title: Install the CLI
 description: How to install the bidirekt CLI with curl, from the GitHub Release or as a Docker image, and point it at your broker.
 ---
 
-Bidirekt has two parts: the `bidirekt` CLI, which every pipeline and developer machine runs, and the broker, one server with its Postgres database that stores contracts and deployments. This page installs the client, [Run the broker](run-the-broker.md) puts the server in production, [Running local](running-local.md) starts both on your machine to try them, and [Agent skill](agent-skill.md) lets your coding agent write the contracts.
-
 ## With curl
 
 ```
@@ -78,31 +76,4 @@ $ bidirekt configure
 Broker URL: https://broker.example.com
 ```
 
-It goes into the `default` profile of `~/.config/bidirekt/config.json` (`$XDG_CONFIG_HOME/bidirekt/config.json` when that is set, or the file `BIDIREKT_CONFIG_FILE` names). A profile is one broker: a group of companies, or a freelancer working for several clients, keeps one profile per broker and picks it with `--profile` or `BIDIREKT_PROFILE`:
-
-```
-$ bidirekt configure --profile acme --broker-url https://broker.acme.example
-$ bidirekt can-i-deploy petstore_web --version 2.3.0 --environment production --profile acme
-```
-
-Environments such as `production` and `staging` live inside a broker, so they are never profiles.
-
-The first of these wins: `--broker-url`, then `BIDIREKT_BROKER_URL`, then the active profile's URL. Every command that calls the broker first prints which one it uses and where it came from, on stderr:
-
-```
-Broker: https://broker.acme.example (profile: acme)
-```
-
-**Without a broker.** A command that has no broker fails without calling anything, on your machine and in a pipeline alike; it never asks:
-
-```error title="CLI error"
-no broker configured — pass --broker-url, set BIDIREKT_BROKER_URL, or run "bidirekt configure"
-```
-
-When the config file has other profiles, a second line names them and how to pick one:
-
-```error title="CLI error"
-the config file has the profile local — pass --profile local or set BIDIREKT_PROFILE=local
-```
-
-On your machine, run `bidirekt configure`. In a pipeline, set `BIDIREKT_BROKER_URL`, or write a profile with `bidirekt configure --broker-url <url>`, which never asks. Every option is in the [CLI reference](../reference/cli.md#overview).
+In a pipeline, pass `--broker-url` or set `BIDIREKT_BROKER_URL`, or write a profile with `bidirekt configure --broker-url <url>`, which never asks. Profiles, the config file and the order that wins are in the [CLI reference](../reference/cli.md#broker-address).

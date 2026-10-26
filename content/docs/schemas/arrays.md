@@ -3,7 +3,7 @@ title: Arrays
 description: How items describes every element of an array.
 ---
 
-`items` is the node of every element, as in `Pets` in [Primitives](primitives.md). An array without `items` is rejected.
+`items` is the node of every element, as in `Pets` in [Nodes](nodes.md). An array without `items` is rejected.
 
 An array of strings:
 

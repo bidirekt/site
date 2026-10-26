@@ -41,7 +41,7 @@ petstore_web (1.0.0, deployed):
 The proposed change breaks petstore_web, which is deployed in production.
 ```
 
-The report names the counterpart it breaks, `petstore_web` with the version deployed in production, the property, the fix on each side, and where `petstore_web` reads it. [can-i-deploy](../ship/can-i-deploy.md) explains every line of it.
+The report names the counterpart it breaks, `petstore_web` with the version deployed in production, the property, the fix on each side, and where `petstore_web` reads it. [can-i-deploy](../ship/can-i-deploy.md#the-report) explains every line of it.
 
 ## The fix
 

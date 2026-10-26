@@ -12,7 +12,7 @@ petstore_web deployment recorded to production
 - `--version`: the version you deployed. It must be published, or the command fails with `cannot post deployment to broker: version not found`.
 - `--environment`: where you deployed it. It must exist, or the command fails with `cannot post deployment to broker: environment not found`.
 
-Run it after the deployment succeeds. It never checks compatibility and never blocks.
+Run it after the deployment succeeds. It never checks compatibility and never blocks ([Deployment](../concepts/how-the-broker-works.md#deployment)).
 
 Recording a version that was deployed in the environment before, and is not the current one there, is a rollback, and the line says so:
 
