@@ -109,7 +109,9 @@ export function Commands() {
         lede={
           <>
             Publish the contract, ask before you deploy, record what shipped.
-            The exit code of <code>can-i-deploy</code> is the gate in CI.
+            The exit code of{' '}
+            <code className="whitespace-nowrap">can-i-deploy</code> is the gate
+            in CI.
           </>
         }
       />
