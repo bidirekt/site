@@ -75,7 +75,7 @@ $ export BIDIREKT_PROFILE=local
 
 ## Production
 
-The broker ships as a Docker image, for `linux/amd64` and `linux/arm64`:
+The broker is self-hosted. It ships as a Docker image, for `linux/amd64` and `linux/arm64`:
 
 ```
 ghcr.io/bidirekt/broker:0.1.0

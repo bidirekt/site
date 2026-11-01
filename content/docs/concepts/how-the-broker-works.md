@@ -21,7 +21,7 @@ A contract is what a participant declares about its integrations: the resources 
 
 ## Version
 
-A version is the label you attach to a contract when you publish it. It is any string; a commit hash or a release tag are the usual choices. Versions are unique within a participant and immutable once published:
+A version is the label you attach to a contract when you publish it. It is any string with no whitespace at either end; a commit hash or a release tag are the usual choices. Versions are unique within a participant and immutable once published:
 
 - publishing the same version again with the same declarations succeeds and changes nothing;
 - publishing the same version with different declarations is refused with `cannot post contract to broker: contract version already exists with different content`.
