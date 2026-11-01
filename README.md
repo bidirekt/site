@@ -16,7 +16,7 @@ The docs are the Markdown files in `content/docs/`; `content/docs/nav.yaml` sets
 
 ## How it ships
 
-The Deploy workflow (`.github/workflows/deploy.yml`) runs on every push to `main` and can also be started by hand. It builds the site with `npm run build` and deploys `dist/client` to GitHub Pages, which serves https://bidirekt.com.
+The Deploy workflow (`.github/workflows/deploy.yml`) runs only by hand, for a site tag (`v0.1.0`): merging to `main` publishes nothing. It builds the site with `npm run build` and deploys `dist/client` to GitHub Pages, which serves https://bidirekt.com.
 
 ## Development
 

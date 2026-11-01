@@ -11,7 +11,7 @@ See it first: `curl -sL bidirekt.com/demo | sh` runs the petstore example with D
 Install the CLI (Linux and macOS, `x86_64` and `arm64`):
 
 ```
-curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/main/install.sh | sh
+curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/d216ed0d00caf1cb59bfcf3a7846f1adbfd99ca1/install.sh | sh
 ```
 
 Prints `bidirekt 0.1.0 installed to ~/.local/bin/bidirekt`. To pin a version, pass it to the script: `sh -s -- v0.1.0`; `v` is optional.
