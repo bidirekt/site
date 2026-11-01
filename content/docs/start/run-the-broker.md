@@ -93,7 +93,7 @@ The image runs as a non-root user and has no shell. It needs one Postgres databa
 | `BIDIREKT_PUBLIC_URL` | required | The address people and the CLI open the broker at, such as `https://bidirekt.example.com`. It builds the invite and reset links, and page actions from any other address are refused. |
 | `BIDIREKT_ADMIN_USERNAME` | required | The admin's username, without `@`. |
 | `BIDIREKT_ADMIN_PASSWORD` | required | The admin's password, 15 to 128 characters. |
-| `BIDIREKT_TRUSTED_PROXIES` | none | The reverse proxies in front of the broker, as a comma-separated list of IPs or CIDRs, such as `10.0.0.5,172.16.0.0/12`. See [Exposing it](#exposing-it). |
+| `BIDIREKT_TRUSTED_PROXIES` | none | The reverse proxies in front of the broker, as a comma-separated list of IPs or CIDRs, such as `172.17.0.1` or `10.0.0.5,10.0.0.6`. See [Exposing it](#exposing-it). |
 
 ### Start-up checks
 
@@ -159,7 +159,7 @@ The admin lives only in the settings: change `BIDIREKT_ADMIN_USERNAME` or `BIDIR
 
 Sign in at `<BIDIREKT_PUBLIC_URL>/sign-in` with the admin's username and password. The admin manages users and nothing else, on the Users page:
 
-- **Invite a user** with an email and a permission: `read` lets them list participants and environments, validate contracts and ask can-i-deploy; `write` adds publishing, recording deployments and creating or renaming participants and environments. The broker shows an invite link once: send it to them. It works once, for 24 hours.
+- **Invite a user** with an email and a permission: `read` lets them list participants and environments, validate contracts and ask can-i-deploy; `write` adds publishing, recording deployments, creating participants and environments, and renaming participants. The broker shows an invite link once: send it to them. It works once, for 24 hours.
 - The user opens the link, sets a password of 15 to 128 characters, and signs in with their email.
 - **Edit** changes a user's email or permission. **Deactivate** ends their sessions at once and stops their link; **Reactivate** lets them in again. Users are never deleted.
 - **New reset link** gives an active user a link to set a new password, **New invite link** gives an invited user a new invite. Each new link stops the previous one.
@@ -185,4 +185,4 @@ The broker does not serve TLS. Put a reverse proxy of your choice in front of it
 
 Open the broker at exactly `BIDIREKT_PUBLIC_URL`, and give the CLI that address too. From any other address, even one that reaches the same broker, its pages refuse every action.
 
-Behind a proxy, every request comes from the proxy's IP, so the sign-in limit would count everyone's failures together. List the proxy in `BIDIREKT_TRUSTED_PROXIES`: the broker then takes the client's IP from the `X-Forwarded-For` header, read from the right past the listed proxies, so a value the client writes in the header changes nothing. From any other address the header is ignored. Without the variable the header is always ignored.
+Behind a proxy, every request reaches the broker from the proxy's address, so the sign-in limit would count everyone's failures together. List that address in `BIDIREKT_TRUSTED_PROXIES`. With the broker in Docker and the proxy on the same host, as on this page, that address is the Docker network's gateway, not `127.0.0.1`: `docker network inspect bridge -f '{{range .IPAM.Config}}{{.Gateway}}{{end}}'` prints it, usually `172.17.0.1`. The broker then takes the client's IP from the `X-Forwarded-For` header, read from the right past the listed proxies, so a value the client writes in the header changes nothing. From any other address the header is ignored. Without the variable the header is always ignored.
