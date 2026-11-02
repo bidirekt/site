@@ -103,6 +103,7 @@ The broker checks the four settings above before it connects to the database, an
 - `BIDIREKT_PUBLIC_URL must use https, or http on localhost or 127.0.0.1`
 - `BIDIREKT_PUBLIC_URL must be an origin (scheme://host[:port]) without a path, query, fragment or userinfo`: `https://bidirekt.example.com/` (trailing `/`) and `https://bidirekt.example.com/broker` are refused.
 - `BIDIREKT_PUBLIC_URL must have a lower-case host`
+- `BIDIREKT_PUBLIC_URL must have an ASCII host (write an international name in its xn-- form)`: `https://bücher.example` is refused; `https://xn--bcher-kva.example` is accepted.
 - `BIDIREKT_PUBLIC_URL must have a port from 1 to 65535 without leading zeros`
 - `BIDIREKT_PUBLIC_URL must not write out the default port`: `https://bidirekt.example.com:443` is refused.
 - `BIDIREKT_ADMIN_USERNAME is required`
