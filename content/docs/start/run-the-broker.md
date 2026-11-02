@@ -1,6 +1,6 @@
 ---
 title: Run the broker
-description: How to start the broker and Postgres on your machine with Docker Compose, sign in and give them their own profile, and how to run the broker's Docker image in production with its Postgres database, admin, users, health check and exposure.
+description: How to start the broker and Postgres on your machine with Docker Compose, create the admin on the first access and give them their own profile, and how to run the broker's Docker image in production with its Postgres database, admin, users, health check and exposure.
 ---
 
 ## Local
@@ -33,8 +33,6 @@ services:
     environment:
       BIDIREKT_DATABASE_URL: postgres://bidirekt:bidirekt@postgres:5432/bidirekt?sslmode=disable
       BIDIREKT_PUBLIC_URL: http://localhost:8080
-      BIDIREKT_ADMIN_USERNAME: admin
-      BIDIREKT_ADMIN_PASSWORD: bidirekt-local-admin
     ports:
       - "127.0.0.1:8080:8080"
     depends_on:
@@ -56,7 +54,7 @@ $ curl -s http://localhost:8080/health
 
 The data lives in the `bidirekt_postgres-data` volume, the same from any folder, so it survives `docker compose down` and `up`; `docker compose down -v` erases it. Both containers start again by themselves when Docker restarts. The broker listens on `127.0.0.1` only, so other machines on your network cannot reach it.
 
-Sign in at http://localhost:8080/sign-in as `admin`, with the password `bidirekt-local-admin`. Open it at exactly `http://localhost:8080`, the compose's `BIDIREKT_PUBLIC_URL`: from `http://127.0.0.1:8080` the broker refuses every action on its pages.
+Open http://localhost:8080 in the browser. The first access opens the setup: create the admin with an email and a password of 15 to 128 characters, and you are signed in. Open it at exactly `http://localhost:8080`, the compose's `BIDIREKT_PUBLIC_URL`: from `http://127.0.0.1:8080` the broker refuses every action on its pages.
 
 Give the local broker its own profile, so it never mixes with your real one:
 
@@ -91,13 +89,11 @@ The image runs as a non-root user and has no shell. It needs one Postgres databa
 | `BIDIREKT_LISTEN_ADDR` | `:8080` | The address the broker listens on. |
 | `BIDIREKT_DATABASE_CONNECT_RETRIES` | `10` | How many times the broker tries to reach the database on start: each attempt waits up to 5s (or the URL's `connect_timeout`), with 2s between attempts. When they run out, the broker exits with code 1. |
 | `BIDIREKT_PUBLIC_URL` | required | The address people and the CLI open the broker at, such as `https://bidirekt.example.com`. It builds the invite and reset links, and page actions from any other address are refused. |
-| `BIDIREKT_ADMIN_USERNAME` | required | The admin's username, without `@`. |
-| `BIDIREKT_ADMIN_PASSWORD` | required | The admin's password, 15 to 128 characters. |
 | `BIDIREKT_TRUSTED_PROXIES` | none | The reverse proxies in front of the broker, as a comma-separated list of IPs or CIDRs, such as `172.17.0.1` or `10.0.0.5,10.0.0.6`. See [Exposing it](#exposing-it). |
 
 ### Start-up checks
 
-The broker checks the four settings above before it connects to the database, and refuses to start, with exit code 1, when one is missing or unsafe. It never corrects a value. The message names the variable and the rule:
+The broker checks `BIDIREKT_PUBLIC_URL` and `BIDIREKT_TRUSTED_PROXIES` before it connects to the database, and refuses to start, with exit code 1, when one is missing or unsafe. It never corrects a value. The message names the variable and the rule:
 
 - `BIDIREKT_PUBLIC_URL is required`
 - `BIDIREKT_PUBLIC_URL must use https, or http on localhost or 127.0.0.1`
@@ -106,10 +102,6 @@ The broker checks the four settings above before it connects to the database, an
 - `BIDIREKT_PUBLIC_URL must have an ASCII host (write an international name in its xn-- form)`: `https://bücher.example` is refused; `https://xn--bcher-kva.example` is accepted.
 - `BIDIREKT_PUBLIC_URL must have a port from 1 to 65535 without leading zeros`
 - `BIDIREKT_PUBLIC_URL must not write out the default port`: `https://bidirekt.example.com:443` is refused.
-- `BIDIREKT_ADMIN_USERNAME is required`
-- `BIDIREKT_ADMIN_USERNAME must not contain @`
-- `BIDIREKT_ADMIN_PASSWORD is required`
-- `BIDIREKT_ADMIN_PASSWORD must have 15 to 128 characters`
 - `BIDIREKT_TRUSTED_PROXIES must be a comma-separated list of IPs or CIDRs, without spaces or empty entries`
 
 ### Postgres on another machine
@@ -121,8 +113,6 @@ $ docker run -d --name bidirekt-broker --restart unless-stopped \
     -p 127.0.0.1:8080:8080 \
     -e BIDIREKT_DATABASE_URL='postgres://bidirekt:<password>@db.example.com:5432/bidirekt?sslmode=require' \
     -e BIDIREKT_PUBLIC_URL=https://bidirekt.example.com \
-    -e BIDIREKT_ADMIN_USERNAME=admin \
-    -e BIDIREKT_ADMIN_PASSWORD='<admin password>' \
     ghcr.io/bidirekt/broker:0.1.0
 ```
 
@@ -136,8 +126,6 @@ $ docker run -d --name bidirekt-broker --restart unless-stopped \
     --add-host host.docker.internal:host-gateway \
     -e BIDIREKT_DATABASE_URL='postgres://bidirekt:<password>@host.docker.internal:5432/bidirekt' \
     -e BIDIREKT_PUBLIC_URL=https://bidirekt.example.com \
-    -e BIDIREKT_ADMIN_USERNAME=admin \
-    -e BIDIREKT_ADMIN_PASSWORD='<admin password>' \
     ghcr.io/bidirekt/broker:0.1.0
 ```
 
@@ -156,9 +144,9 @@ Nothing here is required. These are the choices worth making:
 
 ### Admin and users
 
-The admin lives only in the settings: change `BIDIREKT_ADMIN_USERNAME` or `BIDIREKT_ADMIN_PASSWORD` and restart the broker. Every admin session ends when the broker starts.
+The admin is created on the first access: until it exists, every page of the broker opens the setup, where you create it with an email and a password of 15 to 128 characters. After that the setup is gone, and the admin signs in at `<BIDIREKT_PUBLIC_URL>/sign-in` with that email and password.
 
-Sign in at `<BIDIREKT_PUBLIC_URL>/sign-in` with the admin's username and password. The admin manages users and nothing else, on the Users page:
+The admin is a user with the permission `admin`: it does everything a `write` user does, uses the API with a token like any user, has a Profile page, and is the only one who manages users, on the Users page:
 
 - **Invite a user** with an email and a permission: `read` lets them list participants and environments, validate contracts and ask can-i-deploy; `write` adds publishing, recording deployments, creating participants and environments, and renaming participants. The broker shows an invite link once: send it to them. It works once, for 24 hours.
 - The user opens the link, sets a password of 15 to 128 characters, and signs in with their email.
@@ -167,7 +155,7 @@ Sign in at `<BIDIREKT_PUBLIC_URL>/sign-in` with the admin's username and passwor
 
 A signed-in user changes their own password on the Profile page. A session ends after 8 hours without use, or 7 days after sign-in.
 
-Failed sign-ins are limited per IP, over 15 minutes: after 10 for one email or username, that account's next attempts from that IP get `too many attempts, try again later`; after 50 for any accounts, every attempt from that IP does. Successful sign-ins never count.
+Failed sign-ins are limited per IP, over 15 minutes: after 10 for one email, that account's next attempts from that IP get `too many attempts, try again later`; after 50 for any accounts, every attempt from that IP does. Successful sign-ins never count.
 
 ### Health
 
@@ -182,7 +170,7 @@ The image's own Docker healthcheck calls it, so `docker ps` shows the container 
 
 ### Exposing it
 
-The broker does not serve TLS. Put a reverse proxy of your choice in front of it, such as Caddy or Nginx, to serve HTTPS: outside `localhost` and `127.0.0.1`, `BIDIREKT_PUBLIC_URL` must be `https://`. Every example on this page publishes the port on `127.0.0.1` only, so only the proxy reaches it.
+The broker does not serve TLS. Put a reverse proxy of your choice in front of it, such as Caddy or Nginx, to serve HTTPS: outside `localhost` and `127.0.0.1`, `BIDIREKT_PUBLIC_URL` must be `https://`. Every example on this page publishes the port on `127.0.0.1` only, so only the proxy reaches it. Until the admin exists, whoever opens `BIDIREKT_PUBLIC_URL` first creates it: create it right after the first start, before the proxy lets anyone else in.
 
 Open the broker at exactly `BIDIREKT_PUBLIC_URL`, and give the CLI that address too. From any other address, even one that reaches the same broker, its pages refuse every action.
 

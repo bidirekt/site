@@ -23,13 +23,13 @@ The broker runs with Docker. Without it, the CLI and the skill are still install
 
 It ends with `Bidirekt is set up. Next:` and the steps below, the same for every project. `<service>` is the participant's name, `<version>` the version you build, and `<files>` the contract files.
 
-1. **Start the broker and sign in**, on `localhost:8080`, as in [Run the broker](run-the-broker.md#local):
+1. **Start the broker and create the admin**, on `localhost:8080`, as in [Run the broker](run-the-broker.md#local):
 
    ```
    $ docker compose -f bidirekt/compose.yaml up -d
    ```
 
-   Then sign in at http://localhost:8080/sign-in as `admin`, with the password `bidirekt-local-admin`.
+   Then open http://localhost:8080: the first access opens the setup, where you create the admin with an email and a password.
 
 2. **Point the CLI at it** with its own profile, `local`, as in [Run the broker](run-the-broker.md#local) and [configure](../reference/cli.md#configure):
 
