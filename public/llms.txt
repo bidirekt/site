@@ -6,12 +6,12 @@ Workflow per participant, in this order: `create-participant` (once) → `valida
 
 ## Setup
 
-See it first: `curl -sL bidirekt.com/demo | sh` runs the petstore example with Docker, from a `can-i-deploy` break to the fixed version ([Demo](https://bidirekt.com/docs/start/demo.md)). Set up a project in one command: `curl -sL bidirekt.com/try | sh` downloads the broker's compose file to `bidirekt/compose.yaml`, installs the CLI and the agent skill, and prints the next steps ([Try on your project](https://bidirekt.com/docs/start/try.md)). The steps one by one:
+See it first: `curl -sL bidirekt.com/demo | sh` runs the petstore example with Docker, from a `can-i-deploy` break to the fixed version ([Demo](https://bidirekt.com/docs/start/demo.md)). Set up a project in one command: `curl -sL bidirekt.com/try | sh` downloads the broker's compose file to `bidirekt/compose.yaml`, installs the CLI and the agent skill, and prints the next steps, starting with `docker compose -f bidirekt/compose.yaml up -d` and opening `http://localhost:8080`, where the first access creates the admin with an email and a password ([Try on your project](https://bidirekt.com/docs/start/try.md)). The steps one by one:
 
 Install the CLI (Linux and macOS, `x86_64` and `arm64`):
 
 ```
-curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/main/install.sh | sh
+curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/d216ed0d00caf1cb59bfcf3a7846f1adbfd99ca1/install.sh | sh
 ```
 
 Prints `bidirekt 0.1.0 installed to ~/.local/bin/bidirekt`. To pin a version, pass it to the script: `sh -s -- v0.1.0`; `v` is optional.
@@ -215,7 +215,7 @@ Core rule, for every kind of resource: the side that reads a body decides what m
 - [Demo](https://bidirekt.com/docs/start/demo.md): the petstore demo step by step, from a `can-i-deploy` break to the fix.
 - [Try on your project](https://bidirekt.com/docs/start/try.md): what `bidirekt.com/try` installs and the seven steps it prints.
 - [Install](https://bidirekt.com/docs/start/install.md): the CLI with curl, from the GitHub Release or as a Docker image, pointing it at a broker, and the agent skill.
-- [Run the broker](https://bidirekt.com/docs/start/run-the-broker.md): the local Docker Compose broker and its `local` profile, and the broker image in production.
+- [Run the broker](https://bidirekt.com/docs/start/run-the-broker.md): the local Docker Compose broker, the admin created on the first access and its `local` profile, and the broker image in production: its settings (`BIDIREKT_PUBLIC_URL`, `BIDIREKT_TRUSTED_PROXIES`), start-up checks, the admin, users and invite links, and the HTTPS reverse proxy.
 - [Why bidirectional](https://bidirekt.com/docs/concepts/why-bidirectional.md): what contract testing catches, consumer-driven vs provider-driven, and why both sides declare and nothing runs.
 - [How the broker works](https://bidirekt.com/docs/concepts/how-the-broker-works.md): participant, environment, contract, version, snapshot, counterpart, can-i-deploy, deployment.
 - [The contract file](https://bidirekt.com/docs/contracts/the-contract-file.md): keys and resources, bodies not described, which side decides, describing what the code does, several files, what is not compared, file rules.

@@ -6,7 +6,7 @@ description: How to install the bidirekt CLI with curl, from the GitHub Release 
 ## With curl
 
 ```
-$ curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/main/install.sh | sh
+$ curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/d216ed0d00caf1cb59bfcf3a7846f1adbfd99ca1/install.sh | sh
 bidirekt 0.1.0 installed to /home/you/.local/bin/bidirekt
 ```
 
@@ -17,7 +17,7 @@ To pin a version, pass it to the script, with or without the `v`: `sh -s -- v0.1
 `-b` picks the directory. A directory owned by root, such as `/usr/local/bin`, needs `sudo` on the `sh`:
 
 ```
-$ curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/main/install.sh | sudo sh -s -- -b /usr/local/bin v0.1.0
+$ curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/d216ed0d00caf1cb59bfcf3a7846f1adbfd99ca1/install.sh | sudo sh -s -- -b /usr/local/bin v0.1.0
 ```
 
 The CLI is built for Linux and macOS, on `x86_64` and `arm64`.
