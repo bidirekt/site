@@ -121,6 +121,8 @@ contract validation failed
   - pets_errors.yaml: duplicate resource "provides POST /pets request", also declared in pets.yaml
 ```
 
+A consumer may instead declare the same resource in several files; how they join, including a file that writes `~`, is in [Several files](../contracts/the-contract-file.md#several-files).
+
 ## What is not compared
 
 The `rest` block has no key for the items below, so a change in any of them never makes `can-i-deploy` fail, and a key written for one, such as `headers`, is rejected at publish as an unknown key. The items that hold for every kind of resource are in [The contract file](../contracts/the-contract-file.md#what-is-not-compared).
