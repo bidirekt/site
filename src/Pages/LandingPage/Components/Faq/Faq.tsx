@@ -16,7 +16,7 @@ const QUESTIONS: Array<Question> = [
   {
     question: 'Do I need to host the broker?',
     answer:
-      'Yes, it is self-hosted: one Docker image and a Postgres database. It has no authentication yet, so keep it on a private network or behind a proxy that controls who gets in.',
+      'Yes, it is self-hosted: one Docker image and a Postgres database. One admin, created on the first access, invites users by email with read or write permission, and every API call needs a token of one of those users. Serve it over HTTPS from a reverse proxy.',
   },
 ]
 

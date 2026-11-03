@@ -64,8 +64,9 @@ main() {
 
 Bidirekt is set up. Next:
 
-1. Start the broker
+1. Start the broker and create the admin
    docker compose -f bidirekt/compose.yaml up -d
+   Open http://localhost:8080 and create the admin with an email and a password
 
 2. Point the CLI at it
    bidirekt configure --profile local --broker-url http://localhost:8080
