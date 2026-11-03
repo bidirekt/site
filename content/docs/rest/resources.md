@@ -102,7 +102,7 @@ provides:
           204:
 ```
 
-The resource still exists, so a consumer that calls `DELETE /pets/*` matches it. Against a counterpart, with the consumer under check (a provider under check that drops a `request` gets the `removed` break of [Resource breaks](breaks.md#every-break)):
+The resource still exists, so a consumer that calls `DELETE /pets/*` matches it. Against a counterpart, with the consumer under check (a provider under check that drops a `request` while still declaring the endpoint and method gets the `dropped the request body` break of [Resource breaks](breaks.md#every-break)):
 
 | Provider | Consumer | Result |
 |---|---|---|
