@@ -3,14 +3,17 @@ title: Resource breaks
 description: The breaks of a REST resource that come before any property is compared, how the report shows them, and their fixes.
 ---
 
-Six breaks come before any property is compared, because there is nothing to compare yet. The first five come when the consumer is under check, the last when the provider is:
+Nine breaks come before any property is compared, because there is nothing to compare yet. The first five come when the consumer is under check, the last four when the provider is:
 
 - the consumer names an endpoint or method that no published contract of the provider declares, or a provider that does not exist;
 - the provider declares the endpoint and method, but not the response status the consumer reads;
 - the provider declares the endpoint and method, but no response at all where the consumer reads one;
 - the provider declares the endpoint and method, but no request body where the consumer sends one;
 - the provider has published the resource but is not deployed in the environment;
-- the provider under check no longer declares a resource that a consumer deployed in the environment still consumes.
+- the provider under check no longer declares an endpoint and method that a consumer deployed in the environment still calls;
+- the provider under check no longer answers a status that a deployed consumer still reads, but answers others on that endpoint and method;
+- the provider under check no longer answers any status on an endpoint and method it still declares, where a deployed consumer still reads one;
+- the provider under check no longer accepts a request body that a deployed consumer still sends.
 
 ## In the report
 
@@ -96,7 +99,28 @@ The provider is not deployed in the target environment; the parenthesis is left 
 
 #### `<participant> removed <METHOD> <endpoint>, but <counterpart> still calls it`
 
-The participant dropped a resource that a consumer deployed in the environment still consumes. Dropping a `request` that the consumer sends, or a status that it reads, is a removal too, even when the endpoint stays declared, and so is a status that changes: a provider that answers `DELETE /pets/*` with `204:` instead of `200: Pet`, while `petstore_web` still reads response `200`, gets `petstore_api removed DELETE /pets/*, but petstore_web still calls it`.
+The participant no longer declares the endpoint and method at all, and a consumer deployed in the environment still calls them. When the endpoint and method stay but a status or the request body the consumer uses is gone, the break is one of the three below instead.
 
 - Fix of `<participant>`: `keep it until <counterpart> stops calling it`
 - Fix of `<counterpart>`: `stop calling it`
+
+#### `<participant> now answers <METHOD> <endpoint> only with <statuses>, but <counterpart> still reads response <status>`
+
+Response: the participant still declares the endpoint and method, but no longer answers the status that a deployed consumer reads; `<statuses>` are the ones it answers now, such as `201, 204 or 404`. A provider that answers `DELETE /pets/*` with `204:` instead of `200: Pet`, while `petstore_web` still reads response `200`, gets `petstore_api now answers DELETE /pets/* only with 204, but petstore_web still reads response 200`.
+
+- Fix of `<participant>`: `keep answering <status> until <counterpart> stops reading it`
+- Fix of `<counterpart>`: `read response <statuses>`
+
+#### `<participant> no longer answers <METHOD> <endpoint>, but <counterpart> still reads response <status>`
+
+Response: the participant still declares the endpoint and method, with a request but no response at all, and a deployed consumer still reads one.
+
+- Fix of `<participant>`: `keep answering <status> until <counterpart> stops reading it`
+- Fix of `<counterpart>`: `stop reading it`
+
+#### `<participant> dropped the request body of <METHOD> <endpoint>, but <counterpart> still sends it`
+
+Request: the participant still declares the endpoint and method, but with no `request`, and a deployed consumer still sends one.
+
+- Fix of `<participant>`: `keep accepting it until <counterpart> stops sending it`
+- Fix of `<counterpart>`: `stop sending it`
