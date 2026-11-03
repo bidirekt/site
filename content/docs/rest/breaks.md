@@ -13,7 +13,7 @@ Nine breaks come before any property is compared, because there is nothing to co
 - the provider under check no longer declares an endpoint and method that a consumer deployed in the environment still calls;
 - the provider under check no longer answers a status that a deployed consumer still reads, but answers others on that endpoint and method;
 - the provider under check no longer answers any status on an endpoint and method it still declares, where a deployed consumer still reads one;
-- the provider under check no longer accepts a request body that a deployed consumer still sends.
+- the provider under check no longer accepts a request body on an endpoint and method it still declares, where a deployed consumer still sends one.
 
 ## In the report
 
@@ -34,7 +34,7 @@ The property blocks that follow name each place where a break happens with one o
 · <METHOD> <endpoint> request at "<property>" (<counterpart>: <counterpart field>)
 ```
 
-A removed resource is reported once, right below `<METHOD> <endpoint>`, not under each request and response status it had ([what counts as removed](#participant-removed-method-endpoint-but-counterpart-still-calls-it)). Any other break of that endpoint stays under its body or in its block:
+An endpoint and method removed entirely are reported once in each consumer's block, right below `<METHOD> <endpoint>`, not under each request and response status that consumer uses ([what counts as removed](#participant-removed-method-endpoint-but-counterpart-still-calls-it)). A status or request body dropped from an endpoint and method that stay is reported under its own `response <status>:` or `request:`. Any other break of that endpoint stays under its body or in its block:
 
 ```error title="can-i-deploy output"
 petstore_web (2.3.0, deployed):
