@@ -28,9 +28,9 @@ A report names a REST resource by its method and endpoint, then `request` or `re
 
 The endpoint is part of a resource's identity, so a consumer's endpoint matches a provider's only when both are written the same way:
 
-- An endpoint starts with `/` and has no empty segment: `//` and `/pets//photos` are rejected at publish with `malformed path`. A `;` in a segment, as in `/pets;v=2`, is a `malformed path` too. `/` alone is the root, a valid endpoint.
-- A dynamic segment is `*`, one per segment, with no name: `/pets/*`, `/owners/*/pets/*`.
-- `{petId}` and partial wildcards such as `p*` are rejected at publish, not rewritten. `:petId` is read as a literal segment that no request path matches, so write `*`.
+- A dynamic segment is `*`, one per segment: `/pets/*`, `/owners/*/pets/*`. Any other form is rejected at publish:
+  - `/pets/{petId}`, `/pets/:petId`, `/pets/<petId>`, `/pets/[petId]`, `/pets/p*` → `dynamic path segments must use *`
+  - `/pets//photos`, `/pets;v=2`, `/pets/a b` → `malformed path`
 - A trailing slash is removed: `/pets/` is `/pets`, and a provider that writes both has declared the same resources twice.
 - The methods are `get`, `post`, `put`, `patch` and `delete`, in lowercase. Any other key under an endpoint is rejected.
 
