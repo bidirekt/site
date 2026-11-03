@@ -33,6 +33,7 @@ services:
     environment:
       BIDIREKT_DATABASE_URL: postgres://bidirekt:bidirekt@postgres:5432/bidirekt?sslmode=disable
       BIDIREKT_PUBLIC_URL: http://localhost:8080
+      BIDIREKT_TOKEN_SIGNING_KEY: 7gmc2J1gbHNvk40aKN1IkgrFL0Q9gs3tS7vubJ1616E=
     ports:
       - "127.0.0.1:8080:8080"
     depends_on:
@@ -52,7 +53,7 @@ $ curl -s http://localhost:8080/health
 {"status":"ok","brokerVersion":"0.1.0","apiVersion":1}
 ```
 
-The data lives in the `bidirekt_postgres-data` volume, the same from any folder, so it survives `docker compose down` and `up`; `docker compose down -v` erases it. Both containers start again by themselves when Docker restarts. The broker listens on `127.0.0.1` only, so other machines on your network cannot reach it.
+The data lives in the `bidirekt_postgres-data` volume, the same from any folder, so it survives `docker compose down` and `up`; `docker compose down -v` erases it. Both containers start again by themselves when Docker restarts. The broker listens on `127.0.0.1` only, so other machines on your network cannot reach it. The compose's `BIDIREKT_TOKEN_SIGNING_KEY` is fixed because the compose is for trying locally; in production, generate your own.
 
 Open http://localhost:8080 in the browser. The first access opens the setup: create the admin with an email and a password of 15 to 128 characters, and you are signed in. Open it at exactly `http://localhost:8080`, the compose's `BIDIREKT_PUBLIC_URL`: from `http://127.0.0.1:8080` the broker refuses every action on its pages.
 
@@ -90,10 +91,11 @@ The image runs as a non-root user and has no shell. It needs one Postgres databa
 | `BIDIREKT_DATABASE_CONNECT_RETRIES` | `10` | How many times the broker tries to reach the database on start: each attempt waits up to 5s (or the URL's `connect_timeout`), with 2s between attempts. When they run out, the broker exits with code 1. |
 | `BIDIREKT_PUBLIC_URL` | required | The address people and the CLI open the broker at, such as `https://bidirekt.example.com`. It builds the invite and reset links, and page actions from any other address are refused. |
 | `BIDIREKT_TRUSTED_PROXIES` | none | The reverse proxies in front of the broker, as a comma-separated list of IPs or CIDRs, such as `172.17.0.1` or `10.0.0.5,10.0.0.6`. See [Exposing it](#exposing-it). |
+| `BIDIREKT_TOKEN_SIGNING_KEY` | required | The key that signs the API tokens, as base64 of at least 32 bytes. Generate it once with `openssl rand -base64 32` and keep it: changing it invalidates the tokens already issued. |
 
 ### Start-up checks
 
-The broker checks `BIDIREKT_PUBLIC_URL` and `BIDIREKT_TRUSTED_PROXIES` before it connects to the database, and refuses to start, with exit code 1, when one is missing or unsafe. It never corrects a value. The message names the variable and the rule:
+The broker checks `BIDIREKT_PUBLIC_URL`, `BIDIREKT_TRUSTED_PROXIES` and `BIDIREKT_TOKEN_SIGNING_KEY` before it connects to the database, and refuses to start, with exit code 1, when one is missing or unsafe. It never corrects a value. The message names the variable and the rule:
 
 - `BIDIREKT_PUBLIC_URL is required`
 - `BIDIREKT_PUBLIC_URL must use https, or http on localhost or 127.0.0.1`
@@ -103,6 +105,8 @@ The broker checks `BIDIREKT_PUBLIC_URL` and `BIDIREKT_TRUSTED_PROXIES` before it
 - `BIDIREKT_PUBLIC_URL must have a port from 1 to 65535 without leading zeros`
 - `BIDIREKT_PUBLIC_URL must not write out the default port`: `https://bidirekt.example.com:443` is refused.
 - `BIDIREKT_TRUSTED_PROXIES must be a comma-separated list of IPs or CIDRs, without spaces or empty entries`
+- `BIDIREKT_TOKEN_SIGNING_KEY is required`
+- `BIDIREKT_TOKEN_SIGNING_KEY must be base64 of at least 32 bytes, such as the output of openssl rand -base64 32`
 
 ### Postgres on another machine
 
@@ -113,6 +117,7 @@ $ docker run -d --name bidirekt-broker --restart unless-stopped \
     -p 127.0.0.1:8080:8080 \
     -e BIDIREKT_DATABASE_URL='postgres://bidirekt:<password>@db.example.com:5432/bidirekt?sslmode=require' \
     -e BIDIREKT_PUBLIC_URL=https://bidirekt.example.com \
+    -e BIDIREKT_TOKEN_SIGNING_KEY='<signing-key>' \
     ghcr.io/bidirekt/broker:0.1.0
 ```
 
@@ -126,6 +131,7 @@ $ docker run -d --name bidirekt-broker --restart unless-stopped \
     --add-host host.docker.internal:host-gateway \
     -e BIDIREKT_DATABASE_URL='postgres://bidirekt:<password>@host.docker.internal:5432/bidirekt' \
     -e BIDIREKT_PUBLIC_URL=https://bidirekt.example.com \
+    -e BIDIREKT_TOKEN_SIGNING_KEY='<signing-key>' \
     ghcr.io/bidirekt/broker:0.1.0
 ```
 
