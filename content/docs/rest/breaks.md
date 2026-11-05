@@ -5,11 +5,11 @@ description: The breaks of a REST resource that come before any property is comp
 
 Nine breaks come before any property is compared, because there is nothing to compare yet. The first five come when the consumer is under check, the last four when the provider is:
 
-- the consumer names an endpoint or method that no published contract of the provider declares, or a provider that does not exist;
+- the consumer names an endpoint or method that the provider's version deployed in the environment does not declare (its latest published version, when it is not deployed there), or a provider that does not exist;
 - the provider declares the endpoint and method, but not the response status the consumer reads;
 - the provider declares the endpoint and method, but no response at all where the consumer reads one;
 - the provider declares the endpoint and method, but no request body where the consumer sends one;
-- the provider has published the resource but is not deployed in the environment;
+- the provider's latest published version declares the resource, but the provider is not deployed in the environment;
 - the provider under check no longer declares an endpoint and method that a consumer deployed in the environment still calls;
 - the provider under check no longer answers a status that a deployed consumer still reads, but answers others on that endpoint and method;
 - the provider under check no longer answers any status on an endpoint and method it still declares, where a deployed consumer still reads one;
@@ -64,7 +64,7 @@ petstore_api (1.4.0, deployed):
 
 #### `<participant> calls <METHOD> <endpoint>, but <counterpart> doesn't provide it`
 
-The participant names an endpoint or method that no published contract of the provider declares, or a provider that does not exist. A provider name misspelled under `consumes`, such as `petstore_apl` for `petstore_api`, publishes fine and fails here with `petstore_web calls GET /pets/*, but petstore_apl doesn't provide it`.
+The participant names an endpoint or method that the provider's version deployed in the environment does not declare, or a provider that does not exist. When the provider is not deployed in the environment, its latest published version is the one that does not declare it. The counterpart's block shows the deployed version, such as `petstore_api (1.4.0, deployed):`, and no version when the provider is not deployed there. A provider name misspelled under `consumes`, such as `petstore_apl` for `petstore_api`, publishes fine and fails here with `petstore_web calls GET /pets/*, but petstore_apl doesn't provide it`.
 
 - Fix of `<participant>`: `stop calling it`
 - Fix of `<counterpart>`: `publish it`
@@ -92,7 +92,7 @@ Request: the provider declares the endpoint and method with no `request`.
 
 #### `<participant> calls <METHOD> <endpoint>, but <counterpart> is not deployed in <environment> (deployed in: <environments>)`
 
-The provider is not deployed in the target environment; the parenthesis is left out when it is deployed nowhere.
+The provider's latest published version declares the endpoint and method, but the provider is not deployed in the target environment; the parenthesis is left out when it is deployed nowhere.
 
 - Fix of `<participant>`: none
 - Fix of `<counterpart>`: `deploy it to <environment> first`
