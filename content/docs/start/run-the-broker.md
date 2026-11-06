@@ -1,6 +1,6 @@
 ---
 title: Run the broker
-description: How to start the broker and Postgres on your machine with Docker Compose, create the admin on the first access and give them their own profile, and how to run the broker's Docker image in production with its Postgres database, admin, users, health check and exposure.
+description: How to start the broker and Postgres on your machine with Docker Compose, create the admin on the first access and give them their own profile, how to run the broker's Docker image in production with its Postgres database, admin, users, health check and exposure, and what the broker's web UI shows and changes.
 ---
 
 ## Local
@@ -154,7 +154,7 @@ The admin is created on the first access: until it exists, every page of the bro
 
 The admin is a user with the permission `admin`: it does everything a `write` user does, uses the API with a token like any user, has a Profile page, and is the only one who manages users, on the Users page:
 
-- **Invite a user** with an email and a permission: `read` lets them list participants and environments, validate contracts and ask can-i-deploy; `write` adds publishing, recording deployments, creating participants and environments, and renaming participants. The broker shows an invite link once: send it to them. It works once, for 24 hours.
+- **Invite a user** with an email and a permission: `read` lets them see every page of the [web UI](#web-ui), list participants and environments, validate contracts and ask can-i-deploy; `write` adds publishing, recording deployments, creating participants and environments, and renaming environments. The broker shows an invite link once: send it to them. It works once, for 24 hours.
 - The user opens the link, sets a password of 15 to 128 characters, and signs in with their email.
 - **Edit** changes a user's email or permission. **Deactivate** ends their sessions at once and stops their link; **Reactivate** lets them in again. Users are never deleted.
 - **New reset link** gives an active user a link to set a new password, **New invite link** gives an invited user a new invite. Each new link stops the previous one.
@@ -181,3 +181,19 @@ The broker does not serve TLS. Put a reverse proxy of your choice in front of it
 Open the broker at exactly `BIDIREKT_PUBLIC_URL`, and give the CLI that address too. From any other address, even one that reaches the same broker, its pages refuse every action.
 
 Behind a proxy, every request reaches the broker from the proxy's address, so the sign-in limit would count everyone's failures together. List that address in `BIDIREKT_TRUSTED_PROXIES`. With the broker in Docker and the proxy on the same host, as on this page, that address is the Docker network's gateway, not `127.0.0.1`: `docker network inspect bridge -f '{{range .IPAM.Config}}{{.Gateway}}{{end}}'` prints it, usually `172.17.0.1`. The broker then takes the client's IP from the `X-Forwarded-For` header, read from the right past the listed proxies, so a value the client writes in the header changes nothing. From any other address the header is ignored. Without the variable the header is always ignored.
+
+## Web UI
+
+Signed in at `BIDIREKT_PUBLIC_URL`, the broker's pages show everything it stores. Every user, `read` included, sees every page below; the forms that change something appear only to `write` and `admin` users.
+
+- **Overview** (`/`): how many participants, environments, published versions and checks this month; the participants whose last can-i-deploy for an environment said no; the version of each participant deployed now in each environment; and the latest deployments and checks. An empty broker shows the steps to start: `create-participant`, `create-environment`, `publish`, `can-i-deploy`, deploy and `record-deployment`.
+- **Participants** (`/participants`): every participant with its latest published version and the version deployed in each environment. Each participant has four tabs: Versions, Deployments, Checks, and Relations, which lists the participants it consumes from and the deployed participants that consume from it.
+- **Version** (`/participants/<name>/versions/<version>`): the contract files as they were published, where the version is deployed now, its deployments and its checks.
+- **Check** (`/checks/<id>`): the [can-i-deploy report](../ship/can-i-deploy.md#the-report): the answer, each counterpart with its version, its breaks, where they happen and each side's fix.
+- **Environments** (`/environments`): every environment with how many participants are deployed there and its last deployment. An environment's page shows what is deployed there now, its deployment history and the checks asked about it.
+- **Compatibility** (`/compatibility`): one participant's versions against the environments, each cell the last can-i-deploy of that version in that environment. A cell warns when other participants were deployed to that environment after the check, so the answer may be out of date.
+
+A `write` user also creates participants and environments and renames environments from these pages:
+
+- **Create participant** and **Create environment** work as `create-participant` and `create-environment` do, except that a name already in use is an error: `participant already exists` or `environment already exists`.
+- **Rename** an environment at any time, from its page or with `POST /api/environments/rename` and `{"oldName":"production","newName":"prod"}`. Its deployments and checks stay with it, and each stored check keeps the name the environment had when it was asked. A pipeline that still passes the old name gets `environment not found` until it is updated.

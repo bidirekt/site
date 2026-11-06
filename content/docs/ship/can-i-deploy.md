@@ -46,7 +46,7 @@ petstore_api (1.4.0, deployed):
       · GET /pets response 200 at "$[].weight" (petstore_api: Pet.weight)
       · GET /pets/* response 200 at "$.weight" (petstore_api: Pet.weight)
 
-petstore_reviews:
+petstore_reviews (0.9.0, deployed):
   GET /reviews/summary
     response 200:
       - petstore_web calls GET /reviews/summary, but petstore_reviews doesn't provide it
