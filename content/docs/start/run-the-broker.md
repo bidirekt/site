@@ -154,7 +154,7 @@ The admin is created on the first access: until it exists, every page of the bro
 
 The admin is a user with the permission `admin`: it does everything a `write` user does, uses the API with a token like any user, has a Profile page, and is the only one who manages users, on the Users page:
 
-- **Invite a user** with an email and a permission: `read` lets them see every page of the [web UI](#web-ui), list participants and environments, validate contracts and ask can-i-deploy; `write` adds publishing, recording deployments, creating participants and environments, and renaming participants and environments. The broker shows an invite link once: send it to them. It works once, for 24 hours.
+- **Invite a user** with an email and a permission: `read` lets them see every page of the [web UI](#web-ui), list participants and environments, validate contracts and ask can-i-deploy; `write` adds publishing, recording deployments, creating participants and environments, and renaming environments. The broker shows an invite link once: send it to them. It works once, for 24 hours.
 - The user opens the link, sets a password of 15 to 128 characters, and signs in with their email.
 - **Edit** changes a user's email or permission. **Deactivate** ends their sessions at once and stops their link; **Reactivate** lets them in again. Users are never deleted.
 - **New reset link** gives an active user a link to set a new password, **New invite link** gives an invited user a new invite. Each new link stops the previous one.
@@ -193,8 +193,7 @@ Signed in at `BIDIREKT_PUBLIC_URL`, the broker's pages show everything it stores
 - **Environments** (`/environments`): every environment with how many participants are deployed there and its last deployment. An environment's page shows what is deployed there now, its deployment history and the checks asked about it.
 - **Compatibility** (`/compatibility`): one participant's versions against the environments, each cell the last can-i-deploy of that version in that environment. A cell warns when other participants were deployed to that environment after the check, so the answer may be out of date.
 
-A `write` user also creates and renames participants and environments from these pages:
+A `write` user also creates participants and environments and renames environments from these pages:
 
 - **Create participant** and **Create environment** work as `create-participant` and `create-environment` do, except that a name already in use is an error: `participant already exists` or `environment already exists`.
-- **Rename** a participant only before its first publish, as with [`rename-participant`](../reference/cli.md#rename-participant). Other participants' `consumes` and the pipelines that use the old name stop finding it.
 - **Rename** an environment at any time, from its page or with `POST /api/environments/rename` and `{"oldName":"production","newName":"prod"}`. Its deployments and checks stay with it, and each stored check keeps the name the environment had when it was asked. A pipeline that still passes the old name gets `environment not found` until it is updated.
