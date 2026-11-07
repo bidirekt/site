@@ -7,7 +7,7 @@ The broker stores what each service declares it provides and consumes, and befor
 
 ## Participant
 
-A participant is a named service that publishes contracts. The name is the whole identity: it is how the broker files everything the participant publishes, and it is how other participants refer to it. The name is in snake_case: lowercase letters, digits and single underscores. A consumer names the provider it consumes from with this exact string, so a misspelled name publishes and fails at `can-i-deploy` ([Resource breaks](../rest/breaks.md#every-break)).
+A participant is a named service that publishes contracts. The name is the whole identity: it is how the broker files everything the participant publishes, and it is how other participants refer to it. The name is in snake_case: lowercase letters, digits and single underscores. A consumer names the provider it consumes from with this exact string, so a misspelled name publishes and fails at `can-i-deploy` ([Resource breaks](../rest/breaks.md#every-break)). The name can't change once the participant is created.
 
 A participant is not "a provider" or "a consumer". The same participant provides resources to some services and consumes resources from others, and declares both in one contract ([The contract file](../contracts/the-contract-file.md)).
 

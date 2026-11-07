@@ -27,7 +27,6 @@ Available Commands:
   list-participants  List the participants on the broker
   publish            Publish one or more contract YAML files or folders to the broker
   record-deployment  Record a deployment of a participant version to an environment
-  rename-participant Rename an existing participant on the broker
   validate           Validate contract YAML files or folders against an environment without publishing them
   version            Print the bidirekt version
 
@@ -104,7 +103,6 @@ Success lines go to stdout and failures to stderr, except the `can-i-deploy` and
 - [`publish`](../ship/publish.md) — publish one or more contract files or folders to the broker.
 - [`can-i-deploy`](../ship/can-i-deploy.md) — check whether a participant version can be deployed to an environment.
 - [`record-deployment`](../ship/record-deployment.md) — record a deployment of a participant version to an environment.
-- [`rename-participant`](#rename-participant) — rename an existing participant on the broker.
 - [`list-participants`](#list-participants) — list the participants on the broker.
 - [`list-environments`](#list-environments) — list the environments on the broker.
 - [`version`](#version) — print the bidirekt version.
@@ -141,6 +139,8 @@ petstore_api participant created
 
 - `name`: the participant's [name](../concepts/how-the-broker-works.md#participant), in `snake_case`. Anything else fails with `cannot post participant to broker: participant name must be snake_case`.
 
+Other participants' contracts refer to it by this name, so the name can't change later. A wrong name means creating another participant.
+
 Running it again for an existing name prints `petstore_api participant already exists` and exits `0`, so a pipeline can run it on every build.
 
 ## create-environment
@@ -153,26 +153,6 @@ production environment created
 - `name`: the environment's name, such as `production` or `staging`.
 
 Running it again prints `production environment already exists` and exits `0`.
-
-## rename-participant
-
-```
-$ bidirekt rename-participant petstore_inventory petstore_stock
-petstore_inventory participant renamed to petstore_stock
-```
-
-- `old`: the current name.
-- `new`: the new name, in `snake_case`. A name that is already taken fails with `cannot post participant rename to broker: participant already exists` and exits `1`; unlike `create-participant`, renaming is not idempotent.
-
-Renaming works only before the participant's first publish. A participant with at least one published contract keeps its name: the rename fails with `cannot post participant rename to broker: participant has published contracts, create a new participant and switch every consumer's consumes to it` and exits `1`.
-
-To change the name of a participant that has published:
-
-1. Create a new participant with the new name and publish its contract.
-2. Every consumer switches its `consumes` key to the new name and publishes.
-3. The old participant stays, with its versions and deployments.
-
-A participant that has not published may already be named under other participants' `consumes`, because a consumer can publish before its provider. After the rename, those consumers switch their `consumes` key to the new name.
 
 ## list-participants
 
