@@ -55,7 +55,7 @@ $ curl -s http://localhost:8080/health
 
 The data lives in the `bidirekt_postgres-data` volume, the same from any folder, so it survives `docker compose down` and `up`; `docker compose down -v` erases it. Both containers start again by themselves when Docker restarts. The broker listens on `127.0.0.1` only, so other machines on your network cannot reach it. The compose's `BIDIREKT_TOKEN_SIGNING_KEY` is fixed because the compose is for trying locally; in production, generate your own.
 
-Open http://localhost:8080 in the browser. The first access opens the setup: create the admin with an email and a password of 15 to 128 characters, and you are signed in. Open it at exactly `http://localhost:8080`, the compose's `BIDIREKT_PUBLIC_URL`: from `http://127.0.0.1:8080` the broker refuses every action on its pages.
+Open http://localhost:8080 in the browser. The first access opens the setup: create the admin with an email and a password of 8 to 128 characters, and you are signed in. Open it at exactly `http://localhost:8080`, the compose's `BIDIREKT_PUBLIC_URL`: from `http://127.0.0.1:8080` the broker refuses every action on its pages.
 
 Give the local broker its own profile, so it never mixes with your real one:
 
@@ -150,12 +150,12 @@ Nothing here is required. These are the choices worth making:
 
 ### Admin and users
 
-The admin is created on the first access: until it exists, every page of the broker opens the setup, where you create it with an email and a password of 15 to 128 characters. After that the setup is gone, and the admin signs in at `<BIDIREKT_PUBLIC_URL>/sign-in` with that email and password.
+The admin is created on the first access: until it exists, every page of the broker opens the setup, where you create it with an email and a password of 8 to 128 characters. After that the setup is gone, and the admin signs in at `<BIDIREKT_PUBLIC_URL>/sign-in` with that email and password.
 
 The admin is a user with the permission `admin`: it does everything a `write` user does, uses the API with a token like any user, has a Profile page, and is the only one who manages users, on the Users page:
 
 - **Invite a user** with an email and a permission: `read` lets them see every page of the [web UI](#web-ui), list participants and environments, validate contracts and ask can-i-deploy; `write` adds publishing, recording deployments, creating participants and environments, and renaming environments. The broker shows an invite link once: send it to them. It works once, for 24 hours.
-- The user opens the link, sets a password of 15 to 128 characters, and signs in with their email.
+- The user opens the link, sets a password of 8 to 128 characters, and signs in with their email.
 - **Edit** changes a user's email or permission. **Deactivate** ends their sessions at once and stops their link; **Reactivate** lets them in again. Users are never deleted.
 - **New reset link** gives an active user a link to set a new password, **New invite link** gives an invited user a new invite. Each new link stops the previous one.
 
