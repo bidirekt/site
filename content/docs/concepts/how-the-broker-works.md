@@ -7,13 +7,13 @@ The broker stores what each service declares it provides and consumes, and befor
 
 ## Participant
 
-A participant is a named service that publishes contracts. The name is the whole identity: it is how the broker files everything the participant publishes, and it is how other participants refer to it. The name is in snake_case: lowercase letters, digits and single underscores. A consumer names the provider it consumes from with this exact string, so a misspelled name publishes and fails at `can-i-deploy` ([Resource breaks](../rest/breaks.md#every-break)).
+A participant is a named service that publishes contracts. The name is the whole identity: it is how the broker files everything the participant publishes, and it is how other participants refer to it. The name is in snake_case: lowercase letters, digits and single underscores. A consumer names the provider it consumes from with this exact string, so a misspelled name publishes and fails at `can-i-deploy` ([Resource breaks](../rest/breaks.md#every-break)). The name can't change once the participant is created.
 
 A participant is not "a provider" or "a consumer". The same participant provides resources to some services and consumes resources from others, and declares both in one contract ([The contract file](../contracts/the-contract-file.md)).
 
 ## Environment
 
-An environment is a named place where participants are deployed: `production`, `staging`, or whatever your pipeline calls them. The broker knows nothing about an environment except its name and which version of each participant is currently deployed there. It exists to answer one question: what is running together? It must be created before a check is asked about it or a deployment is recorded to it.
+An environment is a named place where participants are deployed: `production`, `staging`, or whatever your pipeline calls them. For each environment, the broker keeps which version of each participant is deployed there now, the history of deployments recorded to it, and the can-i-deploy checks asked about it. It exists to answer one question: what is running together? It must be created before a check is asked about it or a deployment is recorded to it. It can be renamed at any time ([Web UI](../start/run-the-broker.md#web-ui)); its deployments and checks stay with it, and a pipeline that still passes the old name gets `environment not found`.
 
 ## Contract
 
