@@ -28,10 +28,10 @@ describes
 
 A list that breaks these rules is rejected at publish:
 
-- without `members`: `"type: enum" needs "members": list its values`
-- with `members: []`: `"members" is empty: list at least one value`
-- with a value written twice: `value "sold" is repeated in "members"`
-- with a value that is not a string, such as `1`, or an empty one: `each value in "members" must be non-empty text`
+- without `members`: `"type: enum" needs "members" at schemas Pet properties status: list its values`
+- with `members: []`: `"members" is empty at schemas Pet properties status: list at least one value`
+- with a value written twice: `value "sold" is repeated in "members" at schemas Pet properties status`
+- with a value that is not a string, such as `1`, or an empty one: `each value in "members" must be non-empty text at schemas Pet properties status`
 
 ## Unions
 
@@ -72,10 +72,10 @@ The key of a member, `card` or `pix`, is its identity in the body: in REST, the 
 
 A union that breaks these rules is rejected at publish:
 
-- without `members`: `"type: union" needs "members": map each key to a ref`
-- with `members: {}`: `"members" is empty: list at least one member`
-- with a member without `ref`: `member "card" needs a "ref" to a schema`
-- with a reserved character in a member key: `member key "card(x)" must not contain ".", "[", "]", "{", "}", ";", "(" or ")"`
+- without `members`: `"type: union" needs "members" at schemas Order properties payment: map each key to a ref`
+- with `members: {}`: `"members" is empty at schemas Order properties payment: list at least one member`
+- with a member without `ref`: `member "card" needs a "ref" to a schema at schemas Order properties payment`
+- with a reserved character in a member key: `member key "card(x)" must not contain ".", "[", "]", "{", "}", ";", "(" or ")" at schemas Order properties payment`
 
 Any other key in a member, such as `type`, is an unknown key, and a `ref` to a name that no schema declares is rejected as any `ref` is ([References](references.md)).
 
