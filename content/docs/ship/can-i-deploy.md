@@ -71,9 +71,9 @@ A difference inside a schema used in several places, or inside a recursive schem
 
 ## Reading a property block
 
-`<property>` is written from the root of the body: `$.owner.name` for a member, `$[].photoUrl` for a member of each array item, `$.pets{}.name` for a member of each map value; the root itself prints as `the body`, without quotes. An array type prints its item type, such as `array<object>`, and a map type its value type, such as `map<object>`.
+`<property>` is written from the root of the body: `$.owner.name` for a member, `$[].photoUrl` for a member of each array item, `$.pets{}.name` for a member of each map value, `$.payment(card).number` for a member inside the `card` member of the union `payment`; the root itself prints as `the body`, without quotes. An array type prints its item type, such as `array<object>`, a map type its value type, such as `map<object>`, and an enum or a union prints as `enum` or `union`, without its values or members ([Enums and unions](../schemas/enums-and-unions.md)).
 
-`<field>` is the field of `<participant>` at that path: the schema name and the path inside that schema, the place to edit in the participant's own contract. `Pet.vaccinations[].name` is a member of each array item, `PetsByName{}.name` a member of each map value, and at the root it is only the schema name:
+`<field>` is the field of `<participant>` at that path: the schema name and the path inside that schema, the place to edit in the participant's own contract. `Pet.vaccinations[].name` is a member of each array item, `PetsByName{}.name` a member of each map value, `Order.payment(card)` the `card` member of the union `payment`, or `Payment(card)` when the union is the whole schema `Payment`, and at the root it is only the schema name:
 
 ```error title="can-i-deploy output"
 Owner.address.city — petstore_web reads it, but petstore_api doesn't provide it
