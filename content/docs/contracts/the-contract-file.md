@@ -121,7 +121,7 @@ An `enum` key beside `type: string`, as OpenAPI writes it, is an unknown key too
 
 A change in any of the items below never makes `can-i-deploy` fail:
 
-- **`description`.** Free text on any node, which the broker ignores.
+- **`description`.** Free text that the broker ignores, on any node but a [union member](../schemas/enums-and-unions.md#unions).
 - **A schema that no resource or `ref` names.** It is accepted and never compared, so a file with only `schemas` publishes too.
 - **A property the reader does not declare.** It is not checked ([Which side decides](#which-side-decides)).
 - **A value or a member that only the provider declares.** A provider that adds `adopted` to the values of `status` breaks no consumer ([How they compare](../schemas/enums-and-unions.md#how-they-compare)).

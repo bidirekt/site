@@ -24,7 +24,7 @@ describes
 { "status": "sold" }
 ```
 
-`members` is a list of at least one value, each a string that is not empty, none written twice. An enum holds only strings: a property that takes one of a few numbers is an `integer`. The values are data, not names: they never become part of a property such as `$.status`, so they may hold any character. `optional` and `nullable` work as on any other property ([Optional and nullable](optional-and-nullable.md)).
+`members` is a list of at least one value, each a string that is not empty, none written twice. An enum holds only strings: a property that takes one of a few numbers is an `integer`. The values are data, not names: they never become part of a property such as `$.status`, so they may hold any character except NUL. `optional` and `nullable` work as on any other property ([Optional and nullable](optional-and-nullable.md)).
 
 A list that breaks these rules is rejected at publish:
 

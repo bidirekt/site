@@ -86,4 +86,4 @@ Pet — petstore_web reads it as object, but petstore_api provides array<object>
     · GET /owners/*/pet response 200 at the body (petstore_api: Pets)
 ```
 
-When `<participant>` has no field at that path, as in the `doesn't provide` and `doesn't send` blocks, the block is named by the field of `<counterpart>`. Which side's required properties count is in [Which side decides](../contracts/the-contract-file.md#which-side-decides).
+When `<participant>` has no field at that path, as in the `doesn't provide it, but` and `doesn't send it, but` blocks, the block is named by the field of `<counterpart>`. Which side's required properties count is in [Which side decides](../contracts/the-contract-file.md#which-side-decides).

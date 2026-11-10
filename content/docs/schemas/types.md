@@ -72,7 +72,7 @@ contract validation failed
 
 `members` belongs to two types, so its line names both: `"members" is not allowed on a string schema at schemas Pet properties status, use it with "type: enum" or "type: union"` ([Enums and unions](enums-and-unions.md)).
 
-Any node may also carry `description`, free text that the broker ignores ([What is not compared](../contracts/the-contract-file.md#what-is-not-compared)).
+Any node but a [union member](enums-and-unions.md#unions), which holds only its `ref`, may also carry `description`, free text that the broker ignores ([What is not compared](../contracts/the-contract-file.md#what-is-not-compared)).
 
 ## Primitives
 

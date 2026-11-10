@@ -6,7 +6,7 @@ description: What the optional and nullable flags say about a value, and where e
 Two flags, `true` or `false`, say what a value may lack, and they are independent of each other:
 
 - `optional: true` says the key may be missing. It is accepted only on a property, with or without a `ref` beside it. A property is required unless it says so; there is no `required` list.
-- `nullable: true` says the key is there and its value may be `null` or the declared type. It is accepted on any node: a property, `items`, `values` and the root of a schema.
+- `nullable: true` says the key is there and its value may be `null` or the declared type. It is accepted on a property, `items`, `values` and the root of a schema, but not on a [union member](enums-and-unions.md#unions), which holds only its `ref`.
 
 ```yaml
 User:
