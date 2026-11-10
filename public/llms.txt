@@ -93,7 +93,7 @@ Rules for every kind of resource:
   - no `members` → `"type: enum" needs "members" at schemas Pet properties status: list its values`
   - `members: []` → `"members" is empty at schemas Pet properties status: list at least one value`
   - a value twice → `value "sold" is repeated in "members" at schemas Pet properties status`
-  - a value that is not a string, or is empty → `each value in "members" must be non-empty text at schemas Pet properties status`
+  - a value that is not a string, is empty, or holds NUL → `each value in "members" must be non-empty text at schemas Pet properties status`
 - Union (one of several named schemas): `type: union` + `members`, a non-empty map from each member key to a node with only `ref`, e.g. `payment: {type: union, members: {card: {ref: CardPayment}, pix: {ref: PixPayment}}}`. The key is the member's identity on the wire (REST: the value of the field that tells the members apart, e.g. `"method": "card"`). No `discriminator`, no interface: when the code reads that field, it is a plain property of each member's schema. A member is the path segment `(<key>)`: `$.payment(card).number`, field `Order.payment(card)`; a union that is the whole schema `Payment` → `Payment(card)`. Rejected at publish:
   - no `members` → `"type: union" needs "members" at schemas Order properties payment: map each key to a ref`
   - `members: {}` → `"members" is empty at schemas Order properties payment: list at least one member`

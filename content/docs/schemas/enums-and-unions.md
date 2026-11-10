@@ -31,7 +31,7 @@ A list that breaks these rules is rejected at publish:
 - without `members`: `"type: enum" needs "members" at schemas Pet properties status: list its values`
 - with `members: []`: `"members" is empty at schemas Pet properties status: list at least one value`
 - with a value written twice: `value "sold" is repeated in "members" at schemas Pet properties status`
-- with a value that is not a string, such as `1`, or an empty one: `each value in "members" must be non-empty text at schemas Pet properties status`
+- with a value that is not a string, such as `1`, an empty one, or one that holds NUL: `each value in "members" must be non-empty text at schemas Pet properties status`
 
 ## Unions
 
