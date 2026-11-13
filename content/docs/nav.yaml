@@ -36,6 +36,8 @@
       path: schemas/objects.md
     - label: Arrays and maps
       path: schemas/arrays-and-maps.md
+    - label: Enums and unions
+      path: schemas/enums-and-unions.md
     - label: References
       path: schemas/references.md
 - label: Ship

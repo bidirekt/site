@@ -64,9 +64,9 @@ How REST writes it, and for which bodies, is in [REST: Bodies not described](../
 
 ## Which side decides
 
-Every comparison follows one rule: the side that reads a body decides what must be in it. Each body has a producer and a reader, and which side is which depends on the resource: in REST, the provider produces a response and the consumer produces a request ([REST: Resources](../rest/resources.md)).
+Every comparison follows two rules: the side that reads a body decides what must be in it, and the provider owns how a property is provided. Each body has a producer and a reader, and which side is which depends on the resource: in REST, the provider produces a response and the consumer produces a request ([REST: Resources](../rest/resources.md)).
 
-A property the reader requires must be declared by the producer, required too and with a type the reader accepts: the same type, or `integer`, `float` or `number` when the reader declares `number` ([Primitives](../schemas/types.md#primitives)). A property the reader marks optional may be absent, but if both sides declare it the reader must accept its type. A property the producer marks nullable must be nullable for the reader too. A property the reader does not declare is not checked: in the example, `petstore_web` does not declare `petId`, so `petstore_api` is free to drop it.
+A property the reader requires must be declared by the producer, required too and with a type the reader accepts: the same type, `integer`, `float` or `number` when the reader declares `number` ([Primitives](../schemas/types.md#primitives)), or an `enum` when the reader declares `string`. A property the reader marks optional may be absent, but if both sides declare it the reader must accept its type. A property the producer marks nullable must be nullable for the reader too. Every value of an enum and every member of a union that the consumer declares must be declared by the provider, whichever side produces the body, and one that only the provider declares never breaks ([How they compare](../schemas/enums-and-unions.md#how-they-compare)). A property the reader does not declare is not checked: in the example, `petstore_web` does not declare `petId`, so `petstore_api` is free to drop it.
 
 A property is required only where its parent is present. When the producer does not declare a parent, only the parent can break, and only if it is required; nothing inside it is checked, and its members, array items and map values are never reported on their own. The body itself has no parent, so it is always compared.
 
@@ -92,21 +92,21 @@ All the files of one [publish](../ship/publish.md) are one contract:
 
 - **One schema namespace.** A file can name a schema declared in another file of the same publish; published alone, a file that does fails with `unresolved schema`, or `unresolved ref` when a `ref` names it. A name declared twice is a duplicate.
 - **A provider declares each resource once**, in any of its files ([REST: In several files](../rest/resources.md#in-several-files)).
-- **A consumer merges by union** the fragments of one resource, such as one file per module. In a body it reads, a property is optional only if every fragment that declares it marks it optional, and nullable only if every fragment that declares it accepts `null`. In a body it produces, a property is required only if every fragment that declares its parent sends it, and nullable if any fragment may send `null`; a fragment that leaves out the parent too makes only the parent optional. Two types for one property, even `number` and `integer`, are rejected at publish. A fragment that writes `~` for the body is joined the same way. In a body the consumer reads, it declares nothing, so the body is what the other fragments declare. In a body the consumer produces, it makes the body itself optional: a provider that requires the body gets `petstore_web sends it only sometimes, but petstore_api requires it`, at the body. When every fragment writes `~`, the consumer declares no body, as with one `~`.
+- **A consumer merges by union** the fragments of one resource, such as one file per module. In a body it reads, a property is optional only if every fragment that declares it marks it optional, and nullable only if every fragment that declares it accepts `null`. In a body it produces, a property is required only if every fragment that declares its parent sends it, and nullable if any fragment may send `null`; a fragment that leaves out the parent too makes only the parent optional. Two types for one property, even `number` and `integer`, are rejected at publish, and so are two enums with different values. The members of a union join by union, like properties: a fragment with the member `card` and another with `card` and `pix` declare both. A fragment that writes `~` for the body is joined the same way. In a body the consumer reads, it declares nothing, so the body is what the other fragments declare. In a body the consumer produces, it makes the body itself optional: a provider that requires the body gets `petstore_web sends it only sometimes, but petstore_api requires it`, at the body. When every fragment writes `~`, the consumer declares no body, as with one `~`.
 
 If two files of `petstore_web` read the same response, `web_list.yaml` its `petId` and `name` and `web_card.yaml` its `petId` and an optional `photoUrl`, the merge requires `petId` and `name`, so a provider that returns only those is compatible. Without `optional: true` in `web_card.yaml`, `photoUrl` becomes required, since `web_list.yaml` does not declare it.
 
 ## What is not compared
 
-The grammar has no key for enum values or string formats, so `enum` and `format` are rejected at publish as unknown keys:
+The grammar has no key for string formats, so `format` is rejected at publish as an unknown key. Here `status` is an enum, written with `type: enum` and its `members` ([Enums](../schemas/enums-and-unions.md#enums)), and `birthDate` is rejected:
 
 ```yaml
 Pet:
   type: object
   properties:
     status:
-      type: string
-      enum: [available, adopted]
+      type: enum
+      members: [available, pending, sold]
     birthDate:
       type: string
       format: date
@@ -115,16 +115,16 @@ Pet:
 ```error title="publish error"
 contract validation failed
   - petstore_api.yaml: unknown key "format" at schemas Pet properties birthDate
-  - petstore_api.yaml: unknown key "enum" at schemas Pet properties status
 ```
 
-A `string` is a `string`: a provider that starts returning a fourth value of `status` is compatible with a consumer that handles three, and a `date-time`, an email and free text are the same `string`.
+An `enum` key beside `type: string`, as OpenAPI writes it, is an unknown key too. A `string` is a `string`: a `date-time`, an email and free text are the same `string`.
 
 A change in any of the items below never makes `can-i-deploy` fail:
 
-- **`description`.** Free text on any node, which the broker ignores.
+- **`description`.** Free text that the broker ignores, on any node but a [union member](../schemas/enums-and-unions.md#unions).
 - **A schema that no resource or `ref` names.** It is accepted and never compared, so a file with only `schemas` publishes too.
 - **A property the reader does not declare.** It is not checked ([Which side decides](#which-side-decides)).
+- **A value or a member that only the provider declares.** A provider that adds `adopted` to the values of `status` breaks no consumer ([How they compare](../schemas/enums-and-unions.md#how-they-compare)).
 - **Headers and query parameters**, which a `rest` block has no place for ([REST: What is not compared](../rest/resources.md#what-is-not-compared)).
 
 ## File rules

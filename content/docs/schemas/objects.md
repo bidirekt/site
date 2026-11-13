@@ -46,20 +46,20 @@ Pet:
 
 ## Names
 
-A property name or a schema name must not be empty, must not contain `.`, `[`, `]`, `{`, `}` or `;`, and must not contain control characters. The six characters are reserved for the paths the broker compares and shows ([Reading a property block](../ship/can-i-deploy.md#reading-a-property-block)). Any other name is valid, such as `content-type`, `@type`, `$ref` or `first name`. A name with a reserved character is rejected at publish:
+A property name, a schema name or the key of a [union member](enums-and-unions.md#unions) must not be empty, must not contain `.`, `[`, `]`, `{`, `}`, `;`, `(` or `)`, and must not contain control characters. The eight characters are reserved for the paths the broker compares and shows ([Reading a property block](../ship/can-i-deploy.md#reading-a-property-block)). Any other name is valid, such as `content-type`, `@type`, `$ref` or `first name`. A name with a reserved character is rejected at publish:
 
 ```error title="publish error"
 contract validation failed
-  - petstore_api.yaml: invalid property name "user.name" at schemas Pet properties, must not contain ".", "[", "]", "{", "}" or ";"
+  - petstore_api.yaml: invalid property name "user.name" at schemas Pet properties, must not contain ".", "[", "]", "{", "}", ";", "(" or ")"
 ```
 
-An empty name ends with `must not be empty`, and a name with a control character with `must not contain control characters`. When the name is a typo, rename the property to the key the body really has. When the body really has a fixed key with one of these characters, leave that key out of the contract: a property no side declares is not checked ([Which side decides](../contracts/the-contract-file.md#which-side-decides)). Keys that vary go in a `map`, whose keys are not property names ([Maps](arrays-and-maps.md#maps)).
+An empty name is rejected with `must not be empty`, and a name with a control character with `must not contain control characters`. When the name is a typo, rename the property to the key the body really has. When the body really has a fixed key with one of these characters, leave that key out of the contract: a property no side declares is not checked ([Which side decides](../contracts/the-contract-file.md#which-side-decides)). Keys that vary go in a `map`, whose keys are not property names ([Maps](arrays-and-maps.md#maps)).
 
 A schema name lives only in the contract, so the fix is to rename the schema:
 
 ```error title="publish error"
 contract validation failed
-  - petstore_api.yaml: invalid schema name "Pet.v2" at schemas, must not contain ".", "[", "]", "{", "}" or ";"
+  - petstore_api.yaml: invalid schema name "Pet.v2" at schemas, must not contain ".", "[", "]", "{", "}", ";", "(" or ")"
 ```
 
 Schema names are unique across the files of a publish ([Several files](../contracts/the-contract-file.md#several-files)), and a schema that no resource or `ref` names is accepted but never compared ([What is not compared](../contracts/the-contract-file.md#what-is-not-compared)).
