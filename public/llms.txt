@@ -11,21 +11,21 @@ See it first: `curl -sL bidirekt.com/demo | sh` runs the petstore example with D
 Install the CLI (Linux and macOS, `x86_64` and `arm64`):
 
 ```
-curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/d216ed0d00caf1cb59bfcf3a7846f1adbfd99ca1/install.sh | sh
+curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/2b90aeab643baeea0334008416a5fae022cfa981/install.sh | sh
 ```
 
-Prints `bidirekt 0.1.0 installed to ~/.local/bin/bidirekt`. To pin a version, pass it to the script: `sh -s -- v0.1.0`; `v` is optional.
+Prints `bidirekt 0.2.0 installed to ~/.local/bin/bidirekt`. To pin a version, pass it to the script: `sh -s -- v0.2.0`; `v` is optional.
 
-Or run the CLI from its Docker image, `ghcr.io/bidirekt/cli:0.1.0` (`linux/amd64` and `linux/arm64`; each release is tagged only with its full version, no `latest`), with the project mounted and the broker in `BIDIREKT_BROKER_URL`: `docker run --rm -v "$PWD:/work" -w /work -e BIDIREKT_BROKER_URL=<url> ghcr.io/bidirekt/cli:0.1.0 publish <file or folder>... --participant <name> --version <label>`. For the local compose's broker, add `--network host` and use `BIDIREKT_BROKER_URL=http://localhost:8080` (Linux and Docker Desktop on macOS).
+Or run the CLI from its Docker image, `ghcr.io/bidirekt/cli:0.2.0` (`linux/amd64` and `linux/arm64`; each release is tagged only with its full version, no `latest`), with the project mounted and the broker and key in `BIDIREKT_BROKER_URL` and `BIDIREKT_API_KEY`: `docker run --rm -v "$PWD:/work" -w /work -e BIDIREKT_BROKER_URL=<url> -e BIDIREKT_API_KEY ghcr.io/bidirekt/cli:0.2.0 publish <file or folder>... --participant <name> --version <label>` (`-e BIDIREKT_API_KEY` passes the shell's value on). For the local compose's broker, add `--network host` and use `BIDIREKT_BROKER_URL=http://localhost:8080` (Linux and Docker Desktop on macOS).
 
-Point it at your broker, once per machine. `bidirekt configure` asks for the URL; `bidirekt configure --broker-url <url>` never asks:
+Sign in to your broker, once per machine: create an API key on the broker's Profile page (`<broker>/profile/api-keys/new`, shown once), then run `bidirekt login` in a terminal; it asks for the profile, the broker URL and the key, and saves them:
 
 ```
-bidirekt configure
-bidirekt configure --broker-url <url>
+bidirekt login
+bidirekt login --profile local
 ```
 
-A broker on a non-default profile (e.g. `--profile local` for the local compose) needs that profile on every command: `--profile local` or `export BIDIREKT_PROFILE=local`.
+A broker on a non-default profile (e.g. `--profile local` for the local compose) needs that profile on every command: `--profile local` or `export BIDIREKT_PROFILE=local`. In CI, or anywhere without a terminal, set `BIDIREKT_BROKER_URL` and `BIDIREKT_API_KEY` instead.
 
 Install the agent skill that writes and fixes the contract files from the code:
 
@@ -143,9 +143,10 @@ Rejected at publish, so never compared: `format` and an `enum` key, both unknown
 
 ## CLI
 
-Every broker command needs a broker URL; there is no default. Resolution: `--broker-url` → `BIDIREKT_BROKER_URL` → the active profile's saved URL. Active profile: `--profile` → `BIDIREKT_PROFILE` → `default`. With none: `no broker configured — pass --broker-url, set BIDIREKT_BROKER_URL, or run "bidirekt configure"`, plus, when the config file has other profiles, `the config file has the profile local — pass --profile local or set BIDIREKT_PROFILE=local` (several: `the config file has the profiles acme, local — pass --profile <name> or set BIDIREKT_PROFILE=<name>`). Global flags go before or after the command. In CI, use `BIDIREKT_BROKER_URL`.
+Every broker command needs a broker URL and an API key; there is no default. Resolution: `BIDIREKT_BROKER_URL` and `BIDIREKT_API_KEY`, both set → else the active profile's saved URL and key. Set both variables or neither; only one fails with `set both BIDIREKT_BROKER_URL and BIDIREKT_API_KEY, or neither`. Active profile: `--profile` → `BIDIREKT_PROFILE` → `default`. With no URL: `no broker configured — run "bidirekt login" or set BIDIREKT_BROKER_URL and BIDIREKT_API_KEY`, plus, when the config file has other profiles, `the config file has the profile local — pass --profile local or set BIDIREKT_PROFILE=local` (several: `the config file has the profiles acme, local — pass --profile <name> or set BIDIREKT_PROFILE=<name>`). `--profile` goes before or after the command. In CI, set `BIDIREKT_BROKER_URL` and `BIDIREKT_API_KEY`. A key always starts with `bdk_`: `the API key from BIDIREKT_API_KEY doesn't start with bdk_` (or `the API key in profile <name> doesn't start with bdk_`). Broker refusals, on any command: 401 → `not signed in to <url> — run "bidirekt login" or set BIDIREKT_BROKER_URL and BIDIREKT_API_KEY` (key revoked, expired, its user deactivated, or a profile without a key); 403 → `the API key can't do this — check its permission at <url>/profile` (a `read` key can only list, `validate` and `can-i-deploy`; `write` adds `create-participant`, `create-environment`, `publish` and `record-deployment`); 426 → `bidirekt <version> doesn't work with this broker (<broker version>); upgrade bidirekt to <minimum version> or later` (install that version or newer).
 
-- `bidirekt configure [--profile <name>] [--broker-url <url>]` — saves the URL in `~/.config/bidirekt/config.json` (or `$XDG_CONFIG_HOME/bidirekt/config.json`, or `BIDIREKT_CONFIG_FILE`). Without `--broker-url` it prompts; outside a terminal (stdin from `/dev/null` included) it fails with `no terminal to ask for the broker URL — pass --broker-url`. URL must be `http://` or `https://` plus a host. One profile per broker (account), never per environment.
+- `bidirekt login [--profile <name>]` — asks for the profile (when `--profile` is not given), the broker URL and the API key (not echoed), checks the key with the broker, and only then saves URL and key in `~/.config/bidirekt/config.json` (or `$XDG_CONFIG_HOME/bidirekt/config.json`, or `BIDIREKT_CONFIG_FILE`), readable only by you: `{"profiles": {"acme": {"brokerUrl": "https://broker.acme.example", "apiKey": "bdk_…"}}}`. Prints `Signed in to <url> as profile <name>`. URL must be `http://` or `https://` plus a host. Errors: `an API key starts with bdk_`, `the broker refused this API key`, `cannot reach the broker at <url>: <reason>`; outside a terminal (stdin from `/dev/null` included) `no terminal to sign in — set BIDIREKT_BROKER_URL and BIDIREKT_API_KEY`. Replacing a key warns `the previous key is still valid — revoke it at <url>/profile`. One profile per broker (account), never per environment.
+- `bidirekt logout [--profile <name>]` — removes the key from the profile (the URL stays), without calling the broker: `Signed out of <url> (profile <name>). The key is still valid — revoke it at <url>/profile`; a profile without a key prints `not signed in on profile <name>`.
 - `bidirekt create-participant <name>` — name in snake_case (`cannot post participant to broker: participant name must be snake_case`). Idempotent: an existing name prints `<name> participant already exists` and exits 0. The name can't change once created; a wrong name means creating another participant.
 - `bidirekt create-environment <name>` — e.g. `production`. Idempotent.
 - `bidirekt validate <file or folder>... --participant <name> --environment <env>` — reads files and folders and checks them as `publish` does, then compares them with every counterpart deployed in `<env>`, as `can-i-deploy` does. Nothing is stored. Exit 0 = yes, exit 1 = no; the report goes to stdout either way (after the stderr `Broker:` line), starts with `<participant> local contract can be deployed to <env>` or `<participant> local contract cannot be deployed to <env>`, and carries the same lines as `can-i-deploy` (see `## Fixing can-i-deploy breaks`). Violations print as in `publish`. Participant and environment are checked before any file: `participant "<name>" not found → create it with: bidirekt create-participant <name>`, `cannot validate contract on broker: environment not found`.
@@ -165,7 +166,7 @@ Every broker command needs a broker URL; there is no default. Resolution: `--bro
 - `bidirekt list-environments` — prints every environment name, one per line on stdout, in alphabetical order; nothing when there are none, exit 0. Check names here before passing `--environment`.
 - `bidirekt version` (or `--version`, `-v`).
 
-Every broker command first prints `Broker: <url> (<source>)` on stderr (`(profile: default)`, `(from BIDIREKT_BROKER_URL)`, `(from --broker-url)`), on success too; stdout output comes after it.
+Every broker command first prints `Broker: <url> (<source>)` on stderr (`(profile: default)`, `(from BIDIREKT_BROKER_URL)`), on success too; stdout output comes after it. An `http://` URL on a host other than `localhost` and `127.0.0.1` adds `warning: the API key travels unencrypted to <url>` on stderr, and the command goes on.
 
 Exit codes: 0 on success, help and version; 1 for everything else. Success goes to stdout, failures to stderr, except the `can-i-deploy` and `validate` reports (always stdout) and the `Broker:` line (always stderr).
 
