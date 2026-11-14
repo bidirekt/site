@@ -13,9 +13,9 @@ The script checks for `docker` and `docker compose`, asks where to put the examp
 
 ## The six steps
 
-Each step starts with a title, `Step N of 6 — <what happens>`, and each command is typed before it runs. The example's `./bidirekt` runs the CLI in a container next to the broker, so every command it runs first prints `Broker: http://broker:8080 (from BIDIREKT_BROKER_URL)`.
+Each step starts with a title, `Step N of 6 — <what happens>`, and each command is typed before it runs. The example's `./bidirekt` runs the CLI in a container next to the broker, so every command it runs first prints `Broker: http://broker:8080 (from BIDIREKT_BROKER_URL)`, then `warning: the API key travels unencrypted to http://broker:8080`, because the demo broker answers over plain `http`.
 
-1. **Start the broker**: removes what an earlier run left, starts Postgres and the broker with `docker compose up -d --wait`, and pulls the CLI image.
+1. **Start the broker**: removes what an earlier run left, starts Postgres and the broker with `docker compose up -d --wait`, and pulls the CLI image. Then the example's `setup.sh` creates an admin and an API key that can write, without a browser, and the demo exports the key as `BIDIREKT_API_KEY`, which every `./bidirekt` command sends.
 2. **Set up what is in production**: creates the `production` environment and the participants `petstore_api` and `petstore_web`, publishes version `1.0.0` of each from `deployed/`, and records both as deployed to `production`.
 3. **Publish the proposed change**: publishes `contracts/petstore_api.yaml` as `petstore_api` `2.0.0`. Its `Pet` schema no longer has `status`.
 4. **Check it**: `can-i-deploy` says `2.0.0` cannot be deployed, because `petstore_web` reads `Pet.status`.
@@ -29,6 +29,7 @@ Step 4 checks `2.0.0` against what is deployed in production:
 ```
 $ ./bidirekt can-i-deploy petstore_api --version 2.0.0 --environment production
 Broker: http://broker:8080 (from BIDIREKT_BROKER_URL)
+warning: the API key travels unencrypted to http://broker:8080
 petstore_api 2.0.0 cannot be deployed to production
 
 petstore_web (1.0.0, deployed):
@@ -69,10 +70,12 @@ Then it publishes the fixed contract as `3.0.0` and checks it:
 ```
 $ ./bidirekt publish contracts/petstore_api.yaml --participant petstore_api --version 3.0.0
 Broker: http://broker:8080 (from BIDIREKT_BROKER_URL)
+warning: the API key travels unencrypted to http://broker:8080
 petstore_api contract publish successful
 
 $ ./bidirekt can-i-deploy petstore_api --version 3.0.0 --environment production
 Broker: http://broker:8080 (from BIDIREKT_BROKER_URL)
+warning: the API key travels unencrypted to http://broker:8080
 petstore_api 3.0.0 can be deployed to production
 compared with: petstore_web
 ```
