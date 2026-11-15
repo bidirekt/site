@@ -20,6 +20,8 @@
   items:
     - label: The contract file
       path: contracts/the-contract-file.md
+    - label: TypeScript SDK
+      path: contracts/typescript-sdk.md
 - label: REST
   items:
     - label: Resources
