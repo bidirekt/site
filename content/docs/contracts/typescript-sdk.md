@@ -296,7 +296,15 @@ schemas:
         nullable: true
 ```
 
-A path with `*` before another segment, such as `/owners/*/pets`, does not fit in a tag: `*/` closes the comment. Declare that resource with a decorator.
+In a tag, a path with `*` before another segment, such as `/pets/*/photos`, writes its `*/` as `*\/`: a bare `*/` closes the comment. `generate` reads `*\/` back as `*/`:
+
+```ts
+/**
+ * @bidirekt provides GET /pets/*\/photos
+ * @bidirekt response 200 Photo[]
+ */
+export function listPhotos() {}
+```
 
 A handler that builds its body by hand, with no type to read, can declare the schema in its own comment, with `@bidirekt schema <Name>` and one `@bidirekt field <name> type=...` per field ([Schemas in a handler's comment](https://github.com/bidirekt/typescript-sdk#schemas-in-a-handlers-comment)).
 
