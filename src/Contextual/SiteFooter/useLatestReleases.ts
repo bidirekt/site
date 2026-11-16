@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 
-export type Repo = 'cli' | 'broker'
+export type Repo = 'cli' | 'broker' | 'typescript-sdk'
 
 export type LatestRelease = { repo: Repo; tag: string; url: string }
 
-export const REPOS: Array<Repo> = ['cli', 'broker']
+export const REPOS: Array<Repo> = ['cli', 'broker', 'typescript-sdk']
 
 type GitHubRelease = { tag_name?: unknown; html_url?: unknown }
 

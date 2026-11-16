@@ -39,6 +39,8 @@ Project install writes `.agents/skills/bidirekt/SKILL.md`, `.claude/skills/bidir
 
 YAML, extension `.yaml` or `.yml`, one document per file. Three optional top-level keys, nothing else: `provides`, `consumes`, `schemas`. Participant name and version are CLI flags, never keys in the file. One file may carry both `provides` and `consumes`.
 
+A TypeScript or JavaScript service can instead write its contract from annotated code with the TypeScript SDK: its `generate` command writes `contracts/generated.yaml`, which is then the service's only contract file. How to annotate the code is in [TypeScript SDK](https://bidirekt.com/docs/contracts/typescript-sdk.md).
+
 ```yaml
 # provider petstore_api
 provides:
@@ -106,7 +108,7 @@ Rules for every kind of resource:
   - `"optional" is not allowed on array items at schemas Pet properties tags items, mark the property that holds the array optional, or use "nullable: true" for an item that may be null`
   - `"optional" is not allowed on map values at schemas Pet properties scores values, mark the property that holds the map optional, or use "nullable: true" for a value that may be null`
   - `"optional" is not allowed on a schema at schemas Pet, mark optional the property that uses it, beside its "ref"`
-- Modeling null and absence: write what the code does, not the type it declares (a nullable type the code never sets to `null` gets no `nullable`). The reader writes the flags from how its code reads each property, the producer from what its code can send (which side produces and which reads depends on the resource; `rest`: see below):
+- Modeling null and absence: write what the code does, not the type it declares (a nullable type the code never sets to `null` gets no `nullable`). With the TypeScript SDK, a field's declared `type`, `optional` or `nullable` applies this rule over its TypeScript type ([Describe what the code does](https://bidirekt.com/docs/contracts/typescript-sdk.md#describe-what-the-code-does)). The reader writes the flags from how its code reads each property, the producer from what its code can send (which side produces and which reads depends on the resource; `rest`: see below):
   - Reader, per property: if this value comes `null` or is missing, does the code keep working? Keeps working with `null` → `nullable: true`; keeps working without the key → `optional: true`; breaks → neither.
   - Producer: may send `null` → `nullable: true`; may leave the key out → `optional: true`.
   - A provider that reads a body marks a property by what it accepts without answering an error. A missing `name` answered with `400` → `name` is required.
