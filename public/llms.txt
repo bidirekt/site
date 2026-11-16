@@ -27,7 +27,7 @@ bidirekt login --profile local
 
 A broker on a non-default profile (e.g. `--profile local` for the local compose) needs that profile on every command: `--profile local` or `export BIDIREKT_PROFILE=local`. In CI, or anywhere without a terminal, set `BIDIREKT_BROKER_URL` and `BIDIREKT_API_KEY` instead.
 
-Install the agent skill that writes and fixes the contract files from the code:
+Install the agent skill that writes and fixes the contract files from the code (a TypeScript or JavaScript service can instead generate its contract file from annotated code with the [TypeScript SDK](https://bidirekt.com/docs/contracts/typescript-sdk.md)):
 
 ```
 npx skills add bidirekt/skills -a claude-code codex -y
