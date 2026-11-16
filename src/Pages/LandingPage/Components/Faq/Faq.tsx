@@ -1,6 +1,10 @@
+import type { ReactNode } from 'react'
 import { SectionHeading } from '../SectionHeading'
 
-type Question = { question: string; answer: string }
+type Question = { question: string; answer: ReactNode }
+
+const LINK =
+  'text-primary underline decoration-accent underline-offset-[3px] hover:text-accent'
 
 const QUESTIONS: Array<Question> = [
   {
@@ -10,8 +14,17 @@ const QUESTIONS: Array<Question> = [
   },
   {
     question: 'How do I keep the YAML honest with the real code?',
-    answer:
-      'Generate it from the code instead of writing it by hand. The Bidirekt agent skill reads your service and writes its contract files, and fixes them from a can-i-deploy report.',
+    answer: (
+      <>
+        Generate it from the code instead of writing it by hand. The Bidirekt
+        agent skill reads your service and writes its contract files, and fixes
+        them from a can-i-deploy report. In TypeScript or JavaScript, the{' '}
+        <a href="/docs/contracts/typescript-sdk" className={LINK}>
+          TypeScript SDK
+        </a>{' '}
+        writes the contract file from your annotated code.
+      </>
+    ),
   },
   {
     question: 'Do I need to host the broker?',
