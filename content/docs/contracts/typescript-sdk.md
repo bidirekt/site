@@ -1,152 +1,149 @@
 ---
 title: TypeScript SDK
-description: How to write a service's contract from its TypeScript or JavaScript code with the TypeScript SDK: installation, an Express example, decorators and tags, how types and names translate, the generate command and the flow to publish.
+description: How to write a service's contract from its TypeScript or JavaScript code with the TypeScript SDK: installation, an example with decorators and tags, the generate command and the flow to publish. The full reference is the SDK's README.
 ---
 
-The TypeScript SDK writes the [contract file](the-contract-file.md) of a service from its TypeScript or JavaScript code. You annotate the schemas and the handlers that provide or consume each resource, run `generate`, and get `contracts/generated.yaml`, which [`validate`](../ship/validate.md) and [`publish`](../ship/publish.md) take like any other contract file. It reads the source code and never runs your app.
+The TypeScript SDK writes the [contract file](the-contract-file.md) of a service from its TypeScript or JavaScript code. You annotate the schemas and the handlers that provide or consume each resource, with decorators or with `@bidirekt` tags in `/** */` comments, run `generate`, and get `contracts/generated.yaml`, which [`validate`](../ship/validate.md) and [`publish`](../ship/publish.md) take like any other contract file. It reads the source code and never runs your app.
 
-`contracts/generated.yaml` is the service's only contract file. A service adopts the SDK as a whole: every resource and schema it provides or consumes is annotated in its code, and the hand-written contract files are deleted ([One contract per service](#one-contract-per-service)).
+This page shows how it reads. Every decorator option, tag, type and error is in the [SDK's README](https://github.com/bidirekt/typescript-sdk#readme).
 
 ## Install
 
-The SDK has two packages, and both need Node.js 22.12 or later. `@bidirekt/typescript-sdk-cli` is the `generate` command, a dev dependency:
+Both packages need Node.js 22.12 or later. `@bidirekt/typescript-sdk-cli` is the `generate` command, a dev dependency:
 
 ```
 $ npm install --save-dev @bidirekt/typescript-sdk-cli
 ```
 
-`@bidirekt/typescript-sdk` holds the decorators. Your app imports them at runtime, so with decorators it is a regular dependency too. With [tags](#tags) only, the command is all you need:
+`@bidirekt/typescript-sdk` holds the decorators, which your app imports at runtime, so with decorators it is a regular dependency too. With tags only, the command is all you need:
 
 ```
 $ npm install @bidirekt/typescript-sdk
 ```
 
-Their types need TypeScript 5.0 or later.
-
-With `emitDecoratorMetadata` on, as NestJS and TypeORM set it, TypeScript keeps the imports of decorated classes at runtime. Classes that reference each other can then fail at startup with `Cannot access 'Pet' before initialization`, and each decorated field emits its type as metadata that other libraries act on: class-transformer's implicit conversion, for example, turns `'10'` into `10`. Annotate such classes with tags instead.
-
 ## Example
 
-`petstore_api` is an Express service. It provides `/pets` and reads a pet's rating from `petstore_reviews`. Its schemas are interfaces, and a tag marks each schema and each field of the contract:
+`petstore_ts` provides `GET /pets/*` and `POST /pets`, and consumes `GET /ratings/*` from `petstore_reviews`. `@BidirektSchema` marks a schema and `@BidirektField` each field of the contract. A field's type comes from TypeScript, and a declared `type` says what TypeScript can't, as `integer` or `float` for a `number`. A property without an annotation, like `internalNotes`, stays out of the contract:
 
 ```ts
-// src/schemas.ts
+// pet.ts
+import { BidirektField, BidirektSchema } from '@bidirekt/typescript-sdk'
+
 export enum PetStatus {
   Available = 'available',
-  Pending = 'pending',
   Sold = 'sold',
 }
 
-/** @bidirekt schema */
-export interface Owner {
-  /** @bidirekt field */
-  name: string
+@BidirektSchema()
+export class Owner {
+  @BidirektField()
+  name!: string
 }
 
-/** @bidirekt schema */
-export interface Pet {
-  /** @bidirekt field type=integer */
-  petId: number
-
-  /** @bidirekt field */
-  name: string
-
-  /** @bidirekt field */
-  status: PetStatus
-
-  /** @bidirekt field */
-  owner: Owner | null
-
-  internalNotes: string
+@BidirektSchema()
+export class Shelter {
+  @BidirektField()
+  city!: string
 }
 
-/** @bidirekt schema */
-export interface NewPet {
-  /** @bidirekt field */
-  name: string
+@BidirektSchema()
+export class Pet {
+  @BidirektField({ type: 'integer' })
+  petId!: number
+
+  @BidirektField()
+  name!: string
+
+  @BidirektField()
+  status!: PetStatus
+
+  @BidirektField()
+  size!: 'small' | 'large'
+
+  @BidirektField({ type: 'float' })
+  weight!: number
+
+  @BidirektField({ type: 'string', description: 'ISO 8601 date' })
+  birthDate!: Date
+
+  @BidirektField()
+  nickname?: string
+
+  @BidirektField()
+  owner!: Owner | null
+
+  @BidirektField({ union: { owner: Owner, shelter: Shelter } })
+  origin!: Owner | Shelter
+
+  @BidirektField()
+  tags!: string[]
+
+  @BidirektField()
+  vaccines!: Record<string, string>
+
+  internalNotes!: string
 }
 
-/** @bidirekt schema */
-export interface Rating {
-  /** @bidirekt field type=float */
-  stars: number
+@BidirektSchema()
+export class NewPet {
+  @BidirektField()
+  name!: string
+}
+
+@BidirektSchema()
+export class Rating {
+  @BidirektField({ type: 'integer' })
+  stars!: number
 }
 ```
 
-The comment above each route says what it provides:
+`@BidirektProvider` on a method declares a resource it provides. A body is a schema class, or `null` for no body:
 
 ```ts
-// src/pets.ts
-import express from 'express'
-import { type NewPet, type Pet, PetStatus } from './schemas.ts'
+// pets.controller.ts
+import { BidirektProvider } from '@bidirekt/typescript-sdk'
+import { NewPet, Pet } from './pet.js'
 
-const pets: Array<Pet> = []
-
-export const router = express.Router()
-
-/**
- * @bidirekt provides GET /pets
- * @bidirekt response 200 Pet[]
- */
-router.get('/pets', (_req, res) => {
-  res.json(pets)
-})
-
-/**
- * @bidirekt provides GET /pets/*
- * @bidirekt response 200 Pet
- * @bidirekt response 404
- */
-router.get('/pets/:petId', (req, res) => {
-  const pet = pets.find((candidate) => candidate.petId === Number(req.params.petId))
-  if (pet === undefined) {
-    res.sendStatus(404)
-    return
+export class PetsController {
+  @BidirektProvider({
+    method: 'GET',
+    path: '/pets/*',
+    responses: { 200: Pet, 404: null },
+  })
+  find(petId: number): Pet | undefined {
+    return undefined
   }
-  res.json(pet)
-})
 
-/**
- * @bidirekt provides POST /pets
- * @bidirekt request NewPet
- * @bidirekt response 201 Pet
- * @bidirekt response 400
- */
-router.post('/pets', (req, res) => {
-  const body = req.body as NewPet | undefined
-  if (typeof body?.name !== 'string') {
-    res.sendStatus(400)
-    return
+  @BidirektProvider({
+    method: 'POST',
+    path: '/pets',
+    request: NewPet,
+    responses: { 201: Pet, 400: null },
+  })
+  create(body: NewPet): Pet {
+    return Object.assign(new Pet(), body)
   }
-  const pet: Pet = {
-    petId: pets.length + 1,
-    name: body.name,
-    status: PetStatus.Available,
-    owner: null,
-    internalNotes: '',
-  }
-  pets.push(pet)
-  res.status(201).json(pet)
-})
+}
 ```
 
-And the comment above the function that calls `petstore_reviews` says what it consumes:
+`@BidirektConsumer` declares a resource it consumes, and names the provider:
 
 ```ts
-// src/ratings.ts
-import type { Rating } from './schemas.ts'
+// ratings.client.ts
+import { BidirektConsumer } from '@bidirekt/typescript-sdk'
+import { Rating } from './pet.js'
 
-/**
- * @bidirekt consumes petstore_reviews GET /ratings/*
- * @bidirekt response 200 Rating
- * @bidirekt response 404
- */
-export async function findRating(petId: number): Promise<Rating | null> {
-  const response = await fetch(`http://petstore-reviews/ratings/${petId}`)
-  if (response.status === 404) {
-    return null
+export class RatingsClient {
+  @BidirektConsumer({
+    provider: 'petstore_reviews',
+    method: 'GET',
+    path: '/ratings/*',
+    responses: { 200: Rating, 404: null },
+  })
+  async find(petId: number): Promise<Rating | null> {
+    const response = await fetch(`http://petstore-reviews/ratings/${petId}`)
+    return response.status === 404 ? null : ((await response.json()) as Rating)
   }
-  return (await response.json()) as Rating
 }
 ```
 
@@ -156,16 +153,13 @@ Run `generate` in the project folder:
 $ npx @bidirekt/typescript-sdk-cli generate
 ```
 
-It writes `contracts/generated.yaml`:
+It writes `contracts/generated.yaml`. `status`, a string `enum`, becomes the `PetStatus` enum schema, `size` an inline enum, `owner` a `ref` to `Owner`, and `origin` a union keyed by `union`:
 
 ```yaml
 # Generated by @bidirekt/typescript-sdk. Do not edit.
 provides:
   rest:
     /pets:
-      get:
-        responses:
-          200: PetList
       post:
         request: NewPet
         responses:
@@ -204,367 +198,91 @@ schemas:
         type: string
       status:
         ref: PetStatus
+      size:
+        type: enum
+        members: ["small", "large"]
+      weight:
+        type: float
+      birthDate:
+        type: string
+        description: ISO 8601 date
+      nickname:
+        type: string
+        optional: true
       owner:
         ref: Owner
         nullable: true
-  PetList:
-    type: array
-    items:
-      ref: Pet
+      origin:
+        type: union
+        members:
+          owner:
+            ref: Owner
+          shelter:
+            ref: Shelter
+      tags:
+        type: array
+        items:
+          type: string
+      vaccines:
+        type: map
+        values:
+          type: string
   PetStatus:
     type: enum
-    members: ["available", "pending", "sold"]
+    members: ["available", "sold"]
   Rating:
     type: object
     properties:
       stars:
-        type: float
+        type: integer
+  Shelter:
+    type: object
+    properties:
+      city:
+        type: string
 ```
 
-`internalNotes` has no annotation, so it stays out of the contract. `PetStatus` is a string enum, so it becomes an `enum` schema with its values. `Pet[]` is a list, named `PetList`.
+## Tags
 
-## Two ways to annotate
-
-There are two ways to annotate, and each covers schemas, the resources a service provides and the ones it consumes: tags in `/** */` comments, for function handlers, interfaces and plain JavaScript, and decorators, for code with classes. One service can use both, but never both on the same element.
-
-### Tags
-
-A tag is `@bidirekt` and a keyword, at the start of a line of a `/** */` comment, above the element it describes:
-
-- `@bidirekt schema` above a class, an `interface` or an object `type` makes it a schema.
-- `@bidirekt field` above a property of a schema makes it a field of the contract. It takes `type=`, `name=`, `optional=`, `nullable=`, `description="..."` and `union=`.
-- `@bidirekt provides <METHOD> <path>` above a handler declares a resource it provides.
-- `@bidirekt consumes <provider> <METHOD> <path>` above a function declares a resource it consumes from that provider.
-- `@bidirekt request [schema]` and `@bidirekt response <status> [schema]` follow `provides` or `consumes`. Without a schema, the body is `~`.
-
-The method is in uppercase. A tag names a schema by its name in the contract ([Names](#names)). An object `type` reads like an interface:
+Tags in `/** */` comments do the same as the decorators, for interfaces, function handlers and plain JavaScript. A tag names a schema by its name in the contract. One service can use both, never both on the same element:
 
 ```ts
-// src/owner.ts
+// pets.ts
 /** @bidirekt schema */
-export type Owner = {
+export interface NewPet {
   /** @bidirekt field */
   name: string
-
-  /** @bidirekt field */
-  phone?: string
-}
-```
-
-```yaml
-# Generated by @bidirekt/typescript-sdk. Do not edit.
-schemas:
-  Owner:
-    type: object
-    properties:
-      name:
-        type: string
-      phone:
-        type: string
-        optional: true
-```
-
-In plain JavaScript, a schema is a class with tags. A field's type comes from its JSDoc `@type` or from `type=`, never from its initial value:
-
-```js
-// src/owner.js
-/** @bidirekt schema */
-export class Owner {
-  /** @bidirekt field
-   *  @type {string} */
-  name
-
-  /** @bidirekt field
-   *  @type {?string} */
-  phone
-
-  /** @type {string} */
-  internalNotes
-}
-```
-
-```yaml
-# Generated by @bidirekt/typescript-sdk. Do not edit.
-schemas:
-  Owner:
-    type: object
-    properties:
-      name:
-        type: string
-      phone:
-        type: string
-        nullable: true
-```
-
-In a tag, a path with `*` before another segment, such as `/pets/*/photos`, writes its `*/` as `*\/`: a bare `*/` closes the comment. `generate` reads `*\/` back as `*/`:
-
-```ts
-/**
- * @bidirekt provides GET /pets/*\/photos
- * @bidirekt response 200 Photo[]
- */
-export function listPhotos() {}
-```
-
-A handler that builds its body by hand, with no type to read, can declare the schema in its own comment, with `@bidirekt schema <Name>` and one `@bidirekt field <name> type=...` per field ([Schemas in a handler's comment](https://github.com/bidirekt/typescript-sdk#schemas-in-a-handlers-comment)).
-
-### Decorators
-
-`@BidirektSchema` marks a schema class and `@BidirektField` each field of the contract. `@BidirektProvider` on a method declares a resource it provides, and `@BidirektConsumer` a resource it consumes. A body is a schema class, `null` for `~`, `[Pet]` for a list or `{ list: Pet, name: 'PetCollection' }` for a list with its own name. These files write the same `contracts/generated.yaml` as the [example](#example):
-
-```ts
-// src/schemas.ts
-import { BidirektField, BidirektSchema } from '@bidirekt/typescript-sdk'
-
-export enum PetStatus {
-  Available = 'available',
-  Pending = 'pending',
-  Sold = 'sold',
-}
-
-@BidirektSchema()
-export class Owner {
-  @BidirektField()
-  name!: string
-}
-
-@BidirektSchema()
-export class Pet {
-  @BidirektField({ type: 'integer' })
-  petId!: number
-
-  @BidirektField()
-  name!: string
-
-  @BidirektField()
-  status!: PetStatus
-
-  @BidirektField()
-  owner!: Owner | null
-
-  internalNotes!: string
-}
-
-@BidirektSchema()
-export class NewPet {
-  @BidirektField()
-  name!: string
-}
-
-@BidirektSchema()
-export class Rating {
-  @BidirektField({ type: 'float' })
-  stars!: number
-}
-```
-
-```ts
-// src/pets.controller.ts
-import { BidirektProvider } from '@bidirekt/typescript-sdk'
-import { NewPet, Pet } from './schemas.ts'
-
-export class PetsController {
-  @BidirektProvider({ method: 'GET', path: '/pets', responses: { 200: [Pet] } })
-  list(): Array<Pet> {
-    return []
-  }
-
-  @BidirektProvider({
-    method: 'GET',
-    path: '/pets/*',
-    responses: { 200: Pet, 404: null },
-  })
-  find(petId: number): Pet | undefined {
-    return undefined
-  }
-
-  @BidirektProvider({
-    method: 'POST',
-    path: '/pets',
-    request: NewPet,
-    responses: { 201: Pet, 400: null },
-  })
-  create(body: NewPet): Pet {
-    return new Pet()
-  }
-}
-```
-
-```ts
-// src/ratings.client.ts
-import { BidirektConsumer } from '@bidirekt/typescript-sdk'
-import { Rating } from './schemas.ts'
-
-export class RatingsClient {
-  @BidirektConsumer({
-    provider: 'petstore_reviews',
-    method: 'GET',
-    path: '/ratings/*',
-    responses: { 200: Rating, 404: null },
-  })
-  async find(petId: number): Promise<Rating | null> {
-    const response = await fetch(`http://petstore-reviews/ratings/${petId}`)
-    if (response.status === 404) {
-      return null
-    }
-    return (await response.json()) as Rating
-  }
-}
-```
-
-`generate` recognizes a decorator by where it is imported from, `@bidirekt/typescript-sdk`, never by its name. Decorator options are written in place, never through a variable. A decorator built at runtime, returned by a function or applied in a loop, is not read, and `generate` warns about it.
-
-## Types
-
-A field's type comes from TypeScript, or from the JSDoc `@type` in JavaScript:
-
-| TypeScript | Contract |
-|---|---|
-| `string`, `boolean`, `number` | `string`, `boolean`, `number` |
-| `T \| null` | `nullable: true` |
-| `x?: T`, `T \| undefined` | `optional: true` |
-| `'a' \| 'b'` | `type: enum`, inline |
-| a string `enum` | `ref` to an `enum` schema named after it, with its values |
-| one member of a string `enum`, `PetStatus.Available` | `type: enum`, inline, with that member |
-| a numeric `enum` | `integer` |
-| `T[]`, `Array<T>` | `type: array` |
-| `Record<string, T>`, `{ [key: string]: T }` | `type: map` |
-| a schema: class, interface or object `type` | `ref` |
-| a union of schemas | `type: union`, with the keys from `union` |
-
-`integer` and `float` come only from a declared `type`. The declared `type` is the whole type of the field, whatever TypeScript says: a primitive (`string`, `integer`, `float`, `number`, `boolean`), `T[]` for a list or `map<T>` for a map, nested, as in `integer[][]` or `map<float[]>`. `optional` and `nullable` still come from the TypeScript type when they are not declared.
-
-A type the contract cannot hold stops `generate` with the file and the line, and you declare the type: `Date`, `any`, `unknown`, `string | number`, an inline object type, a generic class such as `Page<Pet>`, or an interface that is not a schema. The full list, with an example for each type, is in the [Reference](https://github.com/bidirekt/typescript-sdk#reference) of the SDK.
-
-## Names
-
-Every name comes from the code unless you declare one:
-
-- A field is named after its property; `name` gives it another name.
-- A schema is named after its class, interface, object `type` or string `enum`; `name` gives it another name.
-- A list is named after its items' schema with `List` at the end; `Pet[] as PetCollection` in a tag, or `{ list: Pet, name: 'PetCollection' }` in a decorator, gives it another name.
-
-A tag references a schema by its name in the contract, not by its name in the code:
-
-```ts
-// src/pets.ts
-/** @bidirekt schema name=PetSummary */
-export interface Pet {
-  /** @bidirekt field name=pet_id type=integer */
-  petId: number
 }
 
 /**
- * @bidirekt provides GET /pets
- * @bidirekt response 200 PetSummary[] as PetCollection
+ * @bidirekt provides POST /pets
+ * @bidirekt request NewPet
+ * @bidirekt response 201
+ * @bidirekt response 400
  */
-export function listPets(): Array<Pet> {
-  return []
+export function createPet(body: NewPet) {
+  return body
 }
 ```
 
-```yaml
-# Generated by @bidirekt/typescript-sdk. Do not edit.
-provides:
-  rest:
-    /pets:
-      get:
-        responses:
-          200: PetCollection
-schemas:
-  PetCollection:
-    type: array
-    items:
-      ref: PetSummary
-  PetSummary:
-    type: object
-    properties:
-      pet_id:
-        type: integer
-```
-
-Naming the code's `Pet` there instead, `@bidirekt response 200 Pet[] as PetCollection`, stops `generate` with `src/pets.ts:10 schema "Pet" is not declared: reference a schema by its name in the contract`. Two schemas with the same name in the contract stop it too, and you give one of them another name.
+The [Quickstart](https://github.com/bidirekt/typescript-sdk#quickstart) of the README writes this whole example with tags too, and [JavaScript](https://github.com/bidirekt/typescript-sdk#javascript) shows a schema in a `.js` file.
 
 ## Describe what the code does
 
-The contract describes what the code does, not the type the code declares ([Describe what the code does](the-contract-file.md#describe-what-the-code-does)). With the SDK, the TypeScript type is where each field starts, and the field's options apply the rule: a declared `type`, `optional` or `nullable` wins over the type.
-
-`Pet.name` is `string | null` because the database column allows `null`, but `petstore_api` always fills it, so the field declares `nullable: false`. `Pet.birthDate` is a `Date` in the code and a string in the body:
-
-```ts
-// src/pet.ts
-import { BidirektField, BidirektSchema } from '@bidirekt/typescript-sdk'
-
-@BidirektSchema()
-export class Pet {
-  @BidirektField({ nullable: false })
-  name!: string | null
-
-  @BidirektField({ type: 'string' })
-  birthDate!: Date
-}
-```
-
-```ts
-// src/pet.ts
-/** @bidirekt schema */
-export interface Pet {
-  /** @bidirekt field nullable=false */
-  name: string | null
-
-  /** @bidirekt field type=string */
-  birthDate: Date
-}
-```
-
-Both write:
-
-```yaml
-# Generated by @bidirekt/typescript-sdk. Do not edit.
-schemas:
-  Pet:
-    type: object
-    properties:
-      name:
-        type: string
-      birthDate:
-        type: string
-```
-
-## The generate command
-
-```
-$ npx @bidirekt/typescript-sdk-cli generate
-$ npx @bidirekt/typescript-sdk-cli generate --check
-$ npx @bidirekt/typescript-sdk-cli generate --project apps/api/tsconfig.json --out apps/api/contracts/generated.yaml
-```
-
-`generate` reads the `tsconfig.json` in the current folder, or the `jsconfig.json` when there is none, or the TypeScript and JavaScript files in it when there is neither, and writes `contracts/generated.yaml` in the project's folder. The file is written whole on every run, and the same code always writes the same file.
-
-- `--project <tsconfig>`: reads another project, and writes to its folder.
-- `--out <file>`: writes to another file.
-- `--check`: writes nothing, and exits with `1` when the file on disk differs from what `generate` would write: `"contracts/generated.yaml" is out of date: run generate without --check`.
-
-Each error goes to stderr as `file:line message`, such as `src/pet.ts:8 cannot translate "Date" to a contract type: declare it with "@bidirekt field type=<type>"` for the `Pet` of [Describe what the code does](#describe-what-the-code-does) without `type=string`. On an error nothing is written and the exit code is `1`. A warning is printed as `file:line warning: message` and does not change the exit code.
+The contract describes what the code does, not the type the code declares ([Describe what the code does](the-contract-file.md#describe-what-the-code-does)). With the SDK, the TypeScript type is where each field starts, and a declared `type`, `optional` or `nullable` wins over it. In the example, `birthDate` is a `Date` in the code and a string in the body, so it declares `type: 'string'`. A `name: string | null` that the code always fills declares `nullable: false`.
 
 ## From code to deploy
 
-Regenerate the file whenever an annotation or an annotated type changes, and commit it with the code. Then the flow is the same as with a hand-written file:
+`contracts/generated.yaml` is the service's only contract file: a service adopts the SDK as a whole, with every resource and schema it provides or consumes annotated in its code. Never edit the file: the next `generate` writes over it. Regenerate it whenever an annotation or an annotated type changes, commit it with the code, and ship it like any contract file:
 
 ```
 $ npx @bidirekt/typescript-sdk-cli generate
-$ bidirekt validate contracts/generated.yaml --participant petstore_api --environment production
-$ bidirekt publish contracts/generated.yaml --participant petstore_api --version 1.4.0
-$ bidirekt can-i-deploy petstore_api --version 1.4.0 --environment production
-$ bidirekt record-deployment petstore_api --version 1.4.0 --environment production
+$ bidirekt validate contracts/generated.yaml --participant petstore_ts --environment production
+$ bidirekt publish contracts/generated.yaml --participant petstore_ts --version 1.4.0
+$ bidirekt can-i-deploy petstore_ts --version 1.4.0 --environment production
+$ bidirekt record-deployment petstore_ts --version 1.4.0 --environment production
 ```
 
-In CI, `generate --check` fails the build when the committed file is out of date.
+Deploy between `can-i-deploy` and `record-deployment`. In CI, `generate --check` fails the build when the committed file is out of date. When [`can-i-deploy`](../ship/can-i-deploy.md) reports a break, fix the annotation or the type in the code and generate again.
 
-When [`can-i-deploy`](../ship/can-i-deploy.md) reports a break, fix the annotation or the type in the code and generate again. Never edit `contracts/generated.yaml`: the next `generate` writes over it.
-
-## One contract per service
-
-`contracts/generated.yaml` is the only contract file of the service. The broker reads every file of one publish as one contract ([Several files](the-contract-file.md#several-files)), but the SDK cannot see the others: a tag cannot name a schema declared only in a hand-written file, and a resource or schema declared both in the code and in a hand-written file is rejected at publish as declared twice.
-
-To adopt the SDK, annotate every resource and schema the service provides or consumes, generate, check that the new file declares what the old files did, and delete the old files.
+A type the contract cannot hold, such as `Date` without a declared `type`, stops `generate` with the file and the line, and nothing is written. The [`generate` command](https://github.com/bidirekt/typescript-sdk#the-generate-command) and the [Reference](https://github.com/bidirekt/typescript-sdk#reference) of the README list every option, type and error.

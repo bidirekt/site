@@ -72,7 +72,7 @@ A property is required only where its parent is present. When the producer does 
 
 ## Describe what the code does
 
-The contract describes what the code does, not the type the code declares. The side that reads a body writes [`optional` and `nullable`](../schemas/optional-and-nullable.md) from how its code reads each property, and the side that produces it from what its code can send. With the [TypeScript SDK](typescript-sdk.md#describe-what-the-code-does), a field's declared `type`, `optional` or `nullable` applies this rule over its TypeScript type.
+The contract describes what the code does, not the type the code declares. The side that reads a body writes [`optional` and `nullable`](../schemas/optional-and-nullable.md) from how its code reads each property, and the side that produces it from what its code can send. With the [TypeScript SDK](typescript-sdk.md#describe-what-the-code-does) or the [PHP SDK](php-sdk.md#describe-what-the-code-does), a field's declared `type`, `optional` or `nullable` applies this rule over its TypeScript or PHP type.
 
 The side that reads the body asks one question for each property: if this value comes `null` or is missing, does the code keep working?
 
