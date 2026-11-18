@@ -25,7 +25,7 @@ A file that breaks the [contract format](../contracts/the-contract-file.md#file-
 ```
 $ bidirekt publish petstore_api.yaml --participant petstore_api --version 1.4.0
 contract validation failed
-  - petstore_api.yaml: invalid endpoint "/pets/{petId}" at provides rest, dynamic path segments must use *
+  - petstore_api.yaml: invalid endpoint "/pets/{petId}" in provides, write "/pets/*" (dynamic path segments must use *)
 ```
 
 The files are checked in two steps. First the shape of each file: its keys, its resources and its schema nodes. Only when every file passes come the checks between names: a resource or a schema declared twice, a property given two types or two lists of enum values by two files of a consumer, and a schema name that no schema declares. While any file has a shape violation, the report lists only the shape violations; after they are fixed, the next run lists the others. If `petstore_api.yaml` above also named an undeclared schema, `200: Pett`, the second run would print:
