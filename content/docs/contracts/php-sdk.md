@@ -1,38 +1,31 @@
 ---
 title: PHP SDK
-description: How to write a service's contract from its PHP code with the PHP SDK: installation, a Slim example, attributes and docblock tags, how types and names translate, what json_encode writes, the generate command and the flow to publish.
+description: How to write a service's contract from its PHP code with the PHP SDK: installation, an example with attributes and docblock tags, the generate command and the flow to publish. The full reference is the SDK's README.
 ---
 
 The PHP SDK writes the [contract file](the-contract-file.md) of a service from its PHP code. You annotate the schemas and the handlers that provide or consume each resource, with attributes or with `@bidirekt` tags in docblocks, run `generate`, and get `contracts/generated.yaml`, which [`validate`](../ship/validate.md) and [`publish`](../ship/publish.md) take like any other contract file. It reads the source code and never runs your app.
 
-`contracts/generated.yaml` is the service's only contract file. A service adopts the SDK as a whole: every resource and schema it provides or consumes is annotated in its code, and the hand-written contract files are deleted ([One contract per service](#one-contract-per-service)).
+This page shows how it reads. Every attribute argument, tag, type and error is in the [SDK's README](https://github.com/bidirekt/php-sdk#readme).
 
 ## Install
 
-The SDK is one Composer package, `bidirekt/php-sdk`, with the four attributes and the `generate` command. It needs PHP 8.0 or later and Composer 2.2 or later. Install it as a dev dependency:
+The SDK needs PHP 8.0 or later and Composer 2.2 or later. Install it as a dev dependency:
 
 ```
 $ composer require --dev bidirekt/php-sdk
 ```
 
-The SDK needs `nikic/php-parser` 5.6.2 or later to read PHP 8.4 and 8.5 code. If Composer says your lock file fixes an older version (a Laravel project locks it through `psy/psysh`), run `composer require --dev bidirekt/php-sdk -W` so Composer may update it.
-
-An attribute runs nothing: PHP loads its class only when code calls `newInstance()` on it, and `generate` reads the attributes from the source instead. So a production install with `composer install --no-dev`, which leaves the package out, still runs your app.
-
-`generate` reads code of any PHP version. Some forms need a newer PHP to run your app, not to run `generate`:
-
-- `new BidirektField(...)` inside `fields:` needs PHP 8.1, as does an enum. On PHP 8.0, declare a [schema without a class](#schemas-without-a-class) with tags.
-- `Enum::Case->value` as an attribute argument needs PHP 8.2.
+An attribute runs nothing, so a production install with `composer install --no-dev`, which leaves the package out, still runs your app. `new BidirektField(...)` inside an attribute needs PHP 8.1 to run your app, and `Enum::Case->value` as an attribute argument PHP 8.2; [Installation](https://github.com/bidirekt/php-sdk#installation) in the README has the details.
 
 ## Example
 
-`petstore_php` is a Slim service. It provides `/pets`. Its schemas are classes, and an attribute marks each schema and each field of the contract:
+`petstore_php` is a Slim service. It provides `GET /pets/*` and consumes `GET /ratings/*` from `petstore_reviews`. `#[BidirektSchema]` marks each schema and `#[BidirektField]` each field of the contract; a field without it stays out of the contract. `Pet` uses each kind of field:
 
 ```php
 <?php
 // src/Pet.php
 
-namespace Petstore;
+namespace App;
 
 use Bidirekt\PhpSdk\BidirektField;
 use Bidirekt\PhpSdk\BidirektSchema;
@@ -40,95 +33,84 @@ use Bidirekt\PhpSdk\BidirektSchema;
 #[BidirektSchema]
 final class Pet
 {
+    /**
+     * @param list<string> $tags
+     * @param array<string, string> $notes
+     */
     public function __construct(
-        #[BidirektField] public int $petId,
+        #[BidirektField] public int $id,
         #[BidirektField] public string $name,
-        #[BidirektField] public string $status,
-        #[BidirektField(type: 'float')] public float $weight,
-    ) {
-    }
+        #[BidirektField] public PetStatus $status,
+        #[BidirektField] public Owner $owner,
+        #[BidirektField] public array $tags,
+        #[BidirektField] public array $notes,
+        #[BidirektField(type: 'float', description: 'In kilograms')] public float $weight,
+        #[BidirektField] public ?string $birthDate,
+        #[BidirektField(union: ['person' => Owner::class, 'shelter' => Shelter::class])]
+        public Owner|Shelter $adoptedFrom,
+    ) {}
+
+    #[BidirektField(optional: true)]
+    public string $nickname;
 }
 ```
 
-```php
-<?php
-// src/NewPet.php
+`Owner` and `Shelter` are schema classes like it, with one string field each (`name` and `city`), `Rating` has a `float $average` and an `int $count`, and `PetStatus` is an enum with the string values `available` and `adopted`.
 
-namespace Petstore;
-
-use Bidirekt\PhpSdk\BidirektField;
-use Bidirekt\PhpSdk\BidirektSchema;
-
-#[BidirektSchema]
-final class NewPet
-{
-    public function __construct(
-        #[BidirektField] public string $name,
-        #[BidirektField] public int $ownerId,
-    ) {
-    }
-}
-```
-
-The docblock above each route says what it provides:
+`#[BidirektProvider]` on a handler declares what it provides. Slim routes `/pets/{id}` to `show`, and the path is declared `/pets/*`: a `*` for each dynamic segment, never the framework's placeholder.
 
 ```php
 <?php
-// public/index.php
+// src/PetController.php
 
-use Petstore\Pet;
+namespace App;
+
+use Bidirekt\PhpSdk\BidirektProvider;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Factory\AppFactory;
 
-require __DIR__ . '/../vendor/autoload.php';
-
-$app = AppFactory::create();
-$app->addBodyParsingMiddleware();
-
-$pets = [];
-
-function json(Response $response, Pet $pet, int $status): Response
+final class PetController
 {
-    // The contract says weight is a float, so 0.0 must not be written as 0.
-    $response->getBody()->write((string) json_encode($pet, JSON_PRESERVE_ZERO_FRACTION));
+    public function __construct(private PetRepository $pets) {}
 
-    return $response->withStatus($status)->withHeader('Content-Type', 'application/json');
-}
-
-/**
- * @bidirekt provides GET /pets/*
- * @bidirekt response 200 Pet
- * @bidirekt response 404
- */
-$app->get('/pets/{id}', function (Request $request, Response $response, array $args) use (&$pets): Response {
-    foreach ($pets as $pet) {
-        if ($pet->petId === (int) $args['id']) {
-            return json($response, $pet, 200);
+    #[BidirektProvider(method: 'GET', path: '/pets/*', responses: [200 => Pet::class, 404 => null])]
+    public function show(Request $request, Response $response, array $args): Response
+    {
+        $pet = $this->pets->find((int) $args['id']);
+        if ($pet === null) {
+            return $response->withStatus(404);
         }
+        $response->getBody()->write((string) json_encode($pet, JSON_PRESERVE_ZERO_FRACTION));
+
+        return $response->withHeader('Content-Type', 'application/json');
     }
+}
+```
 
-    return $response->withStatus(404);
-});
+`#[BidirektConsumer]` declares what a client consumes, and from which provider:
 
-/**
- * @bidirekt provides POST /pets
- * @bidirekt request NewPet
- * @bidirekt response 201 Pet
- * @bidirekt response 400
- */
-$app->post('/pets', function (Request $request, Response $response) use (&$pets): Response {
-    $body = $request->getParsedBody();
-    if (!is_array($body) || !is_string($body['name'] ?? null) || !is_int($body['ownerId'] ?? null)) {
-        return $response->withStatus(400);
+```php
+<?php
+// src/ReviewsClient.php
+
+namespace App;
+
+use Bidirekt\PhpSdk\BidirektConsumer;
+use GuzzleHttp\Client;
+
+final class ReviewsClient
+{
+    public function __construct(private Client $http) {}
+
+    #[BidirektConsumer(provider: 'petstore_reviews', method: 'GET', path: '/ratings/*', responses: [200 => Rating::class, 404 => null])]
+    public function rating(int $petId): ?Rating
+    {
+        $response = $this->http->get("/ratings/{$petId}", ['http_errors' => false]);
+        $body = json_decode((string) $response->getBody(), true);
+
+        return $response->getStatusCode() === 404 ? null : new Rating($body['average'], $body['count']);
     }
-    $pet = new Pet(count($pets) + 1, $body['name'], 'available', 0.0);
-    $pets[] = $pet;
-
-    return json($response, $pet, 201);
-});
-
-$app->run();
+}
 ```
 
 Run `generate` in the project folder, the one with `composer.json`:
@@ -143,166 +125,11 @@ It writes `contracts/generated.yaml`:
 # Generated by bidirekt/php-sdk. Do not edit.
 provides:
   rest:
-    /pets:
-      post:
-        request: NewPet
-        responses:
-          201: Pet
-          400: ~
     /pets/*:
       get:
         responses:
           200: Pet
           404: ~
-schemas:
-  NewPet:
-    type: object
-    properties:
-      name:
-        type: string
-      ownerId:
-        type: integer
-  Pet:
-    type: object
-    properties:
-      petId:
-        type: integer
-      name:
-        type: string
-      status:
-        type: string
-      weight:
-        type: float
-```
-
-The route `/pets/{id}` is declared as `/pets/*`: a handler's path takes a `*` for each dynamic segment, never the framework's placeholder, and `generate` writes it as declared. `weight` declares `type: 'float'` because the app encodes with `JSON_PRESERVE_ZERO_FRACTION`; without it, a PHP `float` is a `number` ([What `json_encode` writes](#what-jsonencode-writes)).
-
-## Two ways to annotate
-
-There are two ways to annotate, and each covers schemas, the resources a service provides and the ones it consumes: attributes, and tags in `/** */` docblocks, for code that can't use attributes or prefers docblocks. One service can use both, as the [example](#example) does, but never both on the same handler, schema or field: `generate` stops.
-
-A field without an annotation stays out of the contract, whatever its visibility. A schema class takes the annotated fields of its parent classes, whether or not they are schemas, and of the traits it uses: the parent's fields first, then the class's in the order of the code, with a trait's at its `use` and the promoted parameters at the constructor. A field the class declares again replaces the parent's in the same place. A parent or trait from a package is read from `vendor/`, so run `composer install` before `generate`.
-
-### Attributes
-
-`#[BidirektSchema]` marks a schema class, and `#[BidirektField]` each field of the contract, on a property or a promoted constructor parameter. `#[BidirektProvider]` on a method, a function, a closure or an arrow function declares a resource it provides, and `#[BidirektConsumer]` a resource it consumes; on a route, the attribute goes on the closure passed to it. A request or a response body is a schema class (`Pet::class`), the name of a schema in the contract (`'PetStats'`), `null` for `~`, `[Pet::class]` for a list, or `['list' => Pet::class, 'name' => 'PetCollection']` for a list with its own name. Without `request`, the resource has no `request` key.
-
-This `public/index.php` writes the same `contracts/generated.yaml` as the [example](#example):
-
-```php
-<?php
-// public/index.php
-
-use Bidirekt\PhpSdk\BidirektProvider;
-use Petstore\NewPet;
-use Petstore\Pet;
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Factory\AppFactory;
-
-require __DIR__ . '/../vendor/autoload.php';
-
-$app = AppFactory::create();
-$app->addBodyParsingMiddleware();
-
-$pets = [];
-
-function json(Response $response, Pet $pet, int $status): Response
-{
-    $response->getBody()->write((string) json_encode($pet, JSON_PRESERVE_ZERO_FRACTION));
-
-    return $response->withStatus($status)->withHeader('Content-Type', 'application/json');
-}
-
-$app->get(
-    '/pets/{id}',
-    #[BidirektProvider(method: 'GET', path: '/pets/*', responses: [200 => Pet::class, 404 => null])]
-    function (Request $request, Response $response, array $args) use (&$pets): Response {
-        foreach ($pets as $pet) {
-            if ($pet->petId === (int) $args['id']) {
-                return json($response, $pet, 200);
-            }
-        }
-
-        return $response->withStatus(404);
-    },
-);
-
-$app->post(
-    '/pets',
-    #[BidirektProvider(method: 'POST', path: '/pets', request: NewPet::class, responses: [201 => Pet::class, 400 => null])]
-    function (Request $request, Response $response) use (&$pets): Response {
-        $body = $request->getParsedBody();
-        if (!is_array($body) || !is_string($body['name'] ?? null) || !is_int($body['ownerId'] ?? null)) {
-            return $response->withStatus(400);
-        }
-        $pet = new Pet(count($pets) + 1, $body['name'], 'available', 0.0);
-        $pets[] = $pet;
-
-        return json($response, $pet, 201);
-    },
-);
-
-$app->run();
-```
-
-`#[BidirektConsumer]` also names the provider. This client reads a pet's rating from `petstore_reviews`:
-
-```php
-<?php
-// src/Rating.php
-
-namespace Petstore;
-
-use Bidirekt\PhpSdk\BidirektField;
-use Bidirekt\PhpSdk\BidirektSchema;
-
-#[BidirektSchema]
-final class Rating
-{
-    public function __construct(
-        #[BidirektField] public int $stars,
-    ) {
-    }
-}
-```
-
-```php
-<?php
-// src/ReviewsClient.php
-
-namespace Petstore;
-
-use Bidirekt\PhpSdk\BidirektConsumer;
-use GuzzleHttp\Client;
-
-final class ReviewsClient
-{
-    public function __construct(private Client $http)
-    {
-    }
-
-    #[BidirektConsumer(
-        provider: 'petstore_reviews',
-        method: 'GET',
-        path: '/ratings/*',
-        responses: [200 => Rating::class, 404 => null],
-    )]
-    public function findRating(int $petId): ?Rating
-    {
-        $response = $this->http->get("/ratings/{$petId}", ['http_errors' => false]);
-        if ($response->getStatusCode() === 404) {
-            return null;
-        }
-        $body = json_decode((string) $response->getBody(), true);
-
-        return new Rating($body['stars']);
-    }
-}
-```
-
-```yaml
-# Generated by bidirekt/php-sdk. Do not edit.
 consumes:
   petstore_reviews:
     rest:
@@ -312,293 +139,6 @@ consumes:
             200: Rating
             404: ~
 schemas:
-  Rating:
-    type: object
-    properties:
-      stars:
-        type: integer
-```
-
-Written without names, the arguments follow this order:
-
-- `#[BidirektField]`: `name`, `type`, `items`, `values`, `optional`, `nullable`, `description`, `union`. `#[BidirektField('pet_id')]` is `name: 'pet_id'`.
-- `#[BidirektProvider]`: `method`, `path`, `responses`, `request`.
-- `#[BidirektConsumer]`: `provider`, `method`, `path`, `responses`, `request`.
-
-`method`, `path` and `responses` are required, and `provider` on a consumer. A handler can carry several `#[BidirektProvider]` and `#[BidirektConsumer]`.
-
-`generate` recognizes an attribute by its full name, `Bidirekt\PhpSdk\BidirektField` and the others, after it resolves the file's `use`, alias and namespace. An attribute with the same short name that resolves to another namespace, because the `use` is missing, stops `generate`: `src/Pet.php:10 #[BidirektField] resolves to "Petstore\BidirektField", so it is not read: write use Bidirekt\PhpSdk\BidirektField`.
-
-An attribute's arguments are read from the code, never run: literals, arrays, `X::class`, class constants (also from a class or interface in `vendor/`) and `Enum::Case->value`. A response status is an integer or a class constant that holds one, like `StatusCodeInterface::STATUS_OK`. Any other expression, like a concatenation or a global constant, stops `generate` at its line.
-
-### Tags
-
-A tag is `@bidirekt` and a keyword, at the start of a line of a `/** */` docblock, above the element it describes:
-
-- `@bidirekt schema` above a class, or an enum with string values, makes it a schema. It takes `name=`.
-- `@bidirekt field` above a property or a promoted constructor parameter makes it a field of the contract. It takes `type=`, `items=`, `values=`, `name=`, `optional=`, `nullable=`, `description="..."` and `union=`.
-- `@bidirekt provides <METHOD> <path>` above a method, a function, a closure, an arrow function or a route call (`$app->get(...)`, `Route::get(...)`) declares a resource it provides.
-- `@bidirekt consumes <provider> <METHOD> <path>` above the same elements declares a resource it consumes from that provider.
-- `@bidirekt request [body]` and `@bidirekt response <status> [body]` follow `provides` or `consumes`. A body is a schema's name, `Pet[]` for a list, or `Pet[] as PetCollection` for a list with its own name; without one, the body is `~`.
-
-The method is in uppercase. A tag names a schema by its name in the contract ([Names](#names)). Arguments are separated by spaces; only a `description` value is quoted, and only a `union=` value is grouped in `{...}`, as in `union={person: Person, shelter: Shelter}`.
-
-A field's type comes from its PHP type, or from the `@var` beside the tag ([Types](#types)). These schemas, with the `public/index.php` of the [example](#example), write the same `contracts/generated.yaml`:
-
-```php
-<?php
-// src/Pet.php
-
-namespace Petstore;
-
-/** @bidirekt schema */
-final class Pet
-{
-    public function __construct(
-        /** @bidirekt field */
-        public int $petId,
-        /** @bidirekt field */
-        public string $name,
-        /** @bidirekt field */
-        public string $status,
-        /** @bidirekt field type=float */
-        public float $weight,
-    ) {
-    }
-}
-```
-
-```php
-<?php
-// src/NewPet.php
-
-namespace Petstore;
-
-/** @bidirekt schema */
-final class NewPet
-{
-    /** @bidirekt field */
-    public string $name;
-
-    /** @bidirekt field */
-    public int $ownerId;
-}
-```
-
-And these write the same YAML as the consumer with attributes:
-
-```php
-<?php
-// src/Rating.php
-
-namespace Petstore;
-
-/** @bidirekt schema */
-final class Rating
-{
-    /** @bidirekt field */
-    public int $stars;
-}
-```
-
-```php
-<?php
-// src/ReviewsClient.php
-
-namespace Petstore;
-
-use GuzzleHttp\Client;
-
-final class ReviewsClient
-{
-    public function __construct(private Client $http)
-    {
-    }
-
-    /**
-     * @bidirekt consumes petstore_reviews GET /ratings/*
-     * @bidirekt response 200 Rating
-     * @bidirekt response 404
-     */
-    public function findRating(int $petId): ?Rating
-    {
-        $response = $this->http->get("/ratings/{$petId}", ['http_errors' => false]);
-        if ($response->getStatusCode() === 404) {
-            return null;
-        }
-        $rating = new Rating();
-        $rating->stars = json_decode((string) $response->getBody(), true)['stars'];
-
-        return $rating;
-    }
-}
-```
-
-In a tag, a path with `*` before another segment, such as `/pets/*/photos`, writes its `*/` as `*\/`: a bare `*/` closes the docblock. `generate` reads `*\/` back as `*/`:
-
-```php
-/**
- * @bidirekt provides GET /pets/*\/photos
- * @bidirekt response 200 Photo[]
- */
-function listPhotos(): array
-{
-    return [];
-}
-```
-
-A docblock goes above the element it annotates and above its attributes, where PHP attaches it. Other tags in the same docblock (`@param`, `@return`, `@var`, `@OA\Get`) are left alone. `/* */`, `//` and `#` comments are not read, and a `@bidirekt` later in a line, in a ` ``` ` fence or in an `@example` is not a tag. `generate` warns about a `@bidirekt` it leaves unread, such as one in a docblock between an attribute and its method, or a misspelled `@Bidirekt`.
-
-Other tools that read docblocks need to leave `@bidirekt` alone:
-
-- `doctrine/annotations` (Symfony annotation routing, Doctrine ORM 2, serializer or validator annotations) stops at `@bidirekt` as an annotation that "was never imported". Ignore it once in your app's bootstrap with `\Doctrine\Common\Annotations\AnnotationReader::addGlobalIgnoredName('bidirekt');`, or per class with `@IgnoreAnnotation("bidirekt")` in the class docblock.
-- PHP-CS-Fixer's `phpdoc_to_comment` rule, in the `@Symfony` and `@PhpCsFixer` sets and in Pint's `symfony` preset, turns a `/** */` above a statement, like `$app->get(...)`, into a `/* */`, which `generate` does not read. Keep it with `'phpdoc_to_comment' => ['ignored_tags' => ['bidirekt']]` in `.php-cs-fixer.php`, or the same rule config in `pint.json`.
-
-## Schemas without a class
-
-A body with no class to annotate, like an array a handler builds or a Laravel API Resource, declares its schema with its fields in the handler's annotation. With attributes, `#[BidirektSchema(name: ..., fields: [...])]` goes on the handler, `name` is required, and each field is a `new BidirektField('<name>', type: ...)` that declares `type` or `union`, never both. `new` in an attribute needs PHP 8.1; on PHP 8.0, use the tags:
-
-```php
-<?php
-// public/index.php
-
-use Bidirekt\PhpSdk\BidirektField;
-use Bidirekt\PhpSdk\BidirektProvider;
-use Bidirekt\PhpSdk\BidirektSchema;
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Factory\AppFactory;
-
-$app = AppFactory::create();
-
-$app->get(
-    '/pets/stats',
-    #[BidirektProvider(method: 'GET', path: '/pets/stats', responses: [200 => 'PetStats'])]
-    #[BidirektSchema(name: 'PetStats', fields: [
-        new BidirektField('total', type: 'integer'),
-        new BidirektField('lastAddedAt', type: 'string', nullable: true),
-    ])]
-    function (Request $request, Response $response): Response {
-        $response->getBody()->write((string) json_encode(['total' => 0, 'lastAddedAt' => null]));
-
-        return $response;
-    },
-);
-```
-
-With tags, `@bidirekt schema <Name>` in the handler's docblock opens a schema, and each following `@bidirekt field <name> type=...` is a field of it, until the next `schema` or the end of the docblock:
-
-```php
-<?php
-// public/index.php
-
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Factory\AppFactory;
-
-$app = AppFactory::create();
-
-/**
- * @bidirekt provides GET /pets/stats
- * @bidirekt response 200 PetStats
- *
- * @bidirekt schema PetStats
- * @bidirekt field total type=integer
- * @bidirekt field lastAddedAt type=string nullable=true
- */
-$app->get('/pets/stats', function (Request $request, Response $response): Response {
-    $response->getBody()->write((string) json_encode(['total' => 0, 'lastAddedAt' => null]));
-
-    return $response;
-});
-```
-
-Both write:
-
-```yaml
-# Generated by bidirekt/php-sdk. Do not edit.
-provides:
-  rest:
-    /pets/stats:
-      get:
-        responses:
-          200: PetStats
-schemas:
-  PetStats:
-    type: object
-    properties:
-      total:
-        type: integer
-      lastAddedAt:
-        type: string
-        nullable: true
-```
-
-These schemas belong to the whole contract: any handler or field references them by name, never by class. On a class, such as a Laravel API Resource, `fields:` declares the fields of a body the class builds by hand: without `name` the schema is named after the class, and the declared fields come after the ones annotated in the class or its parents. A schema with no field stops `generate`, in both forms.
-
-## Types
-
-A field's type comes from PHP. The PHPDoc is read only where PHP can't say the type: the items of an array, and a property with no PHP type. It is the `@var` of the property or, on a promoted constructor parameter, its own `@var` or the constructor's `@param`; the two on one parameter must say the same type. A class name in the PHPDoc resolves through the file's `use` and namespace, like in the code.
-
-| PHP | Contract |
-|---|---|
-| `string`, `bool`, `int` | `string`, `boolean`, `integer` |
-| `float`, `int\|float` | `number` |
-| `integer`, `boolean`, `double` (PHPDoc only) | `integer`, `boolean`, `number` |
-| `?T`, `T\|null` | `nullable: true` |
-| an enum with string values | `ref` to an `enum` schema named after it, with its values |
-| an enum with int values | `integer` |
-| `list<T>`, `T[]` (PHPDoc) | `type: array` |
-| `array<string, T>` (PHPDoc) | `type: map` |
-| `list<T\|null>`, `array<string, T\|null>` (PHPDoc) | `nullable: true` on the items or values |
-| a class with `#[BidirektSchema]` or `@bidirekt schema` | `ref` |
-| `self`, `static` | `ref` to the class itself |
-| a union of schema classes, `A\|B`, `A\|B\|null` | `type: union`, with the keys from `union` |
-
-```php
-<?php
-// src/Pet.php
-
-namespace Petstore;
-
-use Bidirekt\PhpSdk\BidirektField;
-use Bidirekt\PhpSdk\BidirektSchema;
-
-enum PetStatus: string
-{
-    case Available = 'available';
-    case Pending = 'pending';
-    case Sold = 'sold';
-}
-
-#[BidirektSchema]
-final class Owner
-{
-    #[BidirektField]
-    public string $name;
-}
-
-#[BidirektSchema]
-final class Pet
-{
-    #[BidirektField]
-    public PetStatus $status;
-
-    /** @var list<string> */
-    #[BidirektField]
-    public array $photoUrls;
-
-    #[BidirektField]
-    public ?Owner $owner;
-
-    #[BidirektField]
-    public ?self $mother;
-}
-```
-
-```yaml
-# Generated by bidirekt/php-sdk. Do not edit.
-schemas:
   Owner:
     type: object
     properties:
@@ -607,241 +147,94 @@ schemas:
   Pet:
     type: object
     properties:
+      id:
+        type: integer
+      name:
+        type: string
       status:
         ref: PetStatus
-      photoUrls:
+      owner:
+        ref: Owner
+      tags:
         type: array
         items:
           type: string
-      owner:
-        ref: Owner
+      notes:
+        type: map
+        values:
+          type: string
+      weight:
+        type: float
+        description: In kilograms
+      birthDate:
+        type: string
         nullable: true
-      mother:
-        ref: Pet
-        nullable: true
+      adoptedFrom:
+        type: union
+        members:
+          person:
+            ref: Owner
+          shelter:
+            ref: Shelter
+      nickname:
+        type: string
+        optional: true
   PetStatus:
     type: enum
-    members: ["available", "pending", "sold"]
-```
-
-`float` is `number`, and `float` comes only from a declared `type` ([What `json_encode` writes](#what-jsonencode-writes)). `optional` comes only from a declaration: a PHP property is never optional. Enum members are always quoted. A union of schema classes declares the key of each member, `#[BidirektField(union: ['person' => Person::class, 'shelter' => Shelter::class])]` or `@bidirekt field union={person: Person, shelter: Shelter}`, also when the union is the items of a list or the values of a map in the PHPDoc; a tag names each member by its name in the contract.
-
-A declared `type` is the whole type of the field, whatever PHP says, written with the contract's words: a primitive (`string`, `integer`, `float`, `number`, `boolean`), the name of a schema in the contract, a class (`Owner::class`), `'array'` with `items`, or `'map'` with `values`. `items` and `values` take the same; in an attribute, a PHP array with the keys `type`, `items`, `values`, `nullable` and `union` nests them, as in `items: ['type' => 'array', 'items' => 'integer']`. A tag doesn't nest: `type=array items=integer` and `type=map values=string` take a primitive or a schema name. A short form like `'Owner[]'` or `'map<Owner>'` stops `generate`, which shows the long one: `write type: 'array', items: 'Owner'`. `optional` and `nullable` still come from the PHP type when they are not declared.
-
-A type the contract cannot hold stops `generate` with the file and the line, and you declare the type: `mixed`, `object`, `iterable`, `callable`, an `array` without the type of its items, `array<int, T>` and `array<T>` (neither says list or map), a union of primitives such as `int|string`, an enum without values, a class that is not a schema, a date such as `DateTimeInterface`, a PHPDoc generic such as `Collection<int, Pet>`, an array shape `array{…}`, a property with neither a PHP type nor a `@var`, and a union of schema classes without `union`. Any other type stops it the same way: an intersection `A&B`, `Pet|string`, `void`, `never`, `null` alone. The full list, with an example for each type, is in the [Reference](https://github.com/bidirekt/php-sdk#reference) of the SDK.
-
-## Names
-
-Every name comes from the code unless you declare one:
-
-- A field is named after its property; `name` gives it another name.
-- A schema is named after its class or its enum; `name` gives it another name. An anonymous class has no name to fall back to, so its schema declares one.
-- A list is named after its items' schema with `List` at the end; `['list' => Pet::class, 'name' => 'PetCollection']` in an attribute, or `Pet[] as PetCollection` in a tag, gives it another name. A list is written once however many handlers use it.
-
-Every schema is written, even one no handler references. A string enum with `#[BidirektSchema]` or `@bidirekt schema` is written even when no field uses it, so handlers and tags can reference it.
-
-A tag, and a schema name in an attribute, reference a schema by its name in the contract, not by its name in the code:
-
-```php
-<?php
-// src/pets.php
-
-namespace Petstore;
-
-use Bidirekt\PhpSdk\BidirektField;
-use Bidirekt\PhpSdk\BidirektSchema;
-
-#[BidirektSchema(name: 'PetSummary')]
-final class Pet
-{
-    #[BidirektField(name: 'pet_id')]
-    public int $petId;
-}
-
-/**
- * @bidirekt provides GET /pets
- * @bidirekt response 200 PetSummary[] as PetCollection
- */
-function listPets(): array
-{
-    return [];
-}
-```
-
-```yaml
-# Generated by bidirekt/php-sdk. Do not edit.
-provides:
-  rest:
-    /pets:
-      get:
-        responses:
-          200: PetCollection
-schemas:
-  PetCollection:
-    type: array
-    items:
-      ref: PetSummary
-  PetSummary:
+    members: ["available", "adopted"]
+  Rating:
     type: object
     properties:
-      pet_id:
+      average:
+        type: number
+      count:
         type: integer
+  Shelter:
+    type: object
+    properties:
+      city:
+        type: string
 ```
 
-Naming the code's `Pet` there instead, `@bidirekt response 200 Pet[] as PetCollection`, stops `generate` with `src/pets.php:18 schema "Pet" is not declared: reference a schema by its name in the contract`. Two schemas with the same name in the contract stop it too, also two classes with the same short name in different namespaces, and you give one of them another name.
+An enum with string values is a `ref` to an `enum` schema, a schema class is a `ref`, and an `array` takes the type of its items from the PHPDoc: `list<string>` is a list, `array<string, string>` a map. `weight` declares `type: 'float'` because the controller encodes with `JSON_PRESERVE_ZERO_FRACTION`; without it a PHP `float` is a `number`, like `Rating::$average` ([What `json_encode` writes](https://github.com/bidirekt/php-sdk#what-json_encode-writes)). A union of schema classes declares the key of each member in `union`.
+
+## Tags
+
+Tags say the same in `/** */` docblocks, for code that can't use attributes or prefers docblocks. A tag names a schema by its name in the contract:
+
+```php
+/** @bidirekt schema */
+final class Pet
+{
+    /** @bidirekt field type=float description="In kilograms" */
+    public float $weight;
+}
+
+final class PetController
+{
+    /**
+     * @bidirekt provides GET /pets/*
+     * @bidirekt response 200 Pet
+     * @bidirekt response 404
+     */
+    public function show(Request $request, Response $response, array $args): Response
+    {
+        // ...
+    }
+}
+```
+
+A service can mix both forms, but never on the same handler, schema or field: `generate` stops. The [Quickstart](https://github.com/bidirekt/php-sdk#quickstart) of the README writes this example with tags too, and [Schemas without a class](https://github.com/bidirekt/php-sdk#schemas-without-a-class) shows a schema declared on its handler, for a body no class describes.
 
 ## Describe what the code does
 
 The contract describes what the code does, not the type the code declares ([Describe what the code does](the-contract-file.md#describe-what-the-code-does)). With the SDK, the PHP type is where each field starts, and the field's options apply the rule: a declared `type`, `optional` or `nullable` wins over the PHP type.
 
-`Pet::$name` is `?string` because the database column allows `null`, but `petstore_php` always fills it, so the field declares `nullable: false`. `Pet::$birthDate` is a `DateTimeImmutable` in the code and a string in the body. `Pet::$photoUrls` is left out of the body until the pet has photos:
-
-```php
-<?php
-// src/Pet.php
-
-namespace Petstore;
-
-use Bidirekt\PhpSdk\BidirektField;
-use Bidirekt\PhpSdk\BidirektSchema;
-
-#[BidirektSchema]
-final class Pet
-{
-    #[BidirektField(nullable: false)]
-    public ?string $name;
-
-    #[BidirektField(type: 'string')]
-    public \DateTimeImmutable $birthDate;
-
-    /** @var list<string> */
-    #[BidirektField(optional: true)]
-    public array $photoUrls;
-}
-```
-
-```php
-<?php
-// src/Pet.php
-
-namespace Petstore;
-
-/** @bidirekt schema */
-final class Pet
-{
-    /** @bidirekt field nullable=false */
-    public ?string $name;
-
-    /** @bidirekt field type=string */
-    public \DateTimeImmutable $birthDate;
-
-    /**
-     * @bidirekt field optional=true
-     * @var list<string>
-     */
-    public array $photoUrls;
-}
-```
-
-Both write:
-
-```yaml
-# Generated by bidirekt/php-sdk. Do not edit.
-schemas:
-  Pet:
-    type: object
-    properties:
-      name:
-        type: string
-      birthDate:
-        type: string
-      photoUrls:
-        type: array
-        items:
-          type: string
-        optional: true
-```
-
-## What `json_encode` writes
-
-PHP writes a body with `json_encode`, which changes three things the contract can't see:
-
-- A `float` with no fraction, like `50.0`, is written as `50`, so a `float` field is `number`. With `JSON_PRESERVE_ZERO_FRACTION`, `json_encode` writes `50.0`; then declare the field `type: 'float'` (or `type=float`), as `petstore_php` does in the [example](#example).
-- An empty PHP array, `[]`, is written as `[]` even when the field is a `map`, whose empty value is `{}`. Encode maps with `JSON_FORCE_OBJECT` or as a `stdClass`, or leave an empty map out of the body and declare the field `optional`.
-- Laravel wraps an API Resource in `data` when it sends it. Describe the whole body, with `data` as a field, or turn the wrapping off with `JsonResource::withoutWrapping()`:
-
-```php
-<?php
-// app/Http/Controllers/PetController.php
-
-namespace App\Http\Controllers;
-
-use App\Http\Resources\PetResource;
-use App\Models\Pet;
-use Bidirekt\PhpSdk\BidirektField;
-use Bidirekt\PhpSdk\BidirektProvider;
-use Bidirekt\PhpSdk\BidirektSchema;
-
-final class PetController
-{
-    #[BidirektProvider(method: 'GET', path: '/pets/*', responses: [200 => 'PetEnvelope', 404 => null])]
-    #[BidirektSchema(name: 'PetEnvelope', fields: [
-        new BidirektField('data', type: 'Pet'),
-    ])]
-    #[BidirektSchema(name: 'Pet', fields: [
-        new BidirektField('petId', type: 'integer'),
-        new BidirektField('name', type: 'string'),
-    ])]
-    public function show(Pet $pet): PetResource
-    {
-        return new PetResource($pet);
-    }
-}
-```
-
-```yaml
-# Generated by bidirekt/php-sdk. Do not edit.
-provides:
-  rest:
-    /pets/*:
-      get:
-        responses:
-          200: PetEnvelope
-          404: ~
-schemas:
-  Pet:
-    type: object
-    properties:
-      petId:
-        type: integer
-      name:
-        type: string
-  PetEnvelope:
-    type: object
-    properties:
-      data:
-        ref: Pet
-```
-
-## The generate command
-
-```
-$ vendor/bin/php-sdk generate
-$ vendor/bin/php-sdk generate --check
-$ vendor/bin/php-sdk generate --project apps/api --out apps/api/contracts/generated.yaml
-```
-
-`generate` reads the project in the current folder and writes `contracts/generated.yaml` in it. With a `composer.json`, it reads every `.php` file of the folder except `vendor/` (or the `config.vendor-dir`), `node_modules/`, hidden folders and the paths of `autoload-dev`; without one, every `.php` file except the same folders. It reads `vendor/` only to find a parent, a trait, an enum or a constant your annotated code uses, through Composer's class maps, and never loads `vendor/autoload.php`. The file is written whole on every run, and the same code always writes the same file.
-
-- `--project <folder>`: reads another project, and writes to its folder.
-- `--out <file>`: writes to another file.
-- `--check`: writes nothing, and exits with `1` when the file on disk differs from what `generate` would write, `"contracts/generated.yaml" is out of date: run generate without --check`, or doesn't exist. `\r\n` counts as `\n`.
-
-Each error goes to stderr as `file:line message`, such as `src/Pet.php:16 cannot translate "\DateTimeImmutable" to a contract type: declare it with #[BidirektField(type: …)]` for the `Pet` of [Describe what the code does](#describe-what-the-code-does) without `type: 'string'`. On an error nothing is written and the exit code is `1`. A warning is printed as `file:line warning: message` and does not change the exit code. A project with no annotation writes nothing and exits with `1`.
+In the example, `nickname` declares `optional: true` because the code leaves it unset when the pet has none, and `json_encode` leaves an unset typed property out. A `?string $name` whose database column allows `null`, but which the service always fills, declares `#[BidirektField(nullable: false)]`, and a `\DateTimeImmutable` the body carries as a string declares `#[BidirektField(type: 'string')]`.
 
 ## From code to deploy
 
-Regenerate the file whenever an annotation or an annotated type changes, and commit it with the code. Then the flow is the same as with a hand-written file:
+`contracts/generated.yaml` is the service's only contract file: a service adopts the SDK as a whole, with every resource and schema it provides or consumes annotated in its code. Regenerate the file whenever an annotation or an annotated type changes, and commit it with the code. Then the flow is the same as with a hand-written file:
 
 ```
 $ vendor/bin/php-sdk generate
@@ -851,12 +244,10 @@ $ bidirekt can-i-deploy petstore_php --version 1.4.0 --environment production
 $ bidirekt record-deployment petstore_php --version 1.4.0 --environment production
 ```
 
-In CI, `generate --check` fails the build when the committed file is out of date.
+Run `record-deployment` once the deploy is done. In CI, `vendor/bin/php-sdk generate --check` fails the build when the committed file is out of date.
+
+The broker reads every file of one publish as one contract ([Several files](the-contract-file.md#several-files)), but the SDK cannot see a hand-written file: a tag or an attribute cannot name a schema declared only there, and a resource or schema declared both in the code and in a hand-written file is rejected at publish as declared twice. To adopt the SDK, annotate every resource and schema the service provides or consumes, generate, check that the new file declares what the old files did, and delete the old files.
 
 When [`can-i-deploy`](../ship/can-i-deploy.md) reports a break, fix the annotation or the type in the code and generate again. Never edit `contracts/generated.yaml`: the next `generate` writes over it.
 
-## One contract per service
-
-`contracts/generated.yaml` is the only contract file of the service. The broker reads every file of one publish as one contract ([Several files](the-contract-file.md#several-files)), but the SDK cannot see the others: a tag or an attribute cannot name a schema declared only in a hand-written file, and a resource or schema declared both in the code and in a hand-written file is rejected at publish as declared twice.
-
-To adopt the SDK, annotate every resource and schema the service provides or consumes, generate, check that the new file declares what the old files did, and delete the old files.
+A type the contract cannot hold, such as `mixed` or a `\DateTimeImmutable` without a declared `type`, stops `generate` with the file and the line, and nothing is written. The [`generate` command](https://github.com/bidirekt/php-sdk#the-generate-command) and the [Reference](https://github.com/bidirekt/php-sdk#reference) of the README list every argument, tag, type and error.
