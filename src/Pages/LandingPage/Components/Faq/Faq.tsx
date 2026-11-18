@@ -18,11 +18,15 @@ const QUESTIONS: Array<Question> = [
       <>
         Generate it from the code instead of writing it by hand. The Bidirekt
         agent skill reads your service and writes its contract files, and fixes
-        them from a can-i-deploy report. In TypeScript or JavaScript, the{' '}
+        them from a can-i-deploy report. The{' '}
         <a href="/docs/contracts/typescript-sdk" className={LINK}>
           TypeScript SDK
+        </a>
+        , for TypeScript or JavaScript, and the{' '}
+        <a href="/docs/contracts/php-sdk" className={LINK}>
+          PHP SDK
         </a>{' '}
-        writes the contract file from your annotated code.
+        write the contract file from your annotated code.
       </>
     ),
   },
