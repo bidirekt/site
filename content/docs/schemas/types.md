@@ -3,7 +3,7 @@ title: Types
 description: The type of every schema node, the keys each type takes, and how integer, float and number compare.
 ---
 
-A schema is a tree of nodes: the schema itself, each property of an `object`, and the `items` of an `array` or the `values` of a `map`, as in `Pet` and `Pets`:
+A schema is a tree of nodes: the schema itself, each property of an `object`, the `items` of an `array` or the `values` of a `map`, and each member of a `union`, as in `Pet` and `Pets`:
 
 ```yaml
 schemas:
@@ -25,7 +25,7 @@ schemas:
 
 ## Types and their keys
 
-A node's `type` is `object`, `array`, `map` or one of the primitives `string`, `integer`, `float`, `number` and `boolean`; any other value is rejected at publish. Every node declares `type`, except a node that is a `ref` ([References](references.md)). A node with neither is rejected at publish, even when its `items` or `properties` already show what it is:
+A node's `type` is `object`, `array`, `map`, `enum`, `union` or one of the primitives `string`, `integer`, `float`, `number` and `boolean`; any other value is rejected at publish. Every node declares `type`, except a node that is a `ref` ([References](references.md)). A node with neither is rejected at publish, even when its `items` or `properties` already show what it is:
 
 ```yaml
 Pet:
@@ -38,18 +38,20 @@ Pet:
 
 ```error title="publish error"
 contract validation failed
-  - petstore_api.yaml: missing "type" at schemas Pet properties tags, expected one of: object, array, map, string, integer, float, number, boolean
+  - petstore_api.yaml: missing "type" at schemas Pet properties tags, expected one of: object, array, map, string, integer, float, number, boolean, enum, union
 ```
 
 Each type takes only its own keys:
 
 | `type` | Required key | Keys rejected beside it |
 |---|---|---|
-| `object` | `properties`, at least one | `items`, `values` |
-| `array` | `items` | `properties`, `values` |
-| `map` | `values` | `properties`, `items` |
-| `string`, `integer`, `float`, `number`, `boolean` | none | `properties`, `items`, `values` |
-| none, with `ref` | none | `type`, `properties`, `items`, `values` |
+| `object` | `properties`, at least one | `items`, `values`, `members` |
+| `array` | `items` | `properties`, `values`, `members` |
+| `map` | `values` | `properties`, `items`, `members` |
+| `enum` | `members`, a list of values | `properties`, `items`, `values` |
+| `union` | `members`, a map of `ref`s | `properties`, `items`, `values` |
+| `string`, `integer`, `float`, `number`, `boolean` | none | `properties`, `items`, `values`, `members` |
+| none, with `ref` | none | `type`, `properties`, `items`, `values`, `members` |
 
 A key on the wrong type is rejected at publish, and the line names the type it belongs to:
 
@@ -68,7 +70,9 @@ contract validation failed
   - petstore_api.yaml: "items" is not allowed on a string schema at schemas Pet properties tags, use it with "type: array"
 ```
 
-Any node may also carry `description`, free text that the broker ignores ([What is not compared](../contracts/the-contract-file.md#what-is-not-compared)).
+`members` belongs to two types, so its line names both: `"members" is not allowed on a string schema at schemas Pet properties status, use it with "type: enum" or "type: union"` ([Enums and unions](enums-and-unions.md)).
+
+Any node but a [union member](enums-and-unions.md#unions), which holds only its `ref`, may also carry `description`, free text that the broker ignores ([What is not compared](../contracts/the-contract-file.md#what-is-not-compared)).
 
 ## Primitives
 

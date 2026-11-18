@@ -65,6 +65,8 @@ Body the consumer produces: the participant requires a property the consumer mar
 
 ## Types
 
+An enum prints as `enum` and a union as `union`, without their values or members: a consumer that sends any `string` where the provider expects an enum gets `petstore_web sends it as string, but petstore_api expects enum` ([How they compare](../schemas/enums-and-unions.md#how-they-compare)).
+
 #### `<participant> reads it as <type>, but <counterpart> provides <counterpart type>`
 
 Body the provider produces: the participant reads the property as a type that does not accept the type the provider declares.
@@ -122,3 +124,49 @@ Body the consumer produces: the consumer marks the property nullable and the par
 
 - Fix of `<participant>`: `handle null in the code, then mark it nullable`
 - Fix of `<counterpart>`: `stop sending null there`
+
+## Enum values and union members
+
+A value of an enum or a member of a union that the consumer declares and the provider does not is a break of its own, whichever side produces the body ([How they compare](../schemas/enums-and-unions.md#how-they-compare)). `<member>` is that value, or the key of that member, in quotes:
+
+```error title="can-i-deploy output"
+Pet.status — petstore_web reads "adopted", but petstore_api doesn't provide it
+  → petstore_web: stop reading "adopted"
+  → petstore_api: provide "adopted" there
+    · GET /pets response 200 at "$[].status" (petstore_api: Pet.status)
+
+Pet.status — petstore_web sends "sold", but petstore_api doesn't accept it
+  → petstore_web: stop sending "sold"
+  → petstore_api: accept "sold" there
+    · POST /pets request at "$.status" (petstore_api: Pet.status)
+```
+
+A value missing in two places is one block with `(2 places)`, and two values missing from the same field are two blocks. A member of a union reads the same way, as in `Order.payment — petstore_web reads "pix", but petstore_api doesn't provide it`.
+
+#### `<participant> reads "<member>", but <counterpart> doesn't provide it`
+
+Body the provider produces: the participant reads a value or a member that the provider does not declare.
+
+- Fix of `<participant>`: `stop reading "<member>"`
+- Fix of `<counterpart>`: `provide "<member>" there`
+
+#### `<participant> doesn't provide "<member>", but <counterpart> reads it`
+
+Body the provider produces: the consumer reads a value or a member that the participant does not declare.
+
+- Fix of `<participant>`: `provide "<member>"`
+- Fix of `<counterpart>`: `stop reading "<member>" there`
+
+#### `<participant> sends "<member>", but <counterpart> doesn't accept it`
+
+Body the consumer produces: the participant sends a value or a member that the provider does not declare.
+
+- Fix of `<participant>`: `stop sending "<member>"`
+- Fix of `<counterpart>`: `accept "<member>" there`
+
+#### `<participant> doesn't accept "<member>", but <counterpart> sends it`
+
+Body the consumer produces: the consumer sends a value or a member that the participant does not declare.
+
+- Fix of `<participant>`: `accept "<member>"`
+- Fix of `<counterpart>`: `stop sending "<member>" there`

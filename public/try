@@ -2,10 +2,10 @@
 # Sets up Bidirekt in your project: curl -sL bidirekt.com/try | sh
 set -eu
 
-CLI_VERSION=v0.1.0
-# Commits of the v0.1.0 release, so changes on main never reach this script.
-COMPOSE_URL=https://raw.githubusercontent.com/bidirekt/broker/98fb4e2c5c5fedddb7c881830e5e62039ca42aec/docker-compose.yaml
-INSTALL_URL=https://raw.githubusercontent.com/bidirekt/cli/d216ed0d00caf1cb59bfcf3a7846f1adbfd99ca1/install.sh
+CLI_VERSION=v0.2.0
+# Commits of the v0.2.0 release, so changes on main never reach this script.
+COMPOSE_URL=https://raw.githubusercontent.com/bidirekt/broker/60ff8acc295c0da850f27a25b7588705d975685d/docker-compose.yaml
+INSTALL_URL=https://raw.githubusercontent.com/bidirekt/cli/2b90aeab643baeea0334008416a5fae022cfa981/install.sh
 # install.sh's default directory, which may be off PATH.
 BIN_DIR=$HOME/.local/bin
 
@@ -68,8 +68,9 @@ Bidirekt is set up. Next:
    docker compose -f bidirekt/compose.yaml up -d
    Open http://localhost:8080 and create the admin with an email and a password
 
-2. Point the CLI at it
-   bidirekt configure --profile local --broker-url http://localhost:8080
+2. Create an API key and sign the CLI in
+   Open http://localhost:8080/profile/api-keys/new and create a write key
+   bidirekt login --profile local
    export BIDIREKT_PROFILE=local
 
 3. Create the environment and one participant per service

@@ -3,7 +3,7 @@ title: References
 description: How ref gives a node the shape of a named schema, including a schema that points to itself.
 ---
 
-`ref` gives a node the shape of a named schema, at any depth: as a whole schema, as a member, or as the items of an array, like `Pets` does with `Pet`. Write `ref` on its own, with at most `nullable` and `description` beside it, and `optional` when the node is a property. `nullable` beside a `ref` makes the node nullable even when the named schema is not, and `optional` beside it makes the property optional. `type`, `properties`, `items` or `values` beside a `ref` is rejected at publish:
+`ref` gives a node the shape of a named schema, at any depth: as a whole schema, as a member, or as the items of an array, like `Pets` does with `Pet`. Write `ref` on its own, with at most `nullable` and `description` beside it, and `optional` when the node is a property; a [union member](enums-and-unions.md#unions) holds only its `ref`. `nullable` beside a `ref` makes the node nullable even when the named schema is not, and `optional` beside it makes the property optional. `type`, `properties`, `items`, `values` or `members` beside a `ref` is rejected at publish:
 
 ```yaml
 Pet:

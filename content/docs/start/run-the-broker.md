@@ -1,6 +1,6 @@
 ---
 title: Run the broker
-description: How to start the broker and Postgres on your machine with Docker Compose, create the admin on the first access and give them their own profile, how to run the broker's Docker image in production with its Postgres database, admin, users, health check and exposure, and what the broker's web UI shows and changes.
+description: How to start the broker and Postgres on your machine with Docker Compose, create the admin on the first access and sign in the CLI with their own profile and API key, how to run the broker's Docker image in production with its Postgres database, admin, users, health check and exposure, and what the broker's web UI shows and changes.
 ---
 
 ## Local
@@ -28,7 +28,7 @@ services:
       retries: 15
 
   broker:
-    image: ghcr.io/bidirekt/broker:0.1.0
+    image: ghcr.io/bidirekt/broker:0.2.0
     restart: unless-stopped
     environment:
       BIDIREKT_DATABASE_URL: postgres://bidirekt:bidirekt@postgres:5432/bidirekt?sslmode=disable
@@ -47,20 +47,24 @@ volumes:
 In an empty folder:
 
 ```
-$ curl -O https://raw.githubusercontent.com/bidirekt/broker/98fb4e2c5c5fedddb7c881830e5e62039ca42aec/docker-compose.yaml
+$ curl -O https://raw.githubusercontent.com/bidirekt/broker/60ff8acc295c0da850f27a25b7588705d975685d/docker-compose.yaml
 $ docker compose up -d
 $ curl -s http://localhost:8080/health
-{"status":"ok","brokerVersion":"0.1.0","apiVersion":1}
+{"status":"ok","brokerVersion":"0.2.0","apiVersion":2}
 ```
 
 The data lives in the `bidirekt_postgres-data` volume, the same from any folder, so it survives `docker compose down` and `up`; `docker compose down -v` erases it. Both containers start again by themselves when Docker restarts. The broker listens on `127.0.0.1` only, so other machines on your network cannot reach it. The compose's `BIDIREKT_TOKEN_SIGNING_KEY` is fixed because the compose is for trying locally; in production, generate your own.
 
 Open http://localhost:8080 in the browser. The first access opens the setup: create the admin with an email and a password of 8 to 128 characters, and you are signed in. Open it at exactly `http://localhost:8080`, the compose's `BIDIREKT_PUBLIC_URL`: from `http://127.0.0.1:8080` the broker refuses every action on its pages.
 
-Give the local broker its own profile, so it never mixes with your real one:
+Give the local broker its own profile, so it never mixes with your real one. In the browser, open **Profile**, then **New API key** (http://localhost:8080/profile/api-keys/new), create a `write` key and copy it: it is shown only once. Then sign in with it:
 
 ```
-$ bidirekt configure --profile local --broker-url http://localhost:8080
+$ bidirekt login --profile local
+Broker URL: http://localhost:8080
+Create an API key at http://localhost:8080/profile/api-keys/new and paste it here.
+API key:
+Signed in to http://localhost:8080 as profile local
 $ bidirekt create-environment production --profile local
 Broker: http://localhost:8080 (profile: local)
 production environment created
@@ -77,10 +81,10 @@ $ export BIDIREKT_PROFILE=local
 The broker is self-hosted. It ships as a Docker image, for `linux/amd64` and `linux/arm64`:
 
 ```
-ghcr.io/bidirekt/broker:0.1.0
+ghcr.io/bidirekt/broker:0.2.0
 ```
 
-Each release is tagged `X.Y.Z`, `X.Y`, `X` and `latest`. In production, pin the full version, `0.1.0`, and change it on purpose.
+Each release is tagged `X.Y.Z`, `X.Y`, `X` and `latest`. In production, pin the full version, `0.2.0`, and change it on purpose.
 
 The image runs as a non-root user and has no shell. It needs one Postgres database, which it migrates on start. It is configured only through environment variables:
 
@@ -91,7 +95,7 @@ The image runs as a non-root user and has no shell. It needs one Postgres databa
 | `BIDIREKT_DATABASE_CONNECT_RETRIES` | `10` | How many times the broker tries to reach the database on start: each attempt waits up to 5s (or the URL's `connect_timeout`), with 2s between attempts. When they run out, the broker exits with code 1. |
 | `BIDIREKT_PUBLIC_URL` | required | The address people and the CLI open the broker at, such as `https://bidirekt.example.com`. It builds the invite and reset links, and page actions from any other address are refused. |
 | `BIDIREKT_TRUSTED_PROXIES` | none | The reverse proxies in front of the broker, as a comma-separated list of IPs or CIDRs, such as `172.17.0.1` or `10.0.0.5,10.0.0.6`. See [Exposing it](#exposing-it). |
-| `BIDIREKT_TOKEN_SIGNING_KEY` | required | The key that signs the API tokens, as base64 of at least 32 bytes. Generate it once with `openssl rand -base64 32` and keep it: changing it invalidates the tokens already issued. |
+| `BIDIREKT_TOKEN_SIGNING_KEY` | required | The key that signs the tokens `POST /api/sign-in` issues, as base64 of at least 32 bytes. Generate it once with `openssl rand -base64 32` and keep it: changing it invalidates the tokens already issued. [API keys](#api-keys) do not depend on it and keep working. |
 
 ### Start-up checks
 
@@ -118,7 +122,7 @@ $ docker run -d --name bidirekt-broker --restart unless-stopped \
     -e BIDIREKT_DATABASE_URL='postgres://bidirekt:<password>@db.example.com:5432/bidirekt?sslmode=require' \
     -e BIDIREKT_PUBLIC_URL=https://bidirekt.example.com \
     -e BIDIREKT_TOKEN_SIGNING_KEY='<signing-key>' \
-    ghcr.io/bidirekt/broker:0.1.0
+    ghcr.io/bidirekt/broker:0.2.0
 ```
 
 ### Postgres on the same VPS
@@ -132,7 +136,7 @@ $ docker run -d --name bidirekt-broker --restart unless-stopped \
     -e BIDIREKT_DATABASE_URL='postgres://bidirekt:<password>@host.docker.internal:5432/bidirekt' \
     -e BIDIREKT_PUBLIC_URL=https://bidirekt.example.com \
     -e BIDIREKT_TOKEN_SIGNING_KEY='<signing-key>' \
-    ghcr.io/bidirekt/broker:0.1.0
+    ghcr.io/bidirekt/broker:0.2.0
 ```
 
 Postgres must listen on the Docker bridge, not only on `127.0.0.1`: add the bridge address to `listen_addresses` in `postgresql.conf` (for example `listen_addresses = 'localhost,172.17.0.1'`), and allow the Docker network in `pg_hba.conf` (for example `host bidirekt bidirekt 172.16.0.0/12 scram-sha-256`).
@@ -152,16 +156,32 @@ Nothing here is required. These are the choices worth making:
 
 The admin is created on the first access: until it exists, every page of the broker opens the setup, where you create it with an email and a password of 8 to 128 characters. After that the setup is gone, and the admin signs in at `<BIDIREKT_PUBLIC_URL>/sign-in` with that email and password.
 
-The admin is a user with the permission `admin`: it does everything a `write` user does, uses the API with a token like any user, has a Profile page, and is the only one who manages users, on the Users page:
+The admin is a user with the permission `admin`: it does everything a `write` user does, uses the API with an [API key](#api-keys) like any user, has a Profile page, and is the only one who manages users, on the Users page:
 
 - **Invite a user** with an email and a permission: `read` lets them see every page of the [web UI](#web-ui), list participants and environments, validate contracts and ask can-i-deploy; `write` adds publishing, recording deployments, creating participants and environments, and renaming environments. The broker shows an invite link once: send it to them. It works once, for 24 hours.
 - The user opens the link, sets a password of 8 to 128 characters, and signs in with their email.
-- **Edit** changes a user's email or permission. **Deactivate** ends their sessions at once and stops their link; **Reactivate** lets them in again. Users are never deleted.
+- **Edit** changes a user's email or permission. **Deactivate** ends their sessions at once, revokes their API keys and stops their link; **Reactivate** lets them in again, with no API keys. Users are never deleted.
 - **New reset link** gives an active user a link to set a new password, **New invite link** gives an invited user a new invite. Each new link stops the previous one.
 
-A signed-in user changes their own password on the Profile page. A session ends after 8 hours without use, or 7 days after sign-in.
+A signed-in user changes their own password and creates their [API keys](#api-keys) on the Profile page. A session ends after 8 hours without use, or 7 days after sign-in.
 
 Failed sign-ins are limited per IP, over 15 minutes: after 10 for one email, that account's next attempts from that IP get `too many attempts, try again later`; after 50 for any accounts, every attempt from that IP does. Successful sign-ins never count.
+
+### API keys
+
+The CLI and CI sign in to the broker with an API key. Every user, the admin included, creates their own on the Profile page (`/profile`), with **New API key**:
+
+- **Name**: where the key runs, such as `laptop` or `payments CI`, up to 100 characters.
+- **Permission**: `read` runs `can-i-deploy` and `validate` and lists participants and environments; `write` adds publishing contracts, recording deployments, creating participants and environments, and renaming environments. A key never does more than its user: a `read` user only gets `read`. The admin's keys are `read` or `write` too, since users are managed only on the pages.
+- **Expires**: in 30, 90 or 365 days, or never. 90 days is chosen at first.
+
+The broker shows the key once, right after it is created: copy it then, and paste it into [`bidirekt login`](../reference/cli.md#login) or into the CI secret for `BIDIREKT_API_KEY`. Every key starts with `bdk_`. The broker keeps only a hash of it, so a lost key can't be shown again: revoke it and create another.
+
+The Profile page lists your keys with their name, the start of the key (`bdk_` and 8 more characters), the permission, when each was created, last used and expires. **Revoke** stops a key at once; the CLI then gets `not signed in to <broker> — run "bidirekt login" or set BIDIREKT_BROKER_URL and BIDIREKT_API_KEY`. An expired key stops working at that moment and shows as `expired` until the broker deletes it on its next start. When the admin lowers a user's permission, the user's keys act with the lower one, and the list shows it next to the key's own, such as `write · acts as read`.
+
+The admin sees the keys of every other user on the Users page, with **API keys** on each user's row: the same list, and **Revoke** on each key. The admin's own keys appear only on the admin's Profile.
+
+**Deactivate** revokes every key of the user, and **Reactivate** does not bring them back: the user creates new ones. Changing your password on the Profile page, or setting a new one from a reset link, does not revoke your keys.
 
 ### Health
 
@@ -169,7 +189,7 @@ Failed sign-ins are limited per IP, over 15 minutes: after 10 for one email, tha
 
 ```
 $ curl -s http://127.0.0.1:8080/health
-{"status":"ok","brokerVersion":"0.1.0","apiVersion":1}
+{"status":"ok","brokerVersion":"0.2.0","apiVersion":2}
 ```
 
 The image's own Docker healthcheck calls it, so `docker ps` shows the container as `healthy`. On `docker stop`, the broker finishes the requests in flight, for up to 8 seconds, and exits.
@@ -186,7 +206,7 @@ Behind a proxy, every request reaches the broker from the proxy's address, so th
 
 Signed in at `BIDIREKT_PUBLIC_URL`, the broker's pages show everything it stores. Every user, `read` included, sees every page below; the forms that change something appear only to `write` and `admin` users.
 
-- **Overview** (`/`): how many participants, environments, published versions and checks this month; the participants whose last can-i-deploy for an environment said no; the version of each participant deployed now in each environment; and the latest deployments and checks. An empty broker shows the steps to start: `create-participant`, `create-environment`, `publish`, `can-i-deploy`, deploy and `record-deployment`.
+- **Overview** (`/`): how many participants, environments, published versions and checks this month; the participants whose last can-i-deploy for an environment said no; the version of each participant deployed now in each environment; and the latest deployments and checks. An empty broker shows the steps to start: create an API key on your Profile and run `bidirekt login`, then `create-participant`, `create-environment`, `publish`, `can-i-deploy`, deploy and `record-deployment`.
 - **Participants** (`/participants`): every participant with its latest published version and the version deployed in each environment. Each participant has four tabs: Versions, Deployments, Checks, and Relations, which lists the participants it consumes from and the deployed participants that consume from it.
 - **Version** (`/participants/<name>/versions/<version>`): the contract files as they were published, where the version is deployed now, its deployments and its checks.
 - **Check** (`/checks/<id>`): the [can-i-deploy report](../ship/can-i-deploy.md#the-report): the answer, each counterpart with its version, its breaks, where they happen and each side's fix.
