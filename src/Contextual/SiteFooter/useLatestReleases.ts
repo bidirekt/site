@@ -4,7 +4,7 @@ export type Repo = (typeof REPOS)[number]
 
 export type LatestRelease = { repo: Repo; tag: string; url: string }
 
-export const REPOS = ['cli', 'broker', 'typescript-sdk'] as const
+export const REPOS = ['cli', 'broker', 'typescript-sdk', 'php-sdk'] as const
 
 type GitHubRelease = { tag_name?: unknown; html_url?: unknown }
 

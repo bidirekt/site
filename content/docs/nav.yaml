@@ -22,6 +22,8 @@
       path: contracts/the-contract-file.md
     - label: TypeScript SDK
       path: contracts/typescript-sdk.md
+    - label: PHP SDK
+      path: contracts/php-sdk.md
 - label: REST
   items:
     - label: Resources
