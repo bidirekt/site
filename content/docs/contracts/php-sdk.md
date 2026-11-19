@@ -238,13 +238,14 @@ In the example, `nickname` declares `optional: true` because the code leaves it 
 
 ```
 $ vendor/bin/php-sdk generate
+$ bidirekt validate contracts/generated.yaml
 $ bidirekt validate contracts/generated.yaml --participant petstore_php --environment production
 $ bidirekt publish contracts/generated.yaml --participant petstore_php --version 1.4.0
 $ bidirekt can-i-deploy petstore_php --version 1.4.0 --environment production
 $ bidirekt record-deployment petstore_php --version 1.4.0 --environment production
 ```
 
-Run `record-deployment` once the deploy is done. In CI, `vendor/bin/php-sdk generate --check` fails the build when the committed file is out of date.
+[`validate`](../ship/validate.md) without `--participant` and `--environment` checks only the file; with them, it also compares the file with what is deployed in that environment. Run `record-deployment` once the deploy is done. In CI, `vendor/bin/php-sdk generate --check` fails the build when the committed file is out of date.
 
 The broker reads every file of one publish as one contract ([Several files](the-contract-file.md#several-files)), but the SDK cannot see a hand-written file: a tag or an attribute cannot name a schema declared only there, and a resource or schema declared both in the code and in a hand-written file is rejected at publish as declared twice. To adopt the SDK, annotate every resource and schema the service provides or consumes, generate, check that the new file declares what the old files did, and delete the old files.
 

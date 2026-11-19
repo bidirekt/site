@@ -277,12 +277,13 @@ The contract describes what the code does, not the type the code declares ([Desc
 
 ```
 $ npx @bidirekt/typescript-sdk-cli generate
+$ bidirekt validate contracts/generated.yaml
 $ bidirekt validate contracts/generated.yaml --participant petstore_ts --environment production
 $ bidirekt publish contracts/generated.yaml --participant petstore_ts --version 1.4.0
 $ bidirekt can-i-deploy petstore_ts --version 1.4.0 --environment production
 $ bidirekt record-deployment petstore_ts --version 1.4.0 --environment production
 ```
 
-Deploy between `can-i-deploy` and `record-deployment`. In CI, `generate --check` fails the build when the committed file is out of date. When [`can-i-deploy`](../ship/can-i-deploy.md) reports a break, fix the annotation or the type in the code and generate again.
+[`validate`](../ship/validate.md) without `--participant` and `--environment` checks only the file; with them, it also compares the file with what is deployed in that environment. Deploy between `can-i-deploy` and `record-deployment`. In CI, `generate --check` fails the build when the committed file is out of date. When [`can-i-deploy`](../ship/can-i-deploy.md) reports a break, fix the annotation or the type in the code and generate again.
 
 A type the contract cannot hold, such as `Date` without a declared `type`, stops `generate` with the file and the line, and nothing is written. The [`generate` command](https://github.com/bidirekt/typescript-sdk#the-generate-command) and the [Reference](https://github.com/bidirekt/typescript-sdk#reference) of the README list every option, type and error.
