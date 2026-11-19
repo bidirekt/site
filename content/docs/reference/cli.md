@@ -28,7 +28,7 @@ Available Commands:
   logout             Remove the API key from a profile in the config file
   publish            Publish one or more contract YAML files or folders to the broker
   record-deployment  Record a deployment of a participant version to an environment
-  validate           Validate contract YAML files or folders against an environment without publishing them
+  validate           Validate contract YAML files or folders, and compare them with an environment, without publishing them
   version            Print the bidirekt version
 
 Flags:
@@ -129,7 +129,7 @@ Success lines go to stdout and failures to stderr, except the `can-i-deploy` and
 - [`login`](#login) — sign in to a broker with an API key and save both in a profile.
 - [`create-participant`](#create-participant) — create a new participant on the broker.
 - [`create-environment`](#create-environment) — create a new environment on the broker.
-- [`validate`](../ship/validate.md) — validate contract files or folders against an environment without publishing them.
+- [`validate`](../ship/validate.md) — validate contract files or folders, and compare them with an environment, without publishing them.
 - [`publish`](../ship/publish.md) — publish one or more contract files or folders to the broker.
 - [`can-i-deploy`](../ship/can-i-deploy.md) — check whether a participant version can be deployed to an environment.
 - [`record-deployment`](../ship/record-deployment.md) — record a deployment of a participant version to an environment.
