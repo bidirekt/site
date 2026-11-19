@@ -34,7 +34,7 @@ The endpoint is part of a resource's identity, so a consumer's endpoint matches 
 - A trailing slash is removed: `/pets/` is `/pets`, and a provider that writes both has declared the same resources twice.
 - The methods are `get`, `post`, `put`, `patch` and `delete`, in lowercase. Any other key under an endpoint is rejected.
 
-An endpoint copied from an OpenAPI document keeps its named parameter and is rejected:
+An endpoint copied from an OpenAPI document keeps its named parameter and is rejected. When each dynamic segment is one whole parameter, the report gives the endpoint to write:
 
 ```yaml
 provides:
@@ -47,7 +47,7 @@ provides:
 
 ```error title="publish error"
 contract validation failed
-  - petstore_api.yaml: invalid endpoint "/pets/{petId}" at provides rest, dynamic path segments must use *
+  - petstore_api.yaml: invalid endpoint "/pets/{petId}" in provides, write "/pets/*" (dynamic path segments must use *)
 ```
 
 Written as `/pets/*`, it publishes, and it matches a consumer that also writes `/pets/*`.
