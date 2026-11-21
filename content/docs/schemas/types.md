@@ -72,7 +72,14 @@ contract validation failed
 
 `members` belongs to two types, so its line names both: `"members" is not allowed on a string schema at schemas Pet properties status, use it with "type: enum" or "type: union"` ([Enums and unions](enums-and-unions.md)).
 
-Any node but a [union member](enums-and-unions.md#unions), which holds only its `ref`, may also carry `description`, free text that the broker ignores ([What is not compared](../contracts/the-contract-file.md#what-is-not-compared)).
+Any node but a [union member](enums-and-unions.md#unions), which holds only its `ref`, may also carry `description`, which is never compared ([What is not compared](../contracts/the-contract-file.md#what-is-not-compared)). A description holds ASCII letters and digits, with a single space between words, such as `In kilograms`. Anything else (punctuation, accents, a line break, two spaces) is rejected at publish with the violation `schema.description_syntax`:
+
+```error title="publish error"
+contract validation failed
+  - petstore_api.yaml: invalid description "In kilograms." at schemas Pet properties weight, must be ASCII letters and digits, with single spaces between words
+```
+
+An empty description is rejected with `must not be empty`.
 
 ## Primitives
 

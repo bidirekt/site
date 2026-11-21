@@ -22,9 +22,13 @@ const QUESTIONS: Array<Question> = [
         <a href="/docs/contracts/typescript-sdk" className={LINK}>
           TypeScript SDK
         </a>
-        , for TypeScript or JavaScript, and the{' '}
+        , for TypeScript or JavaScript, the{' '}
         <a href="/docs/contracts/php-sdk" className={LINK}>
           PHP SDK
+        </a>{' '}
+        and the{' '}
+        <a href="/docs/contracts/go-sdk" className={LINK}>
+          Go SDK
         </a>{' '}
         write the contract file from your annotated code.
       </>

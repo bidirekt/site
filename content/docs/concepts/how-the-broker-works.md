@@ -30,7 +30,7 @@ The broker never orders versions. It does not know that `2.0.0` comes after `1.0
 
 ## Snapshot
 
-A snapshot is the stored content of a contract, and it is what a version points at. The broker identifies a snapshot by a checksum of its declarations, not by the text of the file. Formatting, comments, `description`, key order, the order of the files, the way the contract is split across files and a schema that nothing names do not change the checksum. Schema names do: renaming a schema that a resource or a `ref` reaches is a different snapshot, so the same version published with a renamed schema is refused like any other change ([Version](#version)).
+A snapshot is the stored content of a contract, and it is what a version points at. The broker identifies a snapshot by a checksum of its declarations, not by the text of the file. Formatting, comments, key order, the order of the files, the way the contract is split across files, a schema that nothing names and a `description`, which the broker accepts only as ASCII letters and digits with a single space between words, do not change the checksum. Schema names do: renaming a schema that a resource or a `ref` reaches is a different snapshot, so the same version published with a renamed schema is refused like any other change ([Version](#version)).
 
 Publishing a new version with the same declarations as one already published makes the new version an alias: it points at the same snapshot. The broker compares snapshots, never versions, so the two versions are the same contract for every check. You never name a snapshot yourself; you always name a version, and the broker resolves it.
 
