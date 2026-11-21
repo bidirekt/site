@@ -11,12 +11,12 @@ See it first: `curl -sL bidirekt.com/demo | sh` runs the petstore example with D
 Install the CLI (Linux and macOS, `x86_64` and `arm64`):
 
 ```
-curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/6f612f49b3d1c0e98f81178acebf561de98a1ecc/install.sh | sh
+curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/b654e2ed083306d9ba2a404c5af4b882a83bba9e/install.sh | sh
 ```
 
-Prints `bidirekt 0.2.1 installed to ~/.local/bin/bidirekt`. To pin a version, pass it to the script: `sh -s -- v0.2.1`; `v` is optional.
+Prints `bidirekt 0.3.0 installed to ~/.local/bin/bidirekt`. To pin a version, pass it to the script: `sh -s -- v0.3.0`; `v` is optional.
 
-Or run the CLI from its Docker image, `ghcr.io/bidirekt/cli:0.2.1` (`linux/amd64` and `linux/arm64`; each release is tagged only with its full version, no `latest`), with the project mounted and the broker and key in `BIDIREKT_BROKER_URL` and `BIDIREKT_API_KEY`: `docker run --rm -v "$PWD:/work" -w /work -e BIDIREKT_BROKER_URL=<url> -e BIDIREKT_API_KEY ghcr.io/bidirekt/cli:0.2.1 publish <file or folder>... --participant <name> --version <label>` (`-e BIDIREKT_API_KEY` passes the shell's value on). For the local compose's broker, add `--network host` and use `BIDIREKT_BROKER_URL=http://localhost:8080` (Linux and Docker Desktop on macOS).
+Or run the CLI from its Docker image, `ghcr.io/bidirekt/cli:0.3.0` (`linux/amd64` and `linux/arm64`; each release is tagged only with its full version, no `latest`), with the project mounted and the broker and key in `BIDIREKT_BROKER_URL` and `BIDIREKT_API_KEY`: `docker run --rm -v "$PWD:/work" -w /work -e BIDIREKT_BROKER_URL=<url> -e BIDIREKT_API_KEY ghcr.io/bidirekt/cli:0.3.0 publish <file or folder>... --participant <name> --version <label>` (`-e BIDIREKT_API_KEY` passes the shell's value on). For the local compose's broker, add `--network host` and use `BIDIREKT_BROKER_URL=http://localhost:8080` (Linux and Docker Desktop on macOS).
 
 Sign in to your broker, once per machine: create an API key on the broker's Profile page (`<broker>/profile/api-keys/new`, shown once), then run `bidirekt login` in a terminal; it asks for the profile, the broker URL and the key, and saves them:
 

@@ -14,7 +14,7 @@ It asks once, `Set up Bidirekt in <folder>? [Y/n]`, and `n` stops it before anyt
 ## What it installs
 
 - `bidirekt/compose.yaml` in the project: the broker's `docker-compose.yaml` from https://github.com/bidirekt/broker, the same file [Run the broker](run-the-broker.md#local) shows, saved under this name. A `bidirekt/compose.yaml` that already exists is kept, with `Kept the existing bidirekt/compose.yaml.`
-- `~/.local/bin/bidirekt`: the CLI, version `0.2.1`, installed with the script in [Install](install.md). When that version is already installed, it is skipped. When `~/.local/bin` is not on your `PATH`, it prints the line to add to your shell profile.
+- `~/.local/bin/bidirekt`: the CLI, version `0.3.0`, installed with the script in [Install](install.md). When that version is already installed, it is skipped. When `~/.local/bin` is not on your `PATH`, it prints the line to add to your shell profile.
 - The [agent skill](install.md#agent-skill), with `npx skills add bidirekt/skills -a claude-code codex -y`: `.agents/skills/bidirekt/SKILL.md`, `.claude/skills/bidirekt` (a link to it) and `skills-lock.json`. Without Node.js, it prints `Install the agent skill with: npx skills add bidirekt/skills -a claude-code codex (needs Node.js)` and goes on.
 
 The broker runs with Docker. Without it, the CLI and the skill are still installed, and the script prints `The broker runs with Docker: https://docs.docker.com/get-docker/`.
