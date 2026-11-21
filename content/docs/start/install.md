@@ -1,6 +1,6 @@
 ---
 title: Install
-description: How to install the bidirekt CLI with curl, from the GitHub Release or as a Docker image, point it at your broker, and install the agent skill that lets a coding agent write and fix the contract files. The TypeScript SDK and the PHP SDK write them from annotated code instead.
+description: How to install the bidirekt CLI with curl, from the GitHub Release or as a Docker image, point it at your broker, and install the agent skill that lets a coding agent write and fix the contract files. The TypeScript SDK, the PHP SDK and the Go SDK write them from annotated code instead.
 ---
 
 ## With curl
@@ -84,7 +84,7 @@ A pipeline has no terminal to sign in: set both `BIDIREKT_BROKER_URL` and `BIDIR
 
 ## Agent skill
 
-The `bidirekt` skill lets a coding agent write and update the service's contract files from its code, check them with the CLI's read-only commands, and fix them from a `can-i-deploy` report. It needs the CLI and a broker, and reads https://bidirekt.com/llms.txt on every run. A TypeScript, JavaScript or PHP service can instead generate its contract file from annotated code with the [TypeScript SDK](../contracts/typescript-sdk.md) or the [PHP SDK](../contracts/php-sdk.md). Install the skill in the current project:
+The `bidirekt` skill lets a coding agent write and update the service's contract files from its code, check them with the CLI's read-only commands, and fix them from a `can-i-deploy` report. It needs the CLI and a broker, and reads https://bidirekt.com/llms.txt on every run. A TypeScript, JavaScript, PHP or Go service can instead generate its contract file from annotated code with the [TypeScript SDK](../contracts/typescript-sdk.md), the [PHP SDK](../contracts/php-sdk.md) or the [Go SDK](../contracts/go-sdk.md). Install the skill in the current project:
 
 ```
 $ npx skills add bidirekt/skills -a claude-code codex -y

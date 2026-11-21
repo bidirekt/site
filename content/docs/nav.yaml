@@ -24,6 +24,8 @@
       path: contracts/typescript-sdk.md
     - label: PHP SDK
       path: contracts/php-sdk.md
+    - label: Go SDK
+      path: contracts/go-sdk.md
 - label: REST
   items:
     - label: Resources
