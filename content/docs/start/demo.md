@@ -15,7 +15,7 @@ The script checks for `docker` and `docker compose`, asks where to put the examp
 
 Each step starts with a title, `Step N of 6 — <what happens>`, and each command is typed before it runs. The example's `./bidirekt` runs the CLI in a container next to the broker, so every command it runs first prints `Broker: http://broker:8080 (from BIDIREKT_BROKER_URL)`, then `warning: the API key travels unencrypted to http://broker:8080`, because the demo broker answers over plain `http`.
 
-1. **Start the broker**: removes what an earlier run left, starts Postgres and the broker with `docker compose up -d --wait`, and pulls the CLI image. Then the example's `setup.sh` creates an admin and an API key that can write, without a browser, and the demo exports the key as `BIDIREKT_API_KEY`, which every `./bidirekt` command sends.
+1. **Start the broker**: removes what an earlier run left, starts Postgres and the broker with `docker compose up -d --wait`, and pulls the CLI image and the curl image `setup.sh` runs in. Then `setup.sh` creates an admin and an API key that can write, without a browser, and the demo exports the key as `BIDIREKT_API_KEY`, which every `./bidirekt` command sends.
 2. **Set up what is in production**: creates the `production` environment and the participants `petstore_api` and `petstore_web`, publishes version `1.0.0` of each from `deployed/`, and records both as deployed to `production`.
 3. **Publish the proposed change**: publishes `contracts/petstore_api.yaml` as `petstore_api` `2.0.0`. Its `Pet` schema no longer has `status`.
 4. **Check it**: `can-i-deploy` says `2.0.0` cannot be deployed, because `petstore_web` reads `Pet.status`.
