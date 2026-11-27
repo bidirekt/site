@@ -38,15 +38,30 @@ final class Pet
      * @param array<string, string> $notes
      */
     public function __construct(
-        #[BidirektField] public int $id,
-        #[BidirektField] public string $name,
-        #[BidirektField] public PetStatus $status,
-        #[BidirektField] public Owner $owner,
-        #[BidirektField] public array $tags,
-        #[BidirektField] public array $notes,
+        #[BidirektField]
+        public int $id,
+
+        #[BidirektField]
+        public string $name,
+
+        #[BidirektField]
+        public PetStatus $status,
+
+        #[BidirektField]
+        public Owner $owner,
+
+        #[BidirektField]
+        public array $tags,
+
+        #[BidirektField]
+        public array $notes,
+
         #[BidirektField(type: 'float', description: 'In kilograms')]
         public float $weight,
-        #[BidirektField] public ?string $birthDate,
+
+        #[BidirektField]
+        public ?string $birthDate,
+
         #[BidirektField(
             union: [
                 'person' => Owner::class,

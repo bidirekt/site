@@ -69,8 +69,11 @@ export class PetsController {
 final class Pet
 {
     public function __construct(
-        #[BidirektField] public int $id,
-        #[BidirektField] public string $name,
+        #[BidirektField]
+        public int $id,
+
+        #[BidirektField]
+        public string $name,
     ) {}
 }
 
