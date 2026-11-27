@@ -142,7 +142,8 @@ export class RatingsClient {
   })
   async find(petId: number): Promise<Rating | null> {
     const response = await fetch(`http://petstore-reviews/ratings/${petId}`)
-    return response.status === 404 ? null : ((await response.json()) as Rating)
+    if (response.status === 404) return null
+    return (await response.json()) as Rating
   }
 }
 ```
@@ -332,8 +333,16 @@ export class PetstoreClient {
     return input
   }
 
-  @BidirektGraphqlConsumer({ provider: 'petstore_api', query: 'pets', returns: [Pet] })
-  @BidirektGraphqlConsumer({ provider: 'petstore_api', query: 'petCount', returns: 'integer' })
+  @BidirektGraphqlConsumer({
+    provider: 'petstore_api',
+    query: 'pets',
+    returns: [Pet],
+  })
+  @BidirektGraphqlConsumer({
+    provider: 'petstore_api',
+    query: 'petCount',
+    returns: 'integer',
+  })
   pets() {}
 
   @BidirektGraphqlConsumer({

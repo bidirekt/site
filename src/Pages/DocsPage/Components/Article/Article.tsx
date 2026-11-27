@@ -52,7 +52,7 @@ export function Article({ page, html, toc }: ArticleProps) {
           </Link>
           {page.group !== null && ` / ${page.group}`}
         </div>
-        <h1 className="mb-3 text-[clamp(34px,4.6vw,52px)] leading-[1.05] font-semibold tracking-[-0.04em] text-pretty ink-gradient">
+        <h1 className="mb-3 text-[clamp(34px,4.6vw,52px)] leading-[1.05] font-display font-semibold tracking-[-0.035em] text-pretty text-primary">
           {page.title}
         </h1>
         {page.description !== null && (

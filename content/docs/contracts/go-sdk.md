@@ -52,17 +52,27 @@ func (Owner) adopter()   {}
 func (Shelter) adopter() {}
 
 type Pet struct {
-	ID          int64             `json:"id" bidirekt:"field"`
-	Name        string            `json:"name" bidirekt:"field"`
-	Status      PetStatus         `json:"status" bidirekt:"field"`
-	Owner       Owner             `json:"owner" bidirekt:"field"`
-	Tags        []string          `json:"tags" bidirekt:"field"`
-	Notes       map[string]string `json:"notes" bidirekt:"field"`
-	Weight      float64           `json:"weight" bidirekt:"field description='In kilograms'"`
-	BirthDate   *string           `json:"birthDate" bidirekt:"field"`
-	AdoptedFrom Adopter           `json:"adoptedFrom" bidirekt:"field union={person: Owner, shelter: Shelter}"`
-	Nickname    string            `json:"nickname,omitempty" bidirekt:"field"`
-	CreatedBy   string            `json:"-"`
+	ID int64 `json:"id" bidirekt:"field"`
+
+	Name string `json:"name" bidirekt:"field"`
+
+	Status PetStatus `json:"status" bidirekt:"field"`
+
+	Owner Owner `json:"owner" bidirekt:"field"`
+
+	Tags []string `json:"tags" bidirekt:"field"`
+
+	Notes map[string]string `json:"notes" bidirekt:"field"`
+
+	Weight float64 `json:"weight" bidirekt:"field description='In kilograms'"`
+
+	BirthDate *string `json:"birthDate" bidirekt:"field"`
+
+	AdoptedFrom Adopter `json:"adoptedFrom" bidirekt:"field union={person: Owner, shelter: Shelter}"`
+
+	Nickname string `json:"nickname,omitempty" bidirekt:"field"`
+
+	CreatedBy string `json:"-"`
 }
 ```
 
@@ -82,7 +92,9 @@ import (
 
 var store = map[string]pets.Pet{}
 
-var _ = bidirekt.Provides(http.MethodGet, "/pets/*",
+var _ = bidirekt.Provides(
+	http.MethodGet,
+	"/pets/*",
 	bidirekt.Response(http.StatusOK, pets.Pet{}),
 	bidirekt.Response(http.StatusNotFound, nil),
 )
@@ -119,10 +131,14 @@ import (
 
 type Rating struct {
 	Average float64 `json:"average" bidirekt:"field"`
-	Count   int     `json:"count" bidirekt:"field"`
+
+	Count int `json:"count" bidirekt:"field"`
 }
 
-var _ = bidirekt.Consumes("petstore_reviews", http.MethodGet, "/ratings/*",
+var _ = bidirekt.Consumes(
+	"petstore_reviews",
+	http.MethodGet,
+	"/ratings/*",
 	bidirekt.Response(http.StatusOK, Rating{}),
 	bidirekt.Response(http.StatusNotFound, nil),
 )

@@ -1,11 +1,11 @@
 @import 'tailwindcss';
 @import './Assets/theme.css';
-@import '@fontsource/ibm-plex-sans/400.css';
-@import '@fontsource/ibm-plex-sans/400-italic.css';
-@import '@fontsource/ibm-plex-sans/500.css';
-@import '@fontsource/ibm-plex-sans/600.css';
-@import '@fontsource/jetbrains-mono/400.css';
-@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource-variable/bricolage-grotesque/opsz.css';
+@import '@fontsource/geist-sans/400.css';
+@import '@fontsource/geist-sans/500.css';
+@import '@fontsource/geist-sans/600.css';
+@import '@fontsource/geist-mono/400.css';
+@import '@fontsource/geist-mono/500.css';
 
 /* Touch screens fire :hover on tap and keep it stuck; only a fine pointer hovers. */
 @custom-variant hover {
@@ -18,47 +18,6 @@
 
 @utility pressable {
   @apply transition-[color,background-color,border-color,scale] duration-150 ease-out active:scale-[0.97] motion-reduce:transition-none;
-}
-
-@utility ink-gradient {
-  background: linear-gradient(
-    180deg,
-    var(--color-primary) 35%,
-    var(--color-secondary)
-  );
-  background-clip: text;
-  color: transparent;
-  padding-bottom: 0.05em;
-}
-
-@utility stage-light {
-  background:
-    radial-gradient(
-      640px 340px at 50% -40px,
-      color-mix(in srgb, var(--color-accent) 16%, transparent),
-      transparent 70%
-    ),
-    radial-gradient(
-      1000px 520px at 50% 62%,
-      color-mix(in srgb, var(--color-accent) 5%, transparent),
-      transparent 70%
-    );
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(var(--color-sheen) 1px, transparent 1px),
-      linear-gradient(90deg, var(--color-sheen) 1px, transparent 1px);
-    background-size: 48px 48px;
-    background-position: center top;
-    mask-image: radial-gradient(
-      ellipse 70% 50% at 50% 12%,
-      #000 25%,
-      transparent 75%
-    );
-  }
 }
 
 * {
@@ -78,7 +37,7 @@
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: #333;
+  background: var(--color-edge);
 }
 
 *::-webkit-scrollbar-track {
@@ -97,7 +56,7 @@ body {
 
 ::selection {
   background: var(--color-accent);
-  color: #000;
+  color: var(--color-page);
 }
 
 :focus-visible {
