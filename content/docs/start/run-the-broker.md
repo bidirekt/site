@@ -47,7 +47,7 @@ volumes:
 In an empty folder:
 
 ```
-$ curl -O https://raw.githubusercontent.com/bidirekt/broker/12f23b0b63a2ccf33b1b73b1169c24bec2f9f758/docker-compose.yaml
+$ curl -O https://raw.githubusercontent.com/bidirekt/broker/v0.4.0/docker-compose.yaml
 $ docker compose up -d
 $ curl -s http://localhost:8080/health
 {"status":"ok","brokerVersion":"0.4.0","apiVersion":2}

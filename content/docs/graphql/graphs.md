@@ -145,7 +145,8 @@ These Apollo rules are not checked, so a graph that breaks only one of them comp
 - a `@key` on a list, an interface or a union (`KEY_FIELDS_SELECT_INVALID_TYPE`): publish checks only that its fields exist and form a valid field set;
 - a graph without any query (`NO_QUERIES`), which composes empty;
 - a shared field whose abstract type has different types in each subgraph (`SHAREABLE_HAS_MISMATCHED_RUNTIME_TYPES`);
-- the federation linked twice (`INVALID_LINK_DIRECTIVE_USAGE`).
+- the federation linked twice (`INVALID_LINK_DIRECTIVE_USAGE`);
+- an implementation that declares a field its `@interfaceObject` already brings (`INVALID_FIELD_SHARING`).
 
 ## The graph page
 
@@ -155,4 +156,5 @@ These Apollo rules are not checked, so a graph that breaks only one of them comp
 
 - The graph page composes only the deployed subgraphs. The `see /graphs/<graph>` of a subgraph's check opens a page that can say the graph composes, while the error comes from the version under check, which only the check composes.
 - A subgraph's name in the graph is its participant name. An `@override(from:)` that uses another name, such as the subgraph name of an Apollo router configuration, names no subgraph and is ignored.
+- One graph that Apollo composes fails in Bidirekt: a shared field returns a union in one subgraph (`item: Result`, with `union Result = Book | Movie`) and one of its members in another (`item: Book`), and a field of the other member exists only in the second subgraph, with no `@key` to reach it (`Movie.year`). The check gives `query holder.item.year can't be resolved`.
 - Composition follows Apollo Federation 2 only in part: the rules above that it does not check let a graph compose that Apollo would refuse.
