@@ -102,7 +102,9 @@ final class PetController
 	Name string \`json:"name" bidirekt:"field"\`
 }
 
-var _ = bidirekt.Provides(http.MethodGet, "/pets/*",
+var _ = bidirekt.Provides(
+	http.MethodGet,
+	"/pets/*",
 	bidirekt.Response(http.StatusOK, pets.Pet{}),
 	bidirekt.Response(http.StatusNotFound, nil),
 )`,

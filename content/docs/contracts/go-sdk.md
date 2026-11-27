@@ -82,7 +82,9 @@ import (
 
 var store = map[string]pets.Pet{}
 
-var _ = bidirekt.Provides(http.MethodGet, "/pets/*",
+var _ = bidirekt.Provides(
+	http.MethodGet,
+	"/pets/*",
 	bidirekt.Response(http.StatusOK, pets.Pet{}),
 	bidirekt.Response(http.StatusNotFound, nil),
 )
@@ -122,7 +124,10 @@ type Rating struct {
 	Count   int     `json:"count" bidirekt:"field"`
 }
 
-var _ = bidirekt.Consumes("petstore_reviews", http.MethodGet, "/ratings/*",
+var _ = bidirekt.Consumes(
+	"petstore_reviews",
+	http.MethodGet,
+	"/ratings/*",
 	bidirekt.Response(http.StatusOK, Rating{}),
 	bidirekt.Response(http.StatusNotFound, nil),
 )

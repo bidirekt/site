@@ -44,9 +44,15 @@ final class Pet
         #[BidirektField] public Owner $owner,
         #[BidirektField] public array $tags,
         #[BidirektField] public array $notes,
-        #[BidirektField(type: 'float', description: 'In kilograms')] public float $weight,
+        #[BidirektField(type: 'float', description: 'In kilograms')]
+        public float $weight,
         #[BidirektField] public ?string $birthDate,
-        #[BidirektField(union: ['person' => Owner::class, 'shelter' => Shelter::class])]
+        #[BidirektField(
+            union: [
+                'person' => Owner::class,
+                'shelter' => Shelter::class,
+            ],
+        )]
         public Owner|Shelter $adoptedFrom,
     ) {}
 
@@ -73,14 +79,26 @@ final class PetController
 {
     public function __construct(private PetRepository $pets) {}
 
-    #[BidirektProvider(method: 'GET', path: '/pets/*', responses: [200 => Pet::class, 404 => null])]
-    public function show(Request $request, Response $response, array $args): Response
-    {
+    #[BidirektProvider(
+        method: 'GET',
+        path: '/pets/*',
+        responses: [
+            200 => Pet::class,
+            404 => null,
+        ],
+    )]
+    public function show(
+        Request $request,
+        Response $response,
+        array $args,
+    ): Response {
         $pet = $this->pets->find((int) $args['id']);
         if ($pet === null) {
             return $response->withStatus(404);
         }
-        $response->getBody()->write((string) json_encode($pet, JSON_PRESERVE_ZERO_FRACTION));
+        $response->getBody()->write(
+            (string) json_encode($pet, JSON_PRESERVE_ZERO_FRACTION),
+        );
 
         return $response->withHeader('Content-Type', 'application/json');
     }
@@ -102,13 +120,28 @@ final class ReviewsClient
 {
     public function __construct(private Client $http) {}
 
-    #[BidirektConsumer(provider: 'petstore_reviews', method: 'GET', path: '/ratings/*', responses: [200 => Rating::class, 404 => null])]
+    #[BidirektConsumer(
+        provider: 'petstore_reviews',
+        method: 'GET',
+        path: '/ratings/*',
+        responses: [
+            200 => Rating::class,
+            404 => null,
+        ],
+    )]
     public function rating(int $petId): ?Rating
     {
-        $response = $this->http->get("/ratings/{$petId}", ['http_errors' => false]);
+        $response = $this->http->get(
+            "/ratings/{$petId}",
+            ['http_errors' => false],
+        );
         $body = json_decode((string) $response->getBody(), true);
 
-        return $response->getStatusCode() === 404 ? null : new Rating($body['average'], $body['count']);
+        if ($response->getStatusCode() === 404) {
+            return null;
+        }
+
+        return new Rating($body['average'], $body['count']);
     }
 }
 ```
@@ -217,8 +250,11 @@ final class PetController
      * @bidirekt response 200 Pet
      * @bidirekt response 404
      */
-    public function show(Request $request, Response $response, array $args): Response
-    {
+    public function show(
+        Request $request,
+        Response $response,
+        array $args,
+    ): Response {
         // ...
     }
 }
