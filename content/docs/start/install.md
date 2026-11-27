@@ -1,6 +1,6 @@
 ---
 title: Install
-description: How to install the bidirekt CLI with curl, with Homebrew, from the GitHub Release or as a Docker image, point it at your broker, and install the agent skill that lets a coding agent write and fix the contract files. The TypeScript SDK, the PHP SDK and the Go SDK write them from annotated code instead.
+description: How to install the bidirekt CLI with curl, with Homebrew, from the GitHub Release or as a Docker image, upgrade it, point it at your broker, and install the agent skill that lets a coding agent write and fix the contract files. The TypeScript SDK, the PHP SDK and the Go SDK write them from annotated code instead.
 ---
 
 ## With curl
@@ -80,6 +80,17 @@ $ docker run --rm --network host -v "$PWD:/work" -w /work \
 Broker: http://localhost:8080 (from BIDIREKT_BROKER_URL)
 petstore_web contract publish successful
 ```
+
+## Upgrade
+
+Install the new release the way you installed the CLI:
+
+- **curl**: run the install script again. Without a version it installs the latest release over the one in `~/.local/bin`.
+- **Homebrew**: `brew upgrade bidirekt`. The tap follows the releases within an hour of each one.
+- **GitHub Release**: download and check the new archive as above, and replace the `bidirekt` binary.
+- **Docker**: change the tag, such as `ghcr.io/bidirekt/cli:0.4.1`.
+
+`bidirekt version` shows the version installed. Upgrade the [broker](run-the-broker.md#upgrade) first: a broker that no longer works with an older CLI answers its first command with the version to install.
 
 ## Pointing it at your broker
 

@@ -1,6 +1,6 @@
 ---
 title: Run the broker
-description: How to start the broker and Postgres on your machine with Docker Compose or Homebrew, or run its binary without Docker, create the admin on the first access and sign in the CLI with their own profile and API key, how to run the broker's Docker image in production with its Postgres database, admin, users, health check and exposure, and what the broker's web UI shows and changes.
+description: How to start the broker and Postgres on your machine with Docker Compose or Homebrew, or run its binary without Docker, how to upgrade it, create the admin on the first access and sign in the CLI with their own profile and API key, how to run the broker's Docker image in production with its Postgres database, admin, users, health check and exposure, and what the broker's web UI shows and changes.
 ---
 
 ## Local
@@ -92,7 +92,7 @@ $ curl -s http://localhost:8080/health
 
 The first start writes the broker's settings to `$(brew --prefix)/etc/bidirekt/broker.env`, readable only by you: the `bidirekt` database on `localhost:5432`, `http://localhost:8080` as the address, and a generated `BIDIREKT_TOKEN_SIGNING_KEY`. Edit it and run `brew services restart bidirekt-broker` to use another database or port. The log is in `$(brew --prefix)/var/log/bidirekt-broker.log`.
 
-The broker migrates its database when it starts, so an upgrade is `brew upgrade bidirekt-broker` followed by `brew services restart bidirekt-broker`. Back the database up before, with `pg_dump`: a migration does not go back.
+The broker migrates its database when it starts; [Upgrade](#homebrew) has the steps for a new release.
 
 ## Without Docker
 
@@ -237,6 +237,59 @@ The broker does not serve TLS. Put a reverse proxy of your choice in front of it
 Open the broker at exactly `BIDIREKT_PUBLIC_URL`, and give the CLI that address too. From any other address, even one that reaches the same broker, its pages refuse every action.
 
 Behind a proxy, every request reaches the broker from the proxy's address, so the sign-in limit would count everyone's failures together. List that address in `BIDIREKT_TRUSTED_PROXIES`. With the broker in Docker and the proxy on the same host, as on this page, that address is the Docker network's gateway, not `127.0.0.1`: `docker network inspect bridge -f '{{range .IPAM.Config}}{{.Gateway}}{{end}}'` prints it, usually `172.17.0.1`. The broker then takes the client's IP from the `X-Forwarded-For` header, read from the right past the listed proxies, so a value the client writes in the header changes nothing. From any other address the header is ignored. Without the variable the header is always ignored.
+
+## Upgrade
+
+The broker migrates its database when it starts, and a migration does not go back. Back the database up before every upgrade, and keep the backup until the new version runs. The releases are listed at https://github.com/bidirekt/broker/releases.
+
+```
+$ pg_dump --format=custom --file=bidirekt-$(date +%Y%m%d).dump 'postgres://bidirekt:<password>@db.example.com:5432/bidirekt'
+```
+
+`pg_restore --clean --dbname='<the same URL>' bidirekt-<date>.dump` puts it back. After an upgrade, `/health` shows the version running.
+
+### Docker Compose
+
+Back up from the `postgres` service, then change the broker's tag in `docker-compose.yaml`, such as `ghcr.io/bidirekt/broker:0.4.1`, and start it again. The data stays in the `bidirekt_postgres-data` volume:
+
+```
+$ docker compose exec -T postgres pg_dump --format=custom -U bidirekt bidirekt > bidirekt-$(date +%Y%m%d).dump
+$ docker compose up -d
+$ curl -s http://localhost:8080/health
+{"status":"ok","brokerVersion":"0.4.1","apiVersion":2}
+```
+
+### Docker
+
+Pull the new tag, replace the container with the same `docker run` and the new tag, and check it:
+
+```
+$ docker pull ghcr.io/bidirekt/broker:0.4.1
+$ docker stop bidirekt-broker && docker rm bidirekt-broker
+$ docker run -d --name bidirekt-broker ... ghcr.io/bidirekt/broker:0.4.1
+$ curl -s http://127.0.0.1:8080/health
+{"status":"ok","brokerVersion":"0.4.1","apiVersion":2}
+```
+
+### Homebrew
+
+```
+$ pg_dump --format=custom --file=bidirekt-$(date +%Y%m%d).dump bidirekt
+$ brew upgrade bidirekt-broker
+$ brew services restart bidirekt-broker
+$ curl -s http://localhost:8080/health
+{"status":"ok","brokerVersion":"0.4.1","apiVersion":2}
+```
+
+`brew upgrade` replaces the binary but does not restart the service: the old version keeps running until the restart. `broker.env` is left as it is.
+
+### Binary
+
+Download and check the new archive as in [Without Docker](#without-docker), replace the `bidirekt-broker` binary with it, and restart the broker the way you run it, such as `systemctl restart` for a systemd service.
+
+### The CLI
+
+Upgrade the broker first, then the CLI ([Install](install.md#upgrade)). A broker that no longer works with an older CLI says so on its first command, with the version to install: `bidirekt <version> doesn't work with this broker (<broker version>); upgrade bidirekt to <minimum version> or later`.
 
 ## Web UI
 
