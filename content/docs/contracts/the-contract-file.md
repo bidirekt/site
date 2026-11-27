@@ -3,7 +3,7 @@ title: The contract file
 description: The rules every contract file follows, for every kind of resource: its keys and resources, which side decides what a body must hold, how to describe what the code does, several files, what is not compared and the file rules.
 ---
 
-A contract file is a YAML document with three keys: `provides` declares the resources a participant provides, `consumes` the resources it consumes, and `schemas` the schemas of their bodies. Both sides of an integration write the same format. The file holds only the declaration: the participant name and the version are flags of [`bidirekt publish`](../ship/publish.md), never keys in the file.
+A contract file is a YAML document with three keys: `provides` declares the resources a participant provides, `consumes` the resources it consumes, and `schemas` the schemas of their bodies. Both sides of an integration write the same format. A participant that provides a GraphQL API publishes its GraphQL schema files too, beside its YAML or alone ([GraphQL: Resources](../graphql/resources.md)). The file holds only the declaration: the participant name and the version are flags of [`bidirekt publish`](../ship/publish.md), never keys in the file.
 
 ## Example
 
@@ -50,9 +50,9 @@ The two files have the same shape. All three keys are optional, and one file may
 
 ## Resources
 
-A resource is one body the two sides exchange, and what identifies it depends on its kind. Under `provides`, resources sit in a block named after their kind. Under `consumes`, the same block sits one level deeper, under the name of the provider they are consumed from. `rest` is the only kind today ([REST: Resources](../rest/resources.md)).
+A resource is one body the two sides exchange, and what identifies it depends on its kind. Under `provides`, resources sit in a block named after their kind. Under `consumes`, the same block sits one level deeper, under the name of the provider they are consumed from. The kinds today are `rest` ([REST: Resources](../rest/resources.md)) and `graphql` ([GraphQL: Resources](../graphql/resources.md)). A GraphQL provider declares its resources in its GraphQL schema, not under `provides`.
 
-The name under `consumes` is the provider's [participant name](../concepts/how-the-broker-works.md#participant). It is not checked against existing participants at publish, so a misspelled name publishes fine and fails at `can-i-deploy` ([Resource breaks](../rest/breaks.md#every-break)).
+The name under `consumes` is the provider's [participant name](../concepts/how-the-broker-works.md#participant), or, for GraphQL, the name of a [graph](../graphql/graphs.md). It is not checked against existing participants at publish, so a misspelled name publishes fine and fails at `can-i-deploy` ([REST: Resource breaks](../rest/breaks.md#every-break), [GraphQL: Breaks](../graphql/breaks.md#every-break)).
 
 Every body a resource declares names a schema declared under `schemas`, never an inline schema, or is `~`.
 
@@ -64,9 +64,9 @@ How REST writes it, and for which bodies, is in [REST: Bodies not described](../
 
 ## Which side decides
 
-Every comparison follows two rules: the side that reads a body decides what must be in it, and the provider owns how a property is provided. Each body has a producer and a reader, and which side is which depends on the resource: in REST, the provider produces a response and the consumer produces a request ([REST: Resources](../rest/resources.md)).
+Every comparison follows two rules: the side that reads a body decides what must be in it, and the provider owns how a property is provided. Each body has a producer and a reader, and which side is which depends on the resource: in REST, the provider produces a response and the consumer produces a request ([REST: Resources](../rest/resources.md)); in GraphQL, the consumer produces the arguments and the provider produces what a field returns ([GraphQL: Resources](../graphql/resources.md)).
 
-A property the reader requires must be declared by the producer, required too and with a type the reader accepts: the same type, `integer`, `float` or `number` when the reader declares `number` ([Primitives](../schemas/types.md#primitives)), or an `enum` when the reader declares `string`. A property the reader marks optional may be absent, but if both sides declare it the reader must accept its type. A property the producer marks nullable must be nullable for the reader too. Every value of an enum and every member of a union that the consumer declares must be declared by the provider, whichever side produces the body, and one that only the provider declares never breaks ([How they compare](../schemas/enums-and-unions.md#how-they-compare)). A property the reader does not declare is not checked: in the example, `petstore_web` does not declare `petId`, so `petstore_api` is free to drop it.
+A property the reader requires must be declared by the producer, required too and with a type the reader accepts: the same type, `integer`, `float` or `number` when the reader declares `number` ([Primitives](../schemas/types.md#primitives)), or an `enum` when the reader declares `string`. A property the reader marks optional may be absent, but if both sides declare it the reader must accept its type. A property the producer marks nullable must be nullable for the reader too. Every value of an enum and every member of a union that the consumer declares must be declared by the provider, whichever side produces the body, and one that only the provider declares never breaks ([How they compare](../schemas/enums-and-unions.md#how-they-compare)). A property the reader does not declare is not checked: in the example, `petstore_web` does not declare `petId`, so `petstore_api` is free to drop it. GraphQL adds its own rules on top: a field the consumer reads must exist even when it is optional, an argument the provider does not declare breaks, a custom `scalar` matches only the same name, and the arguments follow GraphQL's input coercion ([How types compare](../graphql/resources.md#how-types-compare)).
 
 A property is required only where its parent is present. When the producer does not declare a parent, only the parent can break, and only if it is required; nothing inside it is checked, and its members, array items and map values are never reported on their own. The body itself has no parent, so it is always compared.
 
@@ -90,7 +90,7 @@ When `petstore_api` gives `name` a nullable type, such as `String?`, but always 
 
 All the files of one [publish](../ship/publish.md) are one contract:
 
-- **One schema namespace.** A file can name a schema declared in another file of the same publish; published alone, a file that does fails with `unresolved schema`, or `unresolved ref` when a `ref` names it. A name declared twice is a duplicate.
+- **One schema namespace.** A file can name a schema declared in another file of the same publish; published alone, a file that does fails with `unresolved schema`, or `unresolved ref` when a `ref` names it. A name declared twice is a duplicate. The types of a GraphQL schema are a namespace of their own, so a YAML schema `Pet` and a GraphQL `type Pet` never collide.
 - **A provider declares each resource once**, in any of its files ([REST: In several files](../rest/resources.md#in-several-files)).
 - **A consumer merges by union** the fragments of one resource, such as one file per module. In a body it reads, a property is optional only if every fragment that declares it marks it optional, and nullable only if every fragment that declares it accepts `null`. In a body it produces, a property is required only if every fragment that declares its parent sends it, and nullable if any fragment may send `null`; a fragment that leaves out the parent too makes only the parent optional. Two types for one property, even `number` and `integer`, are rejected at publish, and so are two enums with different values. The members of a union join by union, like properties: a fragment with the member `card` and another with `card` and `pix` declare both. A fragment that writes `~` for the body is joined the same way. In a body the consumer reads, it declares nothing, so the body is what the other fragments declare. In a body the consumer produces, it makes the body itself optional: a provider that requires the body gets `petstore_web sends it only sometimes, but petstore_api requires it`, at the body. When every fragment writes `~`, the consumer declares no body, as with one `~`.
 
@@ -122,16 +122,17 @@ An `enum` key beside `type: string`, as OpenAPI writes it, is an unknown key too
 A change in any of the items below never makes `can-i-deploy` fail:
 
 - **`description`.** On any node but a [union member](../schemas/enums-and-unions.md#unions). It holds ASCII letters and digits, with a single space between words, and the broker rejects any other text at publish with `schema.description_syntax` ([Types and their keys](../schemas/types.md#types-and-their-keys)).
-- **A schema that no resource or `ref` names.** It is accepted and never compared, so a file with only `schemas` publishes too.
+- **A schema that no resource, `ref` or `arguments` names.** It is accepted and never compared, so a file with only `schemas` publishes too.
 - **A property the reader does not declare.** It is not checked ([Which side decides](#which-side-decides)).
 - **A value or a member that only the provider declares.** A provider that adds `adopted` to the values of `status` breaks no consumer ([How they compare](../schemas/enums-and-unions.md#how-they-compare)).
 - **Headers and query parameters**, which a `rest` block has no place for ([REST: What is not compared](../rest/resources.md#what-is-not-compared)).
+- **Descriptions, default values and directives that are behavior** in a GraphQL schema ([GraphQL: What is not compared](../graphql/resources.md#what-is-not-compared)).
 
 ## File rules
 
-- Every key at every level is checked against the grammar of this page, [REST](../rest/resources.md) and [Schemas](../schemas/types.md). A key the grammar does not know, such as `options`, an uppercase `GET`, a top-level `version` or `enum`, is a violation. The report lists the violations of every file, and nothing is stored. The checks between files, such as a name declared twice, run once every file has the right shape ([publish](../ship/publish.md)).
-- The extension must be `.yaml` or `.yml`. The CLI refuses a file passed with anything else before contacting the broker: `unsupported contract file extension: "petstore_api.txt"`. Inside a folder, such a file is skipped ([publish](../ship/publish.md)).
-- One YAML document per file. A second document after `---` is rejected with `cannot post contract to broker: malformed contract file: petstore_api.yaml: multiple documents are not supported`.
+- Every key at every level is checked against the grammar of this page, [REST](../rest/resources.md), [GraphQL](../graphql/resources.md) and [Schemas](../schemas/types.md). A key the grammar does not know, such as `options`, an uppercase `GET`, a top-level `version` or `enum`, is a violation. The report lists the violations of every file, and nothing is stored. The checks between files, such as a name declared twice, run once every file has the right shape ([publish](../ship/publish.md)).
+- The extension of a YAML file must be `.yaml` or `.yml`, and that of a GraphQL schema file `.graphql`, `.graphqls` or `.gql`. The CLI refuses a file passed with anything else before contacting the broker: `unsupported contract file extension: "petstore_api.txt"`. Inside a folder, such a file is skipped ([publish](../ship/publish.md)).
+- One YAML document per YAML file. A second document after `---` is rejected with `cannot post contract to broker: malformed contract file: petstore_api.yaml: multiple documents are not supported`.
 - YAML anchors and aliases are rejected with `cannot post contract to broker: malformed contract file: petstore_api.yaml: anchors and aliases are not supported`. To reuse a shape, name it under `schemas` and point to it with [`ref`](../schemas/references.md).
 - YAML comments are allowed. They are ignored when the file is parsed.
 

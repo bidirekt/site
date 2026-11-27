@@ -1,9 +1,9 @@
 ---
 title: TypeScript SDK
-description: How to write a service's contract from its TypeScript or JavaScript code with the TypeScript SDK: installation, an example with decorators and tags, the generate command and the flow to publish. The full reference is the SDK's README.
+description: How to write a service's contract from its TypeScript or JavaScript code with the TypeScript SDK: installation, an example with decorators and tags, the GraphQL consumer and graph, the generate command and the flow to publish. The full reference is the SDK's README.
 ---
 
-The TypeScript SDK writes the [contract file](the-contract-file.md) of a service from its TypeScript or JavaScript code. You annotate the schemas and the handlers that provide or consume each resource, with decorators or with `@bidirekt` tags in `/** */` comments, run `generate`, and get `contracts/generated.yaml`, which [`validate`](../ship/validate.md) and [`publish`](../ship/publish.md) take like any other contract file. It reads the source code and never runs your app.
+The TypeScript SDK writes the [contract file](the-contract-file.md) of a service from its TypeScript or JavaScript code. You annotate the schemas and the handlers that provide or consume each REST resource, or call a GraphQL API, with decorators or with `@bidirekt` tags in `/** */` comments, run `generate`, and get `contracts/generated.yaml`, which [`validate`](../ship/validate.md) and [`publish`](../ship/publish.md) take like any other contract file. It reads the source code and never runs your app.
 
 This page shows how it reads. Every decorator option, tag, type and error is in the [SDK's README](https://github.com/bidirekt/typescript-sdk#readme).
 
@@ -97,15 +97,15 @@ export class Rating {
 }
 ```
 
-`@BidirektProvider` on a method declares a resource it provides. A body is a schema class, or `null` for no body:
+`@BidirektRestProvider` on a method declares a REST resource it provides. A body is a schema class, or `null` for no body:
 
 ```ts
 // pets.controller.ts
-import { BidirektProvider } from '@bidirekt/typescript-sdk'
+import { BidirektRestProvider } from '@bidirekt/typescript-sdk'
 import { NewPet, Pet } from './pet.js'
 
 export class PetsController {
-  @BidirektProvider({
+  @BidirektRestProvider({
     method: 'GET',
     path: '/pets/*',
     responses: { 200: Pet, 404: null },
@@ -114,7 +114,7 @@ export class PetsController {
     return undefined
   }
 
-  @BidirektProvider({
+  @BidirektRestProvider({
     method: 'POST',
     path: '/pets',
     request: NewPet,
@@ -126,15 +126,15 @@ export class PetsController {
 }
 ```
 
-`@BidirektConsumer` declares a resource it consumes, and names the provider:
+`@BidirektRestConsumer` declares a REST resource it consumes, and names the provider:
 
 ```ts
 // ratings.client.ts
-import { BidirektConsumer } from '@bidirekt/typescript-sdk'
+import { BidirektRestConsumer } from '@bidirekt/typescript-sdk'
 import { Rating } from './pet.js'
 
 export class RatingsClient {
-  @BidirektConsumer({
+  @BidirektRestConsumer({
     provider: 'petstore_reviews',
     method: 'GET',
     path: '/ratings/*',
@@ -255,7 +255,7 @@ export interface NewPet {
 }
 
 /**
- * @bidirekt provides POST /pets
+ * @bidirekt rest provides POST /pets
  * @bidirekt request NewPet
  * @bidirekt response 201
  * @bidirekt response 400
@@ -267,13 +267,192 @@ export function createPet(body: NewPet) {
 
 The [Quickstart](https://github.com/bidirekt/typescript-sdk#quickstart) of the README writes this whole example with tags too, and [JavaScript](https://github.com/bidirekt/typescript-sdk#javascript) shows a schema in a `.js` file.
 
+## GraphQL
+
+For GraphQL, the SDK writes what a service consumes, and the graph of a subgraph. A provider publishes the GraphQL schema its application already has, which the SDK does not write ([GraphQL: Resources](../graphql/resources.md#the-provider-publishes-its-schema)).
+
+`@BidirektGraphqlConsumer` on a method declares a field the service calls: the provider, `query` or `mutation` with the field's name, the schema of the `arguments` it sends and the shape it `returns`. `@BidirektGraphqlField` takes the place of `@BidirektField` on a field that needs an option of GraphQL: `scalar`, a custom scalar, or `arguments`, the arguments the call passes to that field. Here `petstore_web` calls the GraphQL API of `petstore_api`:
+
+```ts
+// petstore.client.ts
+import {
+  BidirektField,
+  BidirektGraphqlConsumer,
+  BidirektGraphqlField,
+  BidirektSchema,
+} from '@bidirekt/typescript-sdk'
+
+@BidirektSchema()
+export class PetArgs {
+  @BidirektField()
+  id!: string
+}
+
+@BidirektSchema()
+export class AdoptArgs {
+  @BidirektField()
+  petId!: string
+}
+
+@BidirektSchema()
+export class ReviewsArgs {
+  @BidirektField({ type: 'integer' })
+  first!: number
+}
+
+@BidirektSchema()
+export class Review {
+  @BidirektField({ type: 'integer' })
+  stars!: number
+}
+
+@BidirektSchema()
+export class Pet {
+  @BidirektField()
+  name!: string
+
+  @BidirektField()
+  status!: 'AVAILABLE' | 'SOLD'
+
+  @BidirektGraphqlField({ scalar: 'DateTime', optional: true })
+  bornAt!: string
+
+  @BidirektGraphqlField({ arguments: ReviewsArgs })
+  reviews!: Review[]
+}
+
+export class PetstoreClient {
+  @BidirektGraphqlConsumer({
+    provider: 'petstore_api',
+    mutation: 'adoptPet',
+    arguments: AdoptArgs,
+    returns: Pet,
+  })
+  adopt(input: AdoptArgs) {
+    return input
+  }
+
+  @BidirektGraphqlConsumer({ provider: 'petstore_api', query: 'pets', returns: [Pet] })
+  @BidirektGraphqlConsumer({ provider: 'petstore_api', query: 'petCount', returns: 'integer' })
+  pets() {}
+
+  @BidirektGraphqlConsumer({
+    provider: 'petstore_api',
+    query: 'pet',
+    arguments: PetArgs,
+    returns: { nullable: Pet, name: 'MaybePet' },
+  })
+  pet(id: string) {
+    return id
+  }
+}
+```
+
+`generate` writes the calls under `consumes.petstore_api.graphql`. A `returns` that is not a schema returned as it is becomes a schema of its own: `[Pet]` is `PetList`, `'integer'` is `Integer`, and `{ nullable: Pet, name: 'MaybePet' }` is `MaybePet`:
+
+```yaml
+# Generated by @bidirekt/typescript-sdk. Do not edit.
+consumes:
+  petstore_api:
+    graphql:
+      query:
+        pet:
+          arguments: PetArgs
+          returns: MaybePet
+        petCount:
+          returns: Integer
+        pets:
+          returns: PetList
+      mutation:
+        adoptPet:
+          arguments: AdoptArgs
+          returns: Pet
+schemas:
+  AdoptArgs:
+    type: object
+    properties:
+      petId:
+        type: string
+  Integer:
+    type: integer
+  MaybePet:
+    ref: Pet
+    nullable: true
+  Pet:
+    type: object
+    properties:
+      name:
+        type: string
+      status:
+        type: enum
+        members: ["AVAILABLE", "SOLD"]
+      bornAt:
+        type: scalar
+        name: DateTime
+        optional: true
+      reviews:
+        type: array
+        items:
+          ref: Review
+        arguments: ReviewsArgs
+  PetArgs:
+    type: object
+    properties:
+      id:
+        type: string
+  PetList:
+    type: array
+    items:
+      ref: Pet
+  Review:
+    type: object
+    properties:
+      stars:
+        type: integer
+  ReviewsArgs:
+    type: object
+    properties:
+      first:
+        type: integer
+```
+
+With tags, `@bidirekt graphql consumes <provider> query|mutation <name>` goes above the handler, followed by `@bidirekt arguments <schema>` and `@bidirekt returns <type>`, and `@bidirekt graphql field` takes the place of `@bidirekt field`:
+
+```ts
+/** @bidirekt schema */
+export interface PetArgs {
+  /** @bidirekt field */
+  id: string
+}
+
+/** @bidirekt schema */
+export interface Pet {
+  /** @bidirekt field */
+  name: string
+
+  /** @bidirekt graphql field scalar=DateTime */
+  bornAt?: string
+}
+
+/**
+ * @bidirekt graphql consumes petstore_api query pet
+ * @bidirekt arguments PetArgs
+ * @bidirekt returns Pet? as MaybePet
+ */
+export function pet(id: string) {
+  return id
+}
+```
+
+`provider` may name a federated graph, and the calls are then checked against the graph its subgraphs compose ([Graphs](../graphql/graphs.md#consuming-a-graph)). A subgraph declares its graph with `@BidirektGraph('petstore_graph')` on a class, or `@bidirekt graph petstore_graph` above any element, and `generate` writes it as `provides.graphql.graph`. Every form `returns` takes, lists, nullables, scalars, enums, unions and an interface read on its own fields and on its types, is in [GraphQL returns](https://github.com/bidirekt/typescript-sdk#graphql-returns) of the README.
+
 ## Describe what the code does
 
 The contract describes what the code does, not the type the code declares ([Describe what the code does](the-contract-file.md#describe-what-the-code-does)). With the SDK, the TypeScript type is where each field starts, and a declared `type`, `optional` or `nullable` wins over it. In the example, `birthDate` is a `Date` in the code and a string in the body, so it declares `type: 'string'`. A `name: string | null` that the code always fills declares `nullable: false`.
 
 ## From code to deploy
 
-`contracts/generated.yaml` is the service's only contract file: a service adopts the SDK as a whole, with every resource and schema it provides or consumes annotated in its code. Never edit the file: the next `generate` writes over it. Regenerate it whenever an annotation or an annotated type changes, commit it with the code, and ship it like any contract file:
+`contracts/generated.yaml` is the service's contract file: a service adopts the SDK as a whole, with every resource and schema it provides or consumes annotated in its code. A subgraph's contract is that file together with its GraphQL schema ([GraphQL](#graphql)). Never edit the file: the next `generate` writes over it. Regenerate it whenever an annotation or an annotated type changes, commit it with the code, and ship it like any contract file:
 
 ```
 $ npx @bidirekt/typescript-sdk-cli generate
@@ -283,6 +462,8 @@ $ bidirekt publish contracts/generated.yaml --participant petstore_ts --version 
 $ bidirekt can-i-deploy petstore_ts --version 1.4.0 --environment production
 $ bidirekt record-deployment petstore_ts --version 1.4.0 --environment production
 ```
+
+A subgraph passes its schema file in the same commands, as `bidirekt validate contracts/generated.yaml src/schema.graphql` and `bidirekt publish contracts/generated.yaml src/schema.graphql --participant petstore_reviews --version 2.0.0`: `contracts/generated.yaml` alone fails with `graph "petstore_graph" without a GraphQL schema`.
 
 [`validate`](../ship/validate.md) without `--participant` and `--environment` checks only the file; with them, it also compares the file with what is deployed in that environment. Deploy between `can-i-deploy` and `record-deployment`. In CI, `generate --check` fails the build when the committed file is out of date. When [`can-i-deploy`](../ship/can-i-deploy.md) reports a break, fix the annotation or the type in the code and generate again.
 

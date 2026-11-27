@@ -3,11 +3,11 @@ title: How the broker works
 description: The terms the broker uses, in the order a pipeline meets them, from participant to deployment.
 ---
 
-The broker stores what each service declares it provides and consumes, and before a deployment it compares that declaration with what is already running in the target environment. Eight terms cover everything it knows, in the order a pipeline meets them: participant, environment, contract, version, snapshot, counterpart, can-i-deploy and deployment. The commands are documented in the [CLI reference](../reference/cli.md).
+The broker stores what each service declares it provides and consumes, and before a deployment it compares that declaration with what is already running in the target environment. Eight terms cover what it knows, in the order a pipeline meets them: participant, environment, contract, version, snapshot, counterpart, can-i-deploy and deployment; a GraphQL graph is a kind of counterpart. The commands are documented in the [CLI reference](../reference/cli.md).
 
 ## Participant
 
-A participant is a named service that publishes contracts. The name is the whole identity: it is how the broker files everything the participant publishes, and it is how other participants refer to it. The name is in snake_case: lowercase letters, digits and single underscores. A consumer names the provider it consumes from with this exact string, so a misspelled name publishes and fails at `can-i-deploy` ([Resource breaks](../rest/breaks.md#every-break)). The name can't change once the participant is created.
+A participant is a named service that publishes contracts. The name is the whole identity: it is how the broker files everything the participant publishes, and it is how other participants refer to it. The name is in snake_case: lowercase letters, digits and single underscores. A consumer names the provider it consumes from with this exact string, so a misspelled name publishes and fails at `can-i-deploy` ([REST: Resource breaks](../rest/breaks.md#every-break), [GraphQL: Breaks](../graphql/breaks.md#every-break)). The name can't change once the participant is created, and it can't be the name of a GraphQL [graph](../graphql/graphs.md): participants and graphs share one space of names.
 
 A participant is not "a provider" or "a consumer". The same participant provides resources to some services and consumes resources from others, and declares both in one contract ([The contract file](../contracts/the-contract-file.md)).
 
@@ -17,7 +17,7 @@ An environment is a named place where participants are deployed: `production`, `
 
 ## Contract
 
-A contract is what a participant declares about its integrations: the resources it provides and consumes, each with the schemas of its bodies. [The contract file](../contracts/the-contract-file.md) documents the format. The broker compares properties and their types, never files. Publishing a contract compares nothing ([publish](../ship/publish.md)).
+A contract is what a participant declares about its integrations: the resources it provides and consumes, each with the schemas of its bodies. [The contract file](../contracts/the-contract-file.md) documents the format. A contract is written in YAML files and, for a GraphQL provider, in its GraphQL schema files. The broker compares properties and their types, never files. Publishing a contract compares nothing ([publish](../ship/publish.md)).
 
 ## Version
 
@@ -37,6 +37,8 @@ Publishing a new version with the same declarations as one already published mak
 ## Counterpart
 
 A counterpart is a participant on the other side of an integration: a provider the participant consumes from, or a consumer of what the participant provides. In a check, each counterpart is read as the version currently deployed in the environment.
+
+A GraphQL graph is a counterpart too, though not a participant: a consumer of the graph is compared with the graph composed from the subgraphs deployed in the environment, and the report names the version of each one ([Graphs](../graphql/graphs.md)).
 
 ## can-i-deploy
 

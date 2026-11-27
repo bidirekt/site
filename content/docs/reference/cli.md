@@ -26,9 +26,9 @@ Available Commands:
   list-participants  List the participants on the broker
   login              Sign in to a broker with an API key and save both in a profile
   logout             Remove the API key from a profile in the config file
-  publish            Publish one or more contract YAML files or folders to the broker
+  publish            Publish one or more contract files or folders to the broker
   record-deployment  Record a deployment of a participant version to an environment
-  validate           Validate contract YAML files or folders, and compare them with an environment, without publishing them
+  validate           Validate contract files or folders, and compare them with an environment, without publishing them
   version            Print the bidirekt version
 
 Flags:
@@ -118,6 +118,12 @@ A broker that no longer works with this version of the CLI answers before doing 
 bidirekt <version> doesn't work with this broker (<broker version>); upgrade bidirekt to <minimum version> or later
 ```
 
+A `can-i-deploy` or `validate` report with breaks of a protocol this version of the CLI does not know stops with exit code `1` instead of leaving them out. Install a newer version:
+
+```error title="CLI error"
+the broker reported protocol <key>, which this bidirekt doesn't know; update bidirekt
+```
+
 ## Exit codes and output
 
 The CLI exits `0` on success, help and version; `1` for everything else, including a refused publish and a `can-i-deploy` answer of no.
@@ -179,6 +185,8 @@ petstore_api participant created
 Other participants' contracts refer to it by this name, so the name can't change later. A wrong name means creating another participant.
 
 Running it again for an existing name prints `petstore_api participant already exists` and exits `0`, so a pipeline can run it on every build.
+
+A name that a GraphQL subgraph already declares as its [graph](../graphql/graphs.md#declaring-the-graph) is refused, and exits `1`: `cannot post participant to broker: "petstore_graph" is a graph name; pick another participant name`.
 
 ## create-environment
 

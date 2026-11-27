@@ -32,6 +32,14 @@
       path: rest/resources.md
     - label: Resource breaks
       path: rest/breaks.md
+- label: GraphQL
+  items:
+    - label: Resources
+      path: graphql/resources.md
+    - label: Breaks
+      path: graphql/breaks.md
+    - label: Graphs
+      path: graphql/graphs.md
 - label: Schemas
   items:
     - label: Types

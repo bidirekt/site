@@ -62,4 +62,4 @@ contract validation failed
   - petstore_api.yaml: invalid schema name "Pet.v2" at schemas, must not contain ".", "[", "]", "{", "}", ";", "(" or ")"
 ```
 
-Schema names are unique across the files of a publish ([Several files](../contracts/the-contract-file.md#several-files)), and a schema that no resource or `ref` names is accepted but never compared ([What is not compared](../contracts/the-contract-file.md#what-is-not-compared)).
+Schema names are unique across the YAML files of a publish, while the types of a GraphQL schema have names of their own ([Several files](../contracts/the-contract-file.md#several-files)), and a schema that no resource, `ref` or `arguments` names is accepted but never compared ([What is not compared](../contracts/the-contract-file.md#what-is-not-compared)).

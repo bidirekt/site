@@ -28,7 +28,7 @@ services:
       retries: 15
 
   broker:
-    image: ghcr.io/bidirekt/broker:0.3.0
+    image: ghcr.io/bidirekt/broker:0.4.0
     restart: unless-stopped
     environment:
       BIDIREKT_DATABASE_URL: postgres://bidirekt:bidirekt@postgres:5432/bidirekt?sslmode=disable
@@ -50,7 +50,7 @@ In an empty folder:
 $ curl -O https://raw.githubusercontent.com/bidirekt/broker/12f23b0b63a2ccf33b1b73b1169c24bec2f9f758/docker-compose.yaml
 $ docker compose up -d
 $ curl -s http://localhost:8080/health
-{"status":"ok","brokerVersion":"0.3.0","apiVersion":2}
+{"status":"ok","brokerVersion":"0.4.0","apiVersion":2}
 ```
 
 The data lives in the `bidirekt_postgres-data` volume, the same from any folder, so it survives `docker compose down` and `up`; `docker compose down -v` erases it. Both containers start again by themselves when Docker restarts. The broker listens on `127.0.0.1` only, so other machines on your network cannot reach it. The compose's `BIDIREKT_TOKEN_SIGNING_KEY` is fixed because the compose is for trying locally; in production, generate your own.
@@ -81,10 +81,10 @@ $ export BIDIREKT_PROFILE=local
 The broker is self-hosted. It ships as a Docker image, for `linux/amd64` and `linux/arm64`:
 
 ```
-ghcr.io/bidirekt/broker:0.3.0
+ghcr.io/bidirekt/broker:0.4.0
 ```
 
-Each release is tagged `X.Y.Z`, `X.Y`, `X` and `latest`. In production, pin the full version, `0.3.0`, and change it on purpose.
+Each release is tagged `X.Y.Z`, `X.Y`, `X` and `latest`. In production, pin the full version, `0.4.0`, and change it on purpose.
 
 The image runs as a non-root user and has no shell. It needs one Postgres database, which it migrates on start. It is configured only through environment variables:
 
@@ -122,7 +122,7 @@ $ docker run -d --name bidirekt-broker --restart unless-stopped \
     -e BIDIREKT_DATABASE_URL='postgres://bidirekt:<password>@db.example.com:5432/bidirekt?sslmode=require' \
     -e BIDIREKT_PUBLIC_URL=https://bidirekt.example.com \
     -e BIDIREKT_TOKEN_SIGNING_KEY='<signing-key>' \
-    ghcr.io/bidirekt/broker:0.3.0
+    ghcr.io/bidirekt/broker:0.4.0
 ```
 
 ### Postgres on the same VPS
@@ -136,7 +136,7 @@ $ docker run -d --name bidirekt-broker --restart unless-stopped \
     -e BIDIREKT_DATABASE_URL='postgres://bidirekt:<password>@host.docker.internal:5432/bidirekt' \
     -e BIDIREKT_PUBLIC_URL=https://bidirekt.example.com \
     -e BIDIREKT_TOKEN_SIGNING_KEY='<signing-key>' \
-    ghcr.io/bidirekt/broker:0.3.0
+    ghcr.io/bidirekt/broker:0.4.0
 ```
 
 Postgres must listen on the Docker bridge, not only on `127.0.0.1`: add the bridge address to `listen_addresses` in `postgresql.conf` (for example `listen_addresses = 'localhost,172.17.0.1'`), and allow the Docker network in `pg_hba.conf` (for example `host bidirekt bidirekt 172.16.0.0/12 scram-sha-256`).
@@ -189,7 +189,7 @@ The admin sees the keys of every other user on the Users page, with **API keys**
 
 ```
 $ curl -s http://127.0.0.1:8080/health
-{"status":"ok","brokerVersion":"0.3.0","apiVersion":2}
+{"status":"ok","brokerVersion":"0.4.0","apiVersion":2}
 ```
 
 The image's own Docker healthcheck calls it, so `docker ps` shows the container as `healthy`. On `docker stop`, the broker finishes the requests in flight, for up to 8 seconds, and exits.
@@ -207,13 +207,14 @@ Behind a proxy, every request reaches the broker from the proxy's address, so th
 Signed in at `BIDIREKT_PUBLIC_URL`, the broker's pages show everything it stores. Every user, `read` included, sees every page below; the forms that change something appear only to `write` and `admin` users.
 
 - **Overview** (`/`): how many participants, environments, published versions and checks this month; the participants whose last can-i-deploy for an environment said no; the version of each participant deployed now in each environment; and the latest deployments and checks. An empty broker shows the steps to start: create an API key on your Profile and run `bidirekt login`, then `create-participant`, `create-environment`, `publish`, `can-i-deploy`, deploy and `record-deployment`.
-- **Participants** (`/participants`): every participant with its latest published version and the version deployed in each environment. Each participant has four tabs: Versions, Deployments, Checks, and Relations, which lists the participants it consumes from and the deployed participants that consume from it.
+- **Participants** (`/participants`): every participant with its latest published version and the version deployed in each environment. Each participant has four tabs: Versions, Deployments, Checks, and Relations, which lists the participants it consumes from and the deployed participants that consume from it. A GraphQL subgraph's page links to the graph of its version deployed in each environment, as `graph petstore_graph in production`.
 - **Version** (`/participants/<name>/versions/<version>`): the contract files as they were published, where the version is deployed now, its deployments and its checks.
-- **Check** (`/checks/<id>`): the [can-i-deploy report](../ship/can-i-deploy.md#the-report): the answer, each counterpart with its version, its breaks, where they happen and each side's fix.
+- **Check** (`/checks/<id>`): the [can-i-deploy report](../ship/can-i-deploy.md#the-report): the answer, each counterpart with its version, its breaks in one section per protocol, REST and GraphQL, where they happen and each side's fix. A graph counterpart links to its graph page.
+- **Graph** (`/graphs/<name>`): a GraphQL graph, with the subgraphs deployed in each environment and whether they compose, with every composition error ([The graph page](../graphql/graphs.md#the-graph-page)).
 - **Environments** (`/environments`): every environment with how many participants are deployed there and its last deployment. An environment's page shows what is deployed there now, its deployment history and the checks asked about it.
 - **Compatibility** (`/compatibility`): one participant's versions against the environments, each cell the last can-i-deploy of that version in that environment. A cell warns when other participants were deployed to that environment after the check, so the answer may be out of date.
 
 A `write` user also creates participants and environments and renames environments from these pages:
 
-- **Create participant** and **Create environment** work as `create-participant` and `create-environment` do, except that a name already in use is an error: `participant already exists` or `environment already exists`.
+- **Create participant** and **Create environment** work as `create-participant` and `create-environment` do, except that a name already in use is an error: `participant already exists` or `environment already exists`. A participant can't take the name of a GraphQL graph either ([create-participant](../reference/cli.md#create-participant)).
 - **Rename** an environment at any time, from its page or with `POST /api/environments/rename` and `{"oldName":"production","newName":"prod"}`. Its deployments and checks stay with it, and each stored check keeps the name the environment had when it was asked. A pipeline that still passes the old name gets `environment not found` until it is updated.

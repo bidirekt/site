@@ -23,7 +23,7 @@ The fix is to keep either the `ref` alone or the shape without the `ref`, whiche
 
 A `ref` to a name no schema declares is rejected at publish.
 
-A schema may point to itself, directly or through other schemas. Here each reply of a `Comment` is a `Comment`:
+A schema may point to itself, directly or through other schemas, through a property, an item or a value. Here each reply of a `Comment` is a `Comment`:
 
 ```yaml
 Comment:
@@ -38,3 +38,17 @@ Comment:
 ```
 
 The loop can also pass through other schemas, such as `Post.author` pointing to `User` and `User.posts` back to `Post`. There is no depth limit, and a report shows a difference inside a recursive schema as one block ([The report](../ship/can-i-deploy.md#the-report)).
+
+A schema that only refers to itself through `ref`, with no type on the way, describes no body, and is rejected at publish, once per loop, at its first schema:
+
+```yaml
+A:
+  ref: B
+B:
+  ref: A
+```
+
+```error title="publish error"
+contract validation failed
+  - petstore_api.yaml: schema "A" only refers to itself through ref (A → B → A): give one of them a type
+```
