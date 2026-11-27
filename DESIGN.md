@@ -182,7 +182,7 @@ A neutral grey ladder on pure black, one white accent, and a green/red pair rese
 
 **The Verdict-Only Color Rule.** Green and red appear only where a deploy verdict, an exit code, or a contract diff says pass or break. They never decorate a heading, an icon, a button or a status that is not a verdict.
 
-**The Syntax Pastel Rule.** Source code and YAML in the SDK section are highlighted with five pastel tokens: keywords lavender (`syntax-keyword`), types and schema references blue (`syntax-type`), strings pale yellow (`syntax-string`), decorators and attributes pink (`syntax-decorator`), numbers peach (`syntax-number`); identifiers stay Ink, YAML keys Smoke. Pastels live only inside code panes; never green or red, which stay with verdicts.
+**The Syntax Pastel Rule.** Source code and YAML on the home page and in the docs (TypeScript, PHP, Go, JSON, GraphQL, YAML) are highlighted by one shared tokenizer (`src/highlight.ts`) with five pastel tokens: keywords lavender (`syntax-keyword`), types and schema references blue (`syntax-type`), strings pale yellow (`syntax-string`), decorators and attributes pink (`syntax-decorator`), numbers peach (`syntax-number`); identifiers stay Ink, YAML and JSON keys Smoke, comments Ash. Pastels live only inside code panes; never green or red, which stay with verdicts.
 
 **The One White Rule.** The only accent is white. Emphasis comes from moving up the grey ladder (muted, secondary, primary, accent), never from adding a hue.
 

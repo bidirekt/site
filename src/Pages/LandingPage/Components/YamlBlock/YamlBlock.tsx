@@ -1,12 +1,5 @@
 import { yamlLine } from '#/markdown'
-import type { YamlTone } from '#/markdown'
-
-const TONE: Record<YamlTone, string> = {
-  key: 'text-secondary',
-  colon: 'text-muted',
-  value: 'text-primary',
-  plain: '',
-}
+import { TOKEN_CLASS, yamlSegmentKind } from '#/highlight'
 
 export function YamlBlock({ yaml }: { yaml: string }) {
   return (
@@ -19,7 +12,9 @@ export function YamlBlock({ yaml }: { yaml: string }) {
           {yamlLine(line).map((segment, segmentIndex) => (
             <span
               key={segmentIndex}
-              className={toneClass(segment.tone, segment.text)}
+              className={
+                TOKEN_CLASS[yamlSegmentKind(segment.tone, segment.text)]
+              }
             >
               {segment.text}
             </span>
@@ -28,11 +23,4 @@ export function YamlBlock({ yaml }: { yaml: string }) {
       ))}
     </pre>
   )
-}
-
-function toneClass(tone: YamlTone, text: string): string {
-  if (tone === 'key' && /^\d+$/.test(text)) return 'text-syntax-number'
-  if (tone !== 'value') return TONE[tone]
-  if (/^\s*[A-Z]/.test(text)) return 'text-syntax-type'
-  return 'text-syntax-keyword'
 }

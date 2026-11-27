@@ -2,6 +2,12 @@ import { Marked } from 'marked'
 import type { Tokens } from 'marked'
 import { pane } from '#/Components/Pane'
 import { resolveDocsLink } from '#/docs'
+import {
+  LANGUAGE_BY_FENCE,
+  TOKEN_CLASS,
+  highlightLines,
+  yamlSegmentKind,
+} from '#/highlight'
 import { headingIdsOfPage } from '#/headings'
 
 export type TocEntry = { id: string; text: string; level: 2 | 3 }
@@ -89,12 +95,6 @@ const LIST_ITEM =
   'mb-1.5 text-[16px] leading-[1.7] [&>p]:mb-1.5 [&>ul]:mt-1.5 [&>ol]:mt-1.5 [&>ul]:mb-0 [&>ol]:mb-0'
 const RULE = 'my-10 max-w-[70ch] border-line'
 
-const YAML_TONE_CLASS: Record<YamlTone, string | null> = {
-  key: 'text-secondary',
-  colon: 'text-muted',
-  value: 'text-primary',
-  plain: null,
-}
 const SHELL_LANGS = new Set(['', 'sh', 'shell', 'bash', 'console', 'text'])
 const ERROR_LANG = 'error'
 const CAN_I_DEPLOY_TITLE = 'can-i-deploy output'
@@ -262,7 +262,9 @@ function codeLabel(
 
 function languageLabel(lang: string, terminal: boolean): string {
   if (terminal) return 'terminal'
-  if (lang === 'yaml' || lang === 'json' || lang === ERROR_LANG) return lang
+  if (lang === 'yaml' || lang === ERROR_LANG) return lang
+  const language = LANGUAGE_BY_FENCE[lang]
+  if (language !== undefined) return language
   return 'text'
 }
 
@@ -274,6 +276,17 @@ function renderCodeLines(
   terminal: boolean,
 ): string {
   const last = lines.length - 1
+  const language = LANGUAGE_BY_FENCE[info.lang]
+  if (language !== undefined) {
+    return highlightLines(lines.join('\n'), language)
+      .map((tokens, index) => {
+        const inner = tokens
+          .map((token) => classedHtml(token.text, TOKEN_CLASS[token.kind]))
+          .join('')
+        return `<span class="${CODE_LINE}">${inner}${newlineUnlessLast(index, last)}</span>`
+      })
+      .join('')
+  }
   return lines
     .map((line, index) => {
       const { classes, inner } = codeLine(line, index, info, terminal)
@@ -297,7 +310,12 @@ function codeLine(
   }
   if (lang === 'yaml') {
     const inner = yamlLine(line)
-      .map((segment) => toneHtml(segment, YAML_TONE_CLASS))
+      .map((segment) =>
+        classedHtml(
+          segment.text,
+          TOKEN_CLASS[yamlSegmentKind(segment.tone, segment.text)],
+        ),
+      )
       .join('')
     return { classes: '', inner }
   }
@@ -333,13 +351,9 @@ function terminalLine(line: string): CodeLine {
   }
 }
 
-function toneHtml<TTone extends string>(
-  segment: Segment<TTone>,
-  classByTone: Record<TTone, string | null>,
-): string {
-  const classes = classByTone[segment.tone]
-  if (classes === null) return escapeHtml(segment.text)
-  return `<span class="${classes}">${escapeHtml(segment.text)}</span>`
+function classedHtml(text: string, classes: string): string {
+  if (classes === '') return escapeHtml(text)
+  return `<span class="${classes}">${escapeHtml(text)}</span>`
 }
 
 function newlineUnlessLast(index: number, last: number): string {
