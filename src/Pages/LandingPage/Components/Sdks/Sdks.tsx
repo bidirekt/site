@@ -101,7 +101,8 @@ final class PetController
     docsHref: '/docs/contracts/go-sdk',
     file: 'pets/pet.go',
     code: `type Pet struct {
-	ID   int64  \`json:"id" bidirekt:"field"\`
+	ID int64 \`json:"id" bidirekt:"field"\`
+
 	Name string \`json:"name" bidirekt:"field"\`
 }
 
