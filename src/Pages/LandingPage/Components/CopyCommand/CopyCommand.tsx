@@ -16,17 +16,12 @@ const COPY_ANNOUNCEMENT: Record<CopyOutcome, string> = {
 type CopyOutcome = 'idle' | 'copied' | 'failed'
 
 const copyCommand = tv({
-  base: 'flex max-w-full min-w-0 items-center rounded-[8px] bg-raised font-mono text-[15px] max-[480px]:w-full max-[480px]:text-[13px] max-[380px]:text-[12px]',
-  variants: {
-    lit: {
-      true: 'border border-accent/35 shadow-[0_0_0_4px_rgba(245,165,36,0.05),0_10px_32px_-12px_rgba(245,165,36,0.45)]',
-    },
-  },
+  base: 'flex max-w-full min-w-0 items-center rounded-[10px] border border-line bg-pane font-mono text-[14px] max-[480px]:w-full max-[480px]:text-[13px] max-[380px]:text-[12px]',
 })
 
-type CopyCommandProps = { command: string; lit?: boolean; className?: string }
+type CopyCommandProps = { command: string; className?: string }
 
-export function CopyCommand({ command, lit, className }: CopyCommandProps) {
+export function CopyCommand({ command, className }: CopyCommandProps) {
   const [outcome, setOutcome] = useState<CopyOutcome>('idle')
   const commandText = useRef<HTMLSpanElement>(null)
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -55,16 +50,16 @@ export function CopyCommand({ command, lit, className }: CopyCommandProps) {
   }
 
   return (
-    <div className={copyCommand({ lit, className })}>
-      <code className="min-w-0 flex-1 overflow-x-auto px-4 py-3 whitespace-nowrap max-[480px]:px-3">
-        <span className="text-accent">$</span>{' '}
+    <div className={copyCommand({ className })}>
+      <code className="min-w-0 flex-1 overflow-x-auto px-4 py-2.5 whitespace-nowrap text-primary max-[480px]:overflow-visible max-[480px]:whitespace-normal max-[480px]:[overflow-wrap:anywhere] max-[480px]:px-3">
+        <span className="text-muted">$</span>{' '}
         <span ref={commandText}>{command}</span>
       </code>
       <button
         type="button"
         onClick={copy}
         aria-label="Copy command"
-        className="pressable cursor-pointer self-stretch border-l border-page px-4 font-sans text-[14px] font-medium whitespace-nowrap text-secondary hover:text-primary max-[480px]:px-3"
+        className="pressable cursor-pointer self-stretch border-l border-line px-4 font-sans text-[14px] font-medium whitespace-nowrap text-secondary hover:text-primary max-[480px]:px-3"
       >
         {COPY_LABEL[outcome]}
       </button>

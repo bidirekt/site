@@ -1,0 +1,410 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-27T20:17:25.920929+00:00",
+  "title": "Design System: Bidirekt",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Signal White",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(25% 0.000 0)",
+          "oklch(35% 0.000 0)",
+          "oklch(45% 0.000 0)",
+          "oklch(55% 0.000 0)",
+          "oklch(70% 0.000 0)",
+          "oklch(82% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "page": {
+        "role": "neutral",
+        "displayName": "Void Black",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(25% 0.000 0)",
+          "oklch(35% 0.000 0)",
+          "oklch(45% 0.000 0)",
+          "oklch(55% 0.000 0)",
+          "oklch(70% 0.000 0)",
+          "oklch(82% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "pane": {
+        "role": "neutral",
+        "displayName": "Pane Black",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(25% 0.000 0)",
+          "oklch(35% 0.000 0)",
+          "oklch(45% 0.000 0)",
+          "oklch(55% 0.000 0)",
+          "oklch(70% 0.000 0)",
+          "oklch(82% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "raised": {
+        "role": "neutral",
+        "displayName": "Raised Graphite",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(25% 0.000 0)",
+          "oklch(35% 0.000 0)",
+          "oklch(45% 0.000 0)",
+          "oklch(55% 0.000 0)",
+          "oklch(70% 0.000 0)",
+          "oklch(82% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "hover": {
+        "role": "neutral",
+        "displayName": "Hover Graphite",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(25% 0.000 0)",
+          "oklch(35% 0.000 0)",
+          "oklch(45% 0.000 0)",
+          "oklch(55% 0.000 0)",
+          "oklch(70% 0.000 0)",
+          "oklch(82% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "edge": {
+        "role": "neutral",
+        "displayName": "Edge Grey",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(25% 0.000 0)",
+          "oklch(35% 0.000 0)",
+          "oklch(45% 0.000 0)",
+          "oklch(55% 0.000 0)",
+          "oklch(70% 0.000 0)",
+          "oklch(82% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(25% 0.000 0)",
+          "oklch(35% 0.000 0)",
+          "oklch(45% 0.000 0)",
+          "oklch(55% 0.000 0)",
+          "oklch(70% 0.000 0)",
+          "oklch(82% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "sheen": {
+        "role": "neutral",
+        "displayName": "Sheen",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(25% 0.000 0)",
+          "oklch(35% 0.000 0)",
+          "oklch(45% 0.000 0)",
+          "oklch(55% 0.000 0)",
+          "oklch(70% 0.000 0)",
+          "oklch(82% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "primary": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(25% 0.000 0)",
+          "oklch(35% 0.000 0)",
+          "oklch(45% 0.000 0)",
+          "oklch(55% 0.000 0)",
+          "oklch(70% 0.000 0)",
+          "oklch(82% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "secondary": {
+        "role": "neutral",
+        "displayName": "Smoke",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(25% 0.000 0)",
+          "oklch(35% 0.000 0)",
+          "oklch(45% 0.000 0)",
+          "oklch(55% 0.000 0)",
+          "oklch(70% 0.000 0)",
+          "oklch(82% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Ash",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(25% 0.000 0)",
+          "oklch(35% 0.000 0)",
+          "oklch(45% 0.000 0)",
+          "oklch(55% 0.000 0)",
+          "oklch(70% 0.000 0)",
+          "oklch(82% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "Pass Green",
+        "tonalRamp": [
+          "oklch(15% 0.057 145)",
+          "oklch(25% 0.085 145)",
+          "oklch(35% 0.113 145)",
+          "oklch(45% 0.142 145)",
+          "oklch(55% 0.170 145)",
+          "oklch(70% 0.128 145)",
+          "oklch(82% 0.094 145)",
+          "oklch(95% 0.057 145)"
+        ]
+      },
+      "failure": {
+        "role": "tertiary",
+        "displayName": "Break Red",
+        "tonalRamp": [
+          "oklch(15% 0.063 25)",
+          "oklch(25% 0.095 25)",
+          "oklch(35% 0.127 25)",
+          "oklch(45% 0.158 25)",
+          "oklch(55% 0.190 25)",
+          "oklch(70% 0.143 25)",
+          "oklch(82% 0.105 25)",
+          "oklch(95% 0.063 25)"
+        ]
+      },
+      "failure-bg": {
+        "role": "tertiary",
+        "displayName": "Break Red Tint",
+        "tonalRamp": [
+          "oklch(15% 0.063 25)",
+          "oklch(25% 0.095 25)",
+          "oklch(35% 0.127 25)",
+          "oklch(45% 0.158 25)",
+          "oklch(55% 0.190 25)",
+          "oklch(70% 0.143 25)",
+          "oklch(82% 0.105 25)",
+          "oklch(95% 0.063 25)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Landing hero headline only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Landing section headings."
+      },
+      "page-title": {
+        "displayName": "Page title",
+        "purpose": "h1 of docs articles, contact and privacy pages."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Landing sub-headings and numbered cards."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "Section intros, max 60-62ch."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text; docs prose at 1.7 line height, max 70ch."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Buttons, tabs, nav links, table headers."
+      },
+      "code": {
+        "displayName": "Code",
+        "purpose": "YAML, reports, SDK code and commands inside panes."
+      },
+      "code-label": {
+        "displayName": "Code label",
+        "purpose": "Pane headers and exit chips."
+      }
+    },
+    "shadows": [
+      {
+        "name": "sheen",
+        "value": "inset 0 1px 0 rgba(255, 255, 255, 0.04)",
+        "purpose": "Lit top edge on panes and secondary buttons; the only shadow."
+      }
+    ],
+    "motion": [
+      {
+        "name": "press",
+        "value": "150ms ease-out; active scale 0.97",
+        "purpose": "Every pressable: color, background, border and scale; hover only on fine pointers; off under reduced motion."
+      },
+      {
+        "name": "settle",
+        "value": "220ms cubic-bezier(0.23, 1, 0.32, 1), from opacity 0.4 and blur 2px",
+        "purpose": "Tab panel change; off under reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "xs",
+        "value": "380px"
+      },
+      {
+        "name": "sm",
+        "value": "480px"
+      },
+      {
+        "name": "stack-table",
+        "value": "640px"
+      },
+      {
+        "name": "nav",
+        "value": "721px"
+      },
+      {
+        "name": "docs-drawer",
+        "value": "821px"
+      },
+      {
+        "name": "split",
+        "value": "901px"
+      },
+      {
+        "name": "docs-toc",
+        "value": "1081px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one filled action per view: Read the docs, Try it.",
+      "html": "<button class=\"ds-btn-primary\">Read the docs</button>",
+      "css": ".ds-btn-primary{display:inline-block;cursor:pointer;white-space:nowrap;border:1px solid var(--color-primary);background:var(--color-primary);color:var(--color-page);border-radius:10px;padding:8px 14px;font:500 14px/1.45 var(--font-sans);transition:color .15s ease-out,background-color .15s ease-out,border-color .15s ease-out,scale .15s ease-out}.ds-btn-primary:hover{background:var(--color-accent);border-color:var(--color-accent)}.ds-btn-primary:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}.ds-btn-primary:active{scale:.97}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Default button: pane fill, hairline, inner sheen.",
+      "html": "<button class=\"ds-btn-secondary\">View on GitHub</button>",
+      "css": ".ds-btn-secondary{display:inline-block;cursor:pointer;white-space:nowrap;border:1px solid var(--color-line);background:var(--color-pane);color:var(--color-primary);box-shadow:inset 0 1px 0 var(--color-sheen);border-radius:10px;padding:8px 14px;font:500 14px/1.45 var(--font-sans);transition:background-color .15s ease-out,scale .15s ease-out}.ds-btn-secondary:hover{background:var(--color-hover)}.ds-btn-secondary:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}.ds-btn-secondary:active{scale:.97}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Bare text action in Ash.",
+      "html": "<button class=\"ds-btn-ghost\">Skip</button>",
+      "css": ".ds-btn-ghost{cursor:pointer;background:transparent;border:0;padding:0;color:var(--color-muted);font:400 14px/1.45 var(--font-sans);transition:color .15s ease-out}.ds-btn-ghost:hover,.ds-btn-ghost:focus-visible{color:var(--color-primary)}.ds-btn-ghost:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}"
+    },
+    {
+      "name": "Site Nav",
+      "kind": "nav",
+      "description": "Sticky translucent bar with wordmark, lowercase links and a compact Try it.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-brand\" href=\"#\"><span aria-hidden=\"true\">🤝</span>bidirekt</a><div class=\"ds-nav-links\"><a href=\"#\">docs</a><a href=\"#\">sdks</a><a href=\"#\">github<svg viewBox=\"0 0 16 16\" width=\"12\" height=\"12\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 11l6-6M6 5h5v5\"/></svg></a><a class=\"ds-nav-cta\" href=\"#\">Try it</a></div></nav>",
+      "css": ".ds-nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 16px;background:rgba(0,0,0,.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--color-line)}.ds-nav-brand{display:flex;align-items:center;gap:10px;font:600 19px var(--font-display);letter-spacing:-.02em;color:var(--color-primary);text-decoration:none}.ds-nav-links{display:flex;align-items:center;gap:24px;font:400 14px var(--font-sans)}.ds-nav-links a{color:var(--color-secondary);text-decoration:none;transition:color .15s ease-out}.ds-nav-links a:hover{color:var(--color-primary)}.ds-nav-links svg{margin-left:4px;vertical-align:-1px}.ds-nav-links a.ds-nav-cta{background:var(--color-primary);color:var(--color-page);border-radius:10px;padding:6px 14px;font-weight:500}.ds-nav-links a.ds-nav-cta:hover{background:var(--color-accent);color:var(--color-page)}"
+    },
+    {
+      "name": "Tabs",
+      "kind": "custom",
+      "refersTo": "tab",
+      "description": "Wrap-able tab strip inside a pane; selected tab on Raised Graphite.",
+      "html": "<div class=\"ds-tabs\" role=\"tablist\"><button role=\"tab\" aria-selected=\"true\">Provider drops a field</button><button role=\"tab\" aria-selected=\"false\">Consumer changes a type</button></div>",
+      "css": ".ds-tabs{display:flex;flex-wrap:wrap;gap:4px;padding:8px;border-bottom:1px solid var(--color-line)}.ds-tabs button{cursor:pointer;border:0;background:transparent;border-radius:8px;padding:6px 12px;font:500 14px var(--font-sans);color:var(--color-muted);white-space:nowrap;transition:color .15s ease-out,background-color .15s ease-out}.ds-tabs button:hover{color:var(--color-primary)}.ds-tabs button[aria-selected=true]{background:var(--color-raised);color:var(--color-primary)}.ds-tabs button:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}"
+    },
+    {
+      "name": "Exit Chip",
+      "kind": "chip",
+      "refersTo": "exit-chip-failure",
+      "description": "Exit code of a can-i-deploy run; the only place verdict color sits on a fill.",
+      "html": "<span class=\"ds-chip ds-chip-fail\">exit 1</span> <span class=\"ds-chip ds-chip-pass\">exit 0</span>",
+      "css": ".ds-chip{display:inline-block;border-radius:9999px;padding:2px 8px;font:500 12px var(--font-mono)}.ds-chip-fail{background:var(--color-failure-bg);color:var(--color-failure)}.ds-chip-pass{background:rgba(63,185,80,.12);color:var(--color-success)}"
+    },
+    {
+      "name": "Copy Command",
+      "kind": "input",
+      "refersTo": "copy-command",
+      "description": "Copyable shell command with a hairline-separated Copy label.",
+      "html": "<div class=\"ds-copy\"><code><span>$</span> curl -sL bidirekt.com/demo | sh</code><button type=\"button\">Copy</button></div>",
+      "css": ".ds-copy{display:inline-flex;align-items:center;max-width:100%;border:1px solid var(--color-line);border-radius:10px;background:var(--color-pane);font:400 14px var(--font-mono)}.ds-copy code{padding:10px 16px;color:var(--color-primary);white-space:nowrap;overflow-x:auto}.ds-copy code span{color:var(--color-muted)}.ds-copy button{align-self:stretch;cursor:pointer;border:0;border-left:1px solid var(--color-line);background:transparent;padding:0 16px;font:500 14px var(--font-sans);color:var(--color-secondary);transition:color .15s ease-out}.ds-copy button:hover{color:var(--color-primary)}.ds-copy button:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}"
+    },
+    {
+      "name": "Demo Terminal",
+      "kind": "card",
+      "refersTo": "pane",
+      "description": "The hero's product panel: replays the petstore demo (commands typed, verdicts in green or red), scrolling with the typing, with Pause and Replay; full transcript under reduced motion.",
+      "html": "<section class=\"ds-pane\"><div class=\"ds-split\"><div><div class=\"ds-pane-head\">petstore_api.yaml · 2.0.0</div><pre class=\"ds-diff\"><span><i> </i><b>properties:</b></span><span class=\"rm\"><i>-</i><b>  status:</b></span><span class=\"rm\"><i>-</i><b>    type: string</b></span></pre></div><div class=\"ds-report-side\"><div class=\"ds-pane-head\">can-i-deploy <span class=\"ds-chip-f\">exit 1</span></div><pre class=\"ds-report\"><span class=\"m\">$</span> <span class=\"p\">bidirekt can-i-deploy petstore_api</span>\n<span class=\"f\">petstore_api 2.0.0 cannot be deployed to production</span>\n  Pet.status — petstore_web reads it\n<span class=\"p\">    → petstore_api: provide it</span></pre></div></div></section>",
+      "css": ".ds-pane{overflow:hidden;border:1px solid var(--color-line);border-radius:12px;background:var(--color-pane);box-shadow:inset 0 1px 0 var(--color-sheen)}.ds-split{display:grid;grid-template-columns:2fr 3fr}.ds-split>div:first-child{border-right:1px solid var(--color-line)}.ds-report-side{background:var(--color-page)}.ds-pane-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--color-line);font:400 12px var(--font-mono);color:var(--color-muted)}.ds-chip-f{border-radius:9999px;padding:2px 8px;background:var(--color-failure-bg);color:var(--color-failure);font-weight:500}.ds-diff,.ds-report{margin:0;padding:12px 0;font:400 13px/1.75 var(--font-mono);white-space:pre-wrap}.ds-diff span{display:grid;grid-template-columns:2ch 1fr;gap:8px;padding:0 16px;color:var(--color-secondary)}.ds-diff i{font-style:normal;color:var(--color-muted)}.ds-diff b{font-weight:400}.ds-diff .rm{background:var(--color-failure-bg)}.ds-diff .rm i{color:var(--color-failure)}.ds-diff .rm b{opacity:.7}.ds-report{padding:12px 16px;color:var(--color-secondary)}.ds-report .m{color:var(--color-muted)}.ds-report .p{color:var(--color-primary)}.ds-report .f{color:var(--color-failure)}@media (max-width:900px){.ds-split{grid-template-columns:1fr}.ds-split>div:first-child{border-right:0;border-bottom:1px solid var(--color-line)}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Verdict on Black",
+    "overview": "The developer-tool category standard, played straight and finished to a high craft bar. A pure black ground, near-black panes edged by hairlines, near-white type, and nothing that glows. The product proves itself with real artefacts: YAML contracts shown as diffs, `can-i-deploy` reports with their exit codes, real SDK code. Decoration never stands in for evidence.\n\nDensity is calm on the marketing surface (wide section padding, centered hero, one 1120px column) and tighter inside panes, where monospace text runs at 13px with generous line height so a report reads like a terminal. Docs share every token and component; they only swap the centered marketing column for a sidebar, article and table of contents.\n\nColor carries meaning only once: green and red belong to the deploy verdict. Everything else is a step on the grey ladder, with white as the single accent for focus, selection, active state and link underlines.",
+    "keyCharacteristics": [
+      "Pure black page, near-black panes, 1px translucent white hairlines.",
+      "White is the only accent; no hue outside the verdict pair.",
+      "Bricolage Grotesque for headings, Geist Sans for prose and controls, Geist Mono for anything a machine reads.",
+      "Real contracts and real command output as the imagery.",
+      "Flat depth: tonal steps plus a 1px inner top sheen, no drop shadows."
+    ],
+    "rules": [
+      {
+        "name": "The Verdict-Only Color Rule",
+        "body": "Green and red appear only where a deploy verdict, an exit code, or a contract diff says pass or break. They never decorate a heading, an icon, a button or a status that is not a verdict.",
+        "section": "colors"
+      },
+      {
+        "name": "The One White Rule",
+        "body": "The only accent is white. Emphasis comes from moving up the grey ladder (muted, secondary, primary, accent), never from adding a hue.",
+        "section": "colors"
+      },
+      {
+        "name": "The Machine Text Rule",
+        "body": "Anything a machine reads or writes (a command, a file name, a YAML line, a report, an exit code) is Geist Mono. Prose about it is Geist Sans.",
+        "section": "typography"
+      },
+      {
+        "name": "The Display Is For Headings Rule",
+        "body": "Bricolage sets page and section headings and the site wordmark, nothing else: never body, buttons or labels.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Glow Rule",
+        "body": "No drop shadows, no colored glows, no gradients behind content. A surface is separated from its ground by one tonal step and a hairline.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do separate every surface from its ground with one tonal step plus a 1px Hairline (rgba(255,255,255,0.08)).",
+      "Do show the product with real contracts, real `can-i-deploy` output and real SDK code, in Geist Mono.",
+      "Do keep green and red to verdicts, exit codes and diff rows.",
+      "Do step emphasis up the grey ladder (Ash, Smoke, Ink, Signal White) instead of adding color.",
+      "Do keep 16px side gutters and reflow (stack, wrap, relabel) rather than scroll sideways.",
+      "Do give every pressable the 0.97 press scale and fine-pointer-only hover."
+    ],
+    "donts": [
+      "Don't introduce a second accent hue; white is the only accent.",
+      "Don't add drop shadows, glows or gradients; the inner Sheen is the only shadow.",
+      "Don't set body, labels or buttons in Bricolage Grotesque.",
+      "Don't invent customers, logos, testimonials or usage numbers as social proof.",
+      "Don't use icon fonts or emoji as icons; arrows are inline SVG strokes, and the 🤝 mark is the brand mark only."
+    ]
+  }
+}

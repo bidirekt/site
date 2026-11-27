@@ -7,12 +7,14 @@ export function SectionHeading({ id, title, lede }: SectionHeadingProps) {
     <>
       <h2
         id={id}
-        className="mb-3 text-[clamp(26px,3.4vw,36px)] leading-[1.15] font-semibold tracking-[-0.025em] text-balance"
+        className="mb-3 font-display text-[clamp(30px,4vw,44px)] leading-[1.1] font-semibold tracking-[-0.03em] text-balance"
       >
         {title}
       </h2>
       {lede !== undefined && (
-        <p className="mb-7 max-w-[62ch] text-[17px] text-secondary">{lede}</p>
+        <p className="mb-9 max-w-[62ch] text-[17px] text-pretty text-secondary">
+          {lede}
+        </p>
       )}
     </>
   )

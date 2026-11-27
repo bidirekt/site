@@ -4,6 +4,7 @@ import { Link } from '@tanstack/react-router'
 import { tv } from 'tailwind-variants'
 import { DOCS_TREE, docsLinkProps } from '#/docs'
 import type { DocsLeaf } from '#/docs'
+import { Arrow } from '#/Components/Arrow'
 
 type DocsSidebarProps = {
   id: string
@@ -69,10 +70,11 @@ export function DocsSidebar({
       <Link
         {...docsLinkProps(START_PATH)}
         activeOptions={{ exact: true }}
-        className="pressable mb-6 block rounded-pane border border-accent/28 bg-[linear-gradient(180deg,rgba(245,165,36,0.1),var(--color-pane)_70%)] px-3.5 py-3 shadow-sheen hover:bg-raised hover:bg-none"
+        className="pressable mb-6 block rounded-pane border border-line bg-pane px-3.5 py-3 shadow-sheen hover:bg-raised"
       >
         <b className="block text-[15px] font-medium text-accent">
-          Start in 5 minutes →
+          Start in 5 minutes
+          <Arrow direction="right" />
         </b>
         <span className="block text-[13px] text-secondary">
           Install the CLI, the broker's compose file and the agent skill in one

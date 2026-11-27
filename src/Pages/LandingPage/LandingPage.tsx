@@ -1,21 +1,25 @@
 import { SiteFooter } from '#/Contextual/SiteFooter'
 import { SiteNav } from '#/Contextual/SiteNav'
 import { pageHead } from '#/site'
-import { Commands } from './Components/Commands'
+import { Catches } from './Components/Catches'
 import { Comparison } from './Components/Comparison'
 import { Faq } from './Components/Faq'
+import { FinalCall } from './Components/FinalCall'
 import { Hero } from './Components/Hero'
-import { LiveCheck } from './Components/LiveCheck'
+import { Protocols } from './Components/Protocols'
+import { Sdks } from './Components/Sdks'
 import { TryIt } from './Components/TryIt'
+import { WhatItIs } from './Components/WhatItIs'
 
-const TITLE = 'Bidirekt — integration testing for microservices'
+const TITLE =
+  'Bidirekt — contract testing for microservices, in both directions'
 const DESCRIPTION =
-  'Integration testing for microservices without a test environment. Contract testing in both directions: know which service a deploy breaks, and how to fix it.'
+  'Each service declares what it provides and what it reads. can-i-deploy tells you, before the deploy, which service a version breaks and the fix for each side. REST and GraphQL, no test environment.'
 const SOCIAL_DESCRIPTION =
-  'Know before you deploy. Integration testing for microservices, without the test environment.'
+  'Know which service your deploy breaks. Contract testing in both directions, without the test environment.'
 
 const CONTENT = 'mx-auto w-full max-w-[1120px] px-4'
-const BAND = 'border-t border-line bg-linear-to-b from-pane to-page'
+const PLAIN = 'border-t border-line'
 
 export function landingPageHead() {
   return pageHead('/', TITLE, DESCRIPTION, SOCIAL_DESCRIPTION)
@@ -26,30 +30,47 @@ export function LandingPage() {
     <div className="flex min-h-svh flex-col">
       <SiteNav />
       <main>
-        <div className="relative isolate overflow-hidden">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 -z-10 stage-light"
-          />
+        <div className={CONTENT}>
+          <Hero />
+        </div>
+        <div className={PLAIN}>
           <div className={CONTENT}>
-            <Hero />
-            <LiveCheck />
+            <Protocols />
           </div>
         </div>
-        <div className={CONTENT}>
-          <Comparison />
-        </div>
-        <div className={BAND}>
+        <div className={PLAIN}>
           <div className={CONTENT}>
-            <Commands />
+            <Sdks />
           </div>
         </div>
-        <div className={CONTENT}>
-          <TryIt />
+        <div className={PLAIN}>
+          <div className={CONTENT}>
+            <WhatItIs />
+          </div>
         </div>
-        <div className={BAND}>
+        <div className={PLAIN}>
+          <div className={CONTENT}>
+            <Catches />
+          </div>
+        </div>
+        <div className={PLAIN}>
+          <div className={CONTENT}>
+            <Comparison />
+          </div>
+        </div>
+        <div className={PLAIN}>
+          <div className={CONTENT}>
+            <TryIt />
+          </div>
+        </div>
+        <div className={PLAIN}>
           <div className={CONTENT}>
             <Faq />
+          </div>
+        </div>
+        <div className={PLAIN}>
+          <div className={CONTENT}>
+            <FinalCall />
           </div>
         </div>
       </main>

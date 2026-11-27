@@ -73,8 +73,7 @@ const VERDICT_LINE: Array<{ pattern: RegExp; classes: string }> = [
     classes: 'text-success',
   },
 ]
-const NOTE =
-  'my-5 max-w-[70ch] shadow-[inset_2px_0_0_var(--color-accent),inset_0_1px_0_var(--color-sheen)]'
+const NOTE = 'my-5 max-w-[70ch] bg-raised'
 const NOTE_CONTENT =
   'text-[16px] leading-[1.7] text-primary [&_p]:text-primary [&_p:last-child]:mb-0'
 const TABLE = 'w-full border-collapse text-[14px] leading-[1.6]'

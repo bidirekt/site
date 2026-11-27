@@ -1,5 +1,6 @@
 import type { RefObject } from 'react'
 import { DocsSearch } from './Components/DocsSearch'
+import { Arrow } from '#/Components/Arrow'
 
 type DocsTopBarProps = {
   navId: string
@@ -70,7 +71,8 @@ export function DocsTopBar({
           rel="noreferrer"
           className="pressable hidden text-[14px] whitespace-nowrap text-secondary hover:text-primary min-[821px]:block"
         >
-          github ↗
+          github
+          <Arrow direction="external" />
         </a>
       </div>
     </header>
