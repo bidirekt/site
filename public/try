@@ -2,10 +2,10 @@
 # Sets up Bidirekt in your project: curl -sL bidirekt.com/try | sh
 set -eu
 
-CLI_VERSION=v0.3.0
-# Commits of the v0.3.0 release, so changes on main never reach this script.
-COMPOSE_URL=https://raw.githubusercontent.com/bidirekt/broker/12f23b0b63a2ccf33b1b73b1169c24bec2f9f758/docker-compose.yaml
-INSTALL_URL=https://raw.githubusercontent.com/bidirekt/cli/b654e2ed083306d9ba2a404c5af4b882a83bba9e/install.sh
+CLI_VERSION=v0.4.0
+# Pinned to the v0.4.0 release, so changes on main never reach this script.
+COMPOSE_URL=https://raw.githubusercontent.com/bidirekt/broker/v0.4.0/docker-compose.yaml
+INSTALL_URL=https://raw.githubusercontent.com/bidirekt/cli/v0.4.0/install.sh
 # install.sh's default directory, which may be off PATH.
 BIN_DIR=$HOME/.local/bin
 
