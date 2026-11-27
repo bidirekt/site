@@ -1,6 +1,6 @@
 ---
 title: Run the broker
-description: How to start the broker and Postgres on your machine with Docker Compose, create the admin on the first access and sign in the CLI with their own profile and API key, how to run the broker's Docker image in production with its Postgres database, admin, users, health check and exposure, and what the broker's web UI shows and changes.
+description: How to start the broker and Postgres on your machine with Docker Compose or Homebrew, or run its binary without Docker, create the admin on the first access and sign in the CLI with their own profile and API key, how to run the broker's Docker image in production with its Postgres database, admin, users, health check and exposure, and what the broker's web UI shows and changes.
 ---
 
 ## Local
@@ -75,6 +75,42 @@ Every later command needs the profile too, including the ones your coding agent 
 ```
 $ export BIDIREKT_PROFILE=local
 ```
+
+## With Homebrew
+
+On a Mac, or Linux with Homebrew, the broker installs as a service that starts at login, with your own Postgres:
+
+```
+$ brew tap bidirekt/tap
+$ brew trust bidirekt/tap
+$ brew install bidirekt-broker
+$ createdb bidirekt
+$ brew services start bidirekt-broker
+$ curl -s http://localhost:8080/health
+{"status":"ok","brokerVersion":"0.4.1","apiVersion":2}
+```
+
+The first start writes the broker's settings to `$(brew --prefix)/etc/bidirekt/broker.env`, readable only by you: the `bidirekt` database on `localhost:5432`, `http://localhost:8080` as the address, and a generated `BIDIREKT_TOKEN_SIGNING_KEY`. Edit it and run `brew services restart bidirekt-broker` to use another database or port. The log is in `$(brew --prefix)/var/log/bidirekt-broker.log`.
+
+The broker migrates its database when it starts, so an upgrade is `brew upgrade bidirekt-broker` followed by `brew services restart bidirekt-broker`. Back the database up before, with `pg_dump`: a migration does not go back.
+
+## Without Docker
+
+Every release at https://github.com/bidirekt/broker/releases also has the broker as a binary, `bidirekt-broker_<version>_<os>_<arch>.tar.gz`, for `linux` and `darwin` in `amd64` and `arm64`, next to `checksums.txt`. Check the archive before extracting it, then run the binary with the [variables](#production) the image takes:
+
+```
+$ curl -sSfLO https://github.com/bidirekt/broker/releases/download/v0.4.1/bidirekt-broker_0.4.1_linux_amd64.tar.gz
+$ curl -sSfLO https://github.com/bidirekt/broker/releases/download/v0.4.1/checksums.txt
+$ sha256sum --check --ignore-missing checksums.txt
+bidirekt-broker_0.4.1_linux_amd64.tar.gz: OK
+$ tar -xzf bidirekt-broker_0.4.1_linux_amd64.tar.gz bidirekt-broker
+$ BIDIREKT_DATABASE_URL=postgres://bidirekt@localhost:5432/bidirekt \
+  BIDIREKT_PUBLIC_URL=http://localhost:8080 \
+  BIDIREKT_TOKEN_SIGNING_KEY=$(openssl rand -base64 32) \
+  ./bidirekt-broker
+```
+
+Keep the signing key once generated: a new one signs out everyone signed in. Run it under your init system, such as systemd, to start it at boot and restart it when it exits.
 
 ## Production
 

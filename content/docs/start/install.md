@@ -1,6 +1,6 @@
 ---
 title: Install
-description: How to install the bidirekt CLI with curl, from the GitHub Release or as a Docker image, point it at your broker, and install the agent skill that lets a coding agent write and fix the contract files. The TypeScript SDK, the PHP SDK and the Go SDK write them from annotated code instead.
+description: How to install the bidirekt CLI with curl, with Homebrew, from the GitHub Release or as a Docker image, point it at your broker, and install the agent skill that lets a coding agent write and fix the contract files. The TypeScript SDK, the PHP SDK and the Go SDK write them from annotated code instead.
 ---
 
 ## With curl
@@ -21,6 +21,20 @@ $ curl -sSfL https://raw.githubusercontent.com/bidirekt/cli/v0.4.0/install.sh | 
 ```
 
 The CLI is built for Linux and macOS, on `x86_64` and `arm64`.
+
+## With Homebrew
+
+On macOS or Linux with Homebrew, the `bidirekt/tap` tap has the CLI:
+
+```
+$ brew tap bidirekt/tap
+$ brew trust bidirekt/tap
+$ brew install bidirekt
+$ bidirekt version
+bidirekt version 0.4.0
+```
+
+`brew upgrade bidirekt` installs a new release; the tap follows the releases within an hour of each one.
 
 ## From the GitHub Release
 
