@@ -1,5 +1,5 @@
 ---
-title: Resources
+title: REST resources
 description: What identifies a REST resource, how its endpoint, request and responses are written, which statuses each side declares, and what a REST contract does not compare.
 ---
 

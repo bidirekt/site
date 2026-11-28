@@ -8,9 +8,13 @@ $ bidirekt record-deployment petstore_web --version 2.3.0 --environment producti
 petstore_web deployment recorded to production
 ```
 
+## Arguments
+
 - `participant`: the participant you deployed. It must exist, or the command fails with `cannot post deployment to broker: participant not found`.
 - `--version`: the version you deployed. It must be published, or the command fails with `cannot post deployment to broker: version not found`.
 - `--environment`: where you deployed it. It must exist, or the command fails with `cannot post deployment to broker: environment not found`.
+
+## Deployments and rollbacks
 
 Run it after a deployment succeeds, a rollback included. It never checks compatibility and never blocks ([Deployment](../concepts/how-the-broker-works.md#deployment)). The line names a rollback when the version was deployed in the environment before and is not the current one there:
 

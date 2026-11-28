@@ -1,5 +1,5 @@
 ---
-title: Resources
+title: GraphQL resources
 description: How a GraphQL provider publishes its schema, how a consumer declares the queries and mutations it calls, how GraphQL types become schemas and compare, the publish errors, and what a GraphQL contract does not compare.
 ---
 

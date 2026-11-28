@@ -5,10 +5,12 @@ import { SiteFooter } from '#/Contextual/SiteFooter'
 import { SiteNav } from '#/Contextual/SiteNav'
 import { pageHead } from '#/site'
 
-const TITLE = 'privacy'
+const TITLE = 'Privacy'
 const DESCRIPTION =
   'What bidirekt.com measures with Google Analytics, the cookies it sets only if you accept, and your rights under the LGPD and the GDPR.'
 const LINKEDIN_URL = 'https://www.linkedin.com/in/alefcastelo/'
+const PANE_TITLE =
+  'font-display text-[22px] leading-[1.25] font-semibold tracking-[-0.02em] text-primary'
 const PANE_TEXT = 'text-[15px] leading-[1.7] text-secondary text-pretty'
 const COOKIES = [
   {
@@ -24,7 +26,7 @@ const COOKIES = [
 ]
 
 export function privacyPageHead() {
-  return pageHead('/privacy', `${TITLE} · bidirekt`, DESCRIPTION)
+  return pageHead('/privacy', `${TITLE} · Bidirekt`, DESCRIPTION)
 }
 
 export function PrivacyPage() {
@@ -37,6 +39,7 @@ export function PrivacyPage() {
         </h1>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
           <Pane bodyClassName="flex flex-1 flex-col gap-3">
+            <h2 className={PANE_TITLE}>Who runs the site</h2>
             <p className={PANE_TEXT}>
               Bidirekt and this site are run by Alef Araujo Castelo, the
               controller of the personal data described here. For any privacy
@@ -49,6 +52,7 @@ export function PrivacyPage() {
             </div>
           </Pane>
           <Pane bodyClassName="flex flex-1 flex-col gap-3">
+            <h2 className={PANE_TITLE}>Google Analytics</h2>
             <p className={PANE_TEXT}>
               The site uses Google Analytics 4 to count visits and see where
               they come from, such as a YouTube video, a search engine or
@@ -60,6 +64,7 @@ export function PrivacyPage() {
             </p>
           </Pane>
           <Pane bodyClassName="flex flex-1 flex-col gap-3">
+            <h2 className={PANE_TITLE}>Cookies</h2>
             <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-[15px] leading-[1.7] text-secondary">
               {COOKIES.map((cookie) => (
                 <div key={cookie.name} className="contents">
@@ -79,6 +84,7 @@ export function PrivacyPage() {
             </p>
           </Pane>
           <Pane bodyClassName="flex flex-1 flex-col gap-3">
+            <h2 className={PANE_TITLE}>Data and hosting</h2>
             <p className={PANE_TEXT}>
               The site has no forms and keeps no personal data. Your cookie
               choice is saved only in your browser.
@@ -90,6 +96,7 @@ export function PrivacyPage() {
             </p>
           </Pane>
           <Pane bodyClassName="flex flex-1 flex-col gap-3">
+            <h2 className={PANE_TITLE}>Changing your choice</h2>
             <p className={PANE_TEXT}>
               Change your choice at any time with cookie settings, here or in
               the footer: the banner opens again and the new choice applies at
@@ -101,6 +108,7 @@ export function PrivacyPage() {
             </CookieSettingsButton>
           </Pane>
           <Pane bodyClassName="flex flex-1 flex-col gap-3">
+            <h2 className={PANE_TITLE}>Your rights</h2>
             <p className={PANE_TEXT}>
               Under Brazil's LGPD and the EU's GDPR you can ask whether and how
               your data is processed, get a copy, have it corrected or deleted,

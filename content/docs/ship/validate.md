@@ -8,9 +8,13 @@ $ bidirekt validate contracts/*.yaml
 contract is valid; add --participant and --environment to compare it with what is deployed
 ```
 
+## Checking the files
+
 - `file or folder...`: one or more contract files or folders, the same ones [`publish`](publish.md) takes.
 
 Without `--participant` and `--environment`, it only checks the files, as `publish` checks them: it compares nothing and stores nothing. When they pass, it prints the line above on stdout and exits `0`. When a file breaks the [contract format](../contracts/the-contract-file.md#file-rules), it prints the violations on stderr, as [`publish`](publish.md) does, and exits `1`.
+
+## Comparing with an environment
 
 With `--participant` and `--environment`, it also compares the files with what is deployed in the environment:
 
@@ -28,5 +32,7 @@ The two flags go together: `--participant` without `--environment` fails with `i
 It answers, before you commit, what `can-i-deploy` would answer after a publish: the files are checked as `publish` checks them, then compared with every counterpart deployed in the environment. Nothing is stored: no version, no check.
 
 It exits `0` when the answer is yes and `1` when it is no; the report goes to stdout either way. It is the [report of `can-i-deploy`](can-i-deploy.md#the-report), including the line that names what it compared with, with `local contract` in place of the version: `petstore_web local contract cannot be deployed to production`.
+
+## Errors
 
 Errors that stop the check go to stderr. The participant and the environment are checked before any file: an unknown participant fails with `participant "petstore_web" not found → create it with: bidirekt create-participant petstore_web`, an environment that does not exist with `cannot validate contract on broker: environment not found`. Then a file that breaks the [contract format](../contracts/the-contract-file.md#file-rules) prints its violations as [`publish`](publish.md) does.

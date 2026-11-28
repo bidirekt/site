@@ -1,5 +1,5 @@
 import { Marked } from 'marked'
-import type { Tokens } from 'marked'
+import type { Token, Tokens } from 'marked'
 import { pane } from '#/Components/Pane'
 import { resolveDocsLink } from '#/docs'
 import {
@@ -98,6 +98,7 @@ const RULE = 'my-10 max-w-[70ch] border-line'
 const SHELL_LANGS = new Set(['', 'sh', 'shell', 'bash', 'console', 'text'])
 const ERROR_LANG = 'error'
 const CAN_I_DEPLOY_TITLE = 'can-i-deploy output'
+const LOCAL_ADDRESS = /^https?:\/\/(localhost|127\.0\.0\.1)([:/?#]|$)/
 const CODE_INFO = /^(\S*)(.*)$/
 const CODE_TITLE_ATTRIBUTE = /title="([^"]*)"/
 const YAML_KEY_LINE = /^(\s*)(-\s+)?("?[^:"]+"?)(:)(.*)$/
@@ -122,9 +123,10 @@ export function renderDocsMarkdown(
       heading({ tokens, depth, text }) {
         const id = headingIdOf({ text, depth })
         if (id === null) return ''
-        const level = tocLevel(depth)
+        const codeOnly = isCodeOnly(tokens)
+        const level = tocLevel(depth, codeOnly)
         if (level !== null) toc.push({ id, text: stripBackticks(text), level })
-        const classes = HEADING_BY_DEPTH[depth] ?? HEADING_DEEPER
+        const classes = headingClasses(depth, codeOnly)
         return `<h${depth} id="${id}" class="${HEADING_BASE} ${classes}">${this.parser.parseInline(tokens)}${headingAnchor(id, text, level)}</h${depth}>`
       },
       paragraph({ tokens }) {
@@ -143,6 +145,9 @@ export function renderDocsMarkdown(
         return `<em class="${EM}">${this.parser.parseInline(tokens)}</em>`
       },
       link({ href, tokens }) {
+        if (LOCAL_ADDRESS.test(href)) {
+          return `<code class="${CODESPAN}">${escapeHtml(href)}</code>`
+        }
         const label = this.parser.parseInline(tokens)
         if (href.startsWith('http')) {
           return `<a href="${escapeHtml(href)}" class="${LINK}" target="_blank" rel="noreferrer">${label} ↗</a>`
@@ -384,7 +389,17 @@ function listStartAttribute(token: Tokens.List): string {
   return ` start="${token.start}"`
 }
 
-function tocLevel(depth: number): 2 | 3 | null {
+function isCodeOnly(tokens: Array<Token>): boolean {
+  return tokens.length === 1 && tokens[0].type === 'codespan'
+}
+
+function headingClasses(depth: number, codeOnly: boolean): string {
+  if (codeOnly) return HEADING_DEEPER
+  return HEADING_BY_DEPTH[depth] ?? HEADING_DEEPER
+}
+
+function tocLevel(depth: number, codeOnly: boolean): 2 | 3 | null {
+  if (codeOnly) return null
   if (depth === 2) return 2
   if (depth === 3) return 3
   return null
