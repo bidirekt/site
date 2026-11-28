@@ -3,7 +3,7 @@ title: PHP SDK
 description: How to write a service's contract from its PHP code with the PHP SDK: installation, an example with attributes and docblock tags, the generate command and the flow to publish. The full reference is the SDK's README.
 ---
 
-The PHP SDK writes the [contract file](the-contract-file.md) of a service from its PHP code. You annotate the schemas and the handlers that provide or consume each resource, with attributes or with `@bidirekt` tags in docblocks, run `generate`, and get `contracts/generated.yaml`, which [`validate`](../ship/validate.md) and [`publish`](../ship/publish.md) take like any other contract file. It reads the source code and never runs your app.
+The PHP SDK writes the [contract file](the-contract-file.md) of a service from its PHP code. You annotate the schemas and the handlers that provide or consume each resource, with attributes or with `@bidirekt` tags in docblocks, run `generate`, and get `contracts/generated.yaml`, which [`validate`](../ship/validate.md) and [`publish`](../ship/publish.md) take like any other contract file. It reads the source code and never runs your app. It writes `rest` resources only; for GraphQL, see [GraphQL: Resources](../graphql/resources.md).
 
 This page shows how it reads. Every attribute argument, tag, type and error is in the [SDK's README](https://github.com/bidirekt/php-sdk#readme).
 
@@ -15,11 +15,17 @@ The SDK needs PHP 8.0 or later and Composer 2.2 or later. Install it as a dev de
 $ composer require --dev bidirekt/php-sdk
 ```
 
+When Composer says your lock file pins an older `nikic/php-parser` (a Laravel project locks it through `psy/psysh`), let it update that package too:
+
+```
+$ composer require --dev bidirekt/php-sdk -W
+```
+
 An attribute runs nothing, so a production install with `composer install --no-dev`, which leaves the package out, still runs your app. `new BidirektField(...)` inside an attribute needs PHP 8.1 to run your app, as does an enum, and `Enum::Case->value` as an attribute argument PHP 8.2; [Installation](https://github.com/bidirekt/php-sdk#installation) in the README has the details.
 
 ## Example
 
-`petstore_php` is a Slim service. It provides `GET /pets/*` and consumes `GET /ratings/*` from `petstore_reviews`. `#[BidirektSchema]` marks each schema and `#[BidirektField]` each field of the contract; a field without it stays out of the contract. `Pet` uses each kind of field:
+`petstore_php` is a Slim service. It provides `GET /pets`, `GET /pets/*` and `POST /pets`, and consumes `GET /ratings/*` from `petstore_reviews`. `#[BidirektSchema]` marks each schema and `#[BidirektField]` each field of the contract; a field without it stays out of the contract. `Pet` uses each kind of field:
 
 ```php
 <?php
@@ -76,9 +82,9 @@ final class Pet
 }
 ```
 
-`Owner` and `Shelter` are schema classes like it, with one string field each (`name` and `city`), `Rating` has a `float $average` and an `int $count`, and `PetStatus` is an enum with the string values `available` and `adopted`.
+`Owner`, `Shelter` and `NewPet` are schema classes like it, with one string field each (`Owner::$name`, `Shelter::$city` and `NewPet::$name`), `Rating` has a `float $average` and an `int $count`, and `PetStatus` is an enum with the string values `available` and `adopted`.
 
-`#[BidirektProvider]` on a handler declares what it provides. Slim routes `/pets/{id}` to `show`, and the path is declared `/pets/*`: a `*` for each dynamic segment, never the framework's placeholder.
+`#[BidirektProvider]` on a handler declares what it provides. Slim routes `/pets/{id}` to `show`, and the path is declared `/pets/*`: a `*` for each dynamic segment, never the framework's placeholder. `request` names the body the handler reads, and a body is a schema class, `[Pet::class]` for a list of it, or `null` for no body:
 
 ```php
 <?php
@@ -93,6 +99,16 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 final class PetController
 {
     public function __construct(private PetRepository $pets) {}
+
+    #[BidirektProvider(
+        method: 'GET',
+        path: '/pets',
+        responses: [200 => [Pet::class]],
+    )]
+    public function index(Request $request, Response $response): Response
+    {
+        return self::json($response, $this->pets->all());
+    }
 
     #[BidirektProvider(
         method: 'GET',
@@ -111,8 +127,33 @@ final class PetController
         if ($pet === null) {
             return $response->withStatus(404);
         }
+
+        return self::json($response, $pet);
+    }
+
+    #[BidirektProvider(
+        method: 'POST',
+        path: '/pets',
+        request: NewPet::class,
+        responses: [
+            201 => Pet::class,
+            400 => null,
+        ],
+    )]
+    public function create(Request $request, Response $response): Response
+    {
+        $name = $request->getParsedBody()['name'] ?? null;
+        if (!is_string($name)) {
+            return $response->withStatus(400);
+        }
+
+        return self::json($response->withStatus(201), $this->pets->add($name));
+    }
+
+    private static function json(Response $response, mixed $body): Response
+    {
         $response->getBody()->write(
-            (string) json_encode($pet, JSON_PRESERVE_ZERO_FRACTION),
+            (string) json_encode($body, JSON_PRESERVE_ZERO_FRACTION),
         );
 
         return $response->withHeader('Content-Type', 'application/json');
@@ -167,12 +208,21 @@ Run `generate` in the project folder, the one with `composer.json`:
 $ vendor/bin/php-sdk generate
 ```
 
-It writes `contracts/generated.yaml`:
+It writes `contracts/generated.yaml`. The list `[Pet::class]` becomes the `PetList` schema:
 
 ```yaml
 # Generated by bidirekt/php-sdk. Do not edit.
 provides:
   rest:
+    /pets:
+      get:
+        responses:
+          200: PetList
+      post:
+        request: NewPet
+        responses:
+          201: Pet
+          400: ~
     /pets/*:
       get:
         responses:
@@ -187,6 +237,11 @@ consumes:
             200: Rating
             404: ~
 schemas:
+  NewPet:
+    type: object
+    properties:
+      name:
+        type: string
   Owner:
     type: object
     properties:
@@ -227,6 +282,10 @@ schemas:
       nickname:
         type: string
         optional: true
+  PetList:
+    type: array
+    items:
+      ref: Pet
   PetStatus:
     type: enum
     members: ["available", "adopted"]
@@ -258,8 +317,24 @@ final class Pet
     public float $weight;
 }
 
+/** @bidirekt schema */
+final class NewPet
+{
+    /** @bidirekt field */
+    public string $name;
+}
+
 final class PetController
 {
+    /**
+     * @bidirekt provides GET /pets
+     * @bidirekt response 200 Pet[]
+     */
+    public function index(Request $request, Response $response): Response
+    {
+        // ...
+    }
+
     /**
      * @bidirekt provides GET /pets/*
      * @bidirekt response 200 Pet
@@ -272,10 +347,23 @@ final class PetController
     ): Response {
         // ...
     }
+
+    /**
+     * @bidirekt provides POST /pets
+     * @bidirekt request NewPet
+     * @bidirekt response 201 Pet
+     * @bidirekt response 400
+     */
+    public function create(Request $request, Response $response): Response
+    {
+        // ...
+    }
 }
 ```
 
-A service can mix both forms, but never on the same handler, schema or field: `generate` stops. The [Quickstart](https://github.com/bidirekt/php-sdk#quickstart) of the README writes this example with tags too, and [Schemas without a class](https://github.com/bidirekt/php-sdk#schemas-without-a-class) shows a schema declared on its handler, for a body no class describes.
+A list body is `Pet[]` in a tag, and a `@bidirekt request` with no schema writes `request: ~`. A service can mix both forms, but never on the same handler, schema or field: `generate` stops. The [Quickstart](https://github.com/bidirekt/php-sdk#quickstart) of the README writes this example with tags too, and [Schemas without a class](https://github.com/bidirekt/php-sdk#schemas-without-a-class) shows a schema declared on its handler, for a body no class describes.
+
+Other tools that read docblocks must leave `@bidirekt` alone. `doctrine/annotations` (Symfony annotation routing, Doctrine ORM 2) stops at `@bidirekt` as an annotation that "was never imported": ignore it with `\Doctrine\Common\Annotations\AnnotationReader::addGlobalIgnoredName('bidirekt');` in your app's bootstrap. PHP-CS-Fixer's `phpdoc_to_comment` rule, in the `@Symfony` and `@PhpCsFixer` sets and in Pint's `symfony` preset, turns a `/** */` above a statement like `$app->get(...)` into a `/* */`, which `generate` does not read: keep it with `'phpdoc_to_comment' => ['ignored_tags' => ['bidirekt']]` in `.php-cs-fixer.php`, or the same rule config in `pint.json`.
 
 ## Describe what the code does
 
@@ -296,7 +384,7 @@ $ bidirekt can-i-deploy petstore_php --version 1.4.0 --environment production
 $ bidirekt record-deployment petstore_php --version 1.4.0 --environment production
 ```
 
-[`validate`](../ship/validate.md) without `--participant` and `--environment` checks only the file; with them, it also compares the file with what is deployed in that environment. Run `record-deployment` once the deploy is done. In CI, `vendor/bin/php-sdk generate --check` fails the build when the committed file is out of date.
+[`validate`](../ship/validate.md) without `--participant` and `--environment` checks only the file; with them, it also compares the file with what is deployed in that environment. Deploy between `can-i-deploy` and `record-deployment`. In CI, `vendor/bin/php-sdk generate --check` fails the build when the committed file is out of date. `generate --project <folder>` reads another project and writes to its folder, and `--out <file>` writes to another file.
 
 The broker reads every file of one publish as one contract ([Several files](the-contract-file.md#several-files)), but the SDK cannot see a hand-written file: a tag or an attribute cannot name a schema declared only there, and a schema or a provided resource declared both in the code and in a hand-written file is rejected at publish as declared twice. A consumed resource declared in both is merged, like the fragments of one consumer ([Several files](the-contract-file.md#several-files)). To adopt the SDK, annotate every resource and schema the service provides or consumes, generate, check that the new file declares what the old files did, and delete the old files.
 

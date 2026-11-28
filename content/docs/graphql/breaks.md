@@ -73,7 +73,7 @@ petstore_web (2.3.0, deployed):
       · query pet arguments (argument "id") (petstore_web: PetArgs.id)
 ```
 
-The last block is a change of a named input type ([How types compare](resources.md#how-types-compare)): `petstore_web` sends a `string`, which both versions accept, but its query declares the variable as `ID!`.
+The last block is a change of a named input type ([How types compare](resources.md#how-types-compare)): `petstore_web` sends `id` as `ID`, the type the deployed `petstore_api` declares, and the new version declares it as `String`: a named input type that changes is a different type, even when it accepts the same values. This break prints the bare type names, `ID` and `String`, without `!`.
 
 In the check of a subgraph, a break that comes through the graph names the subgraph with ` (via <graph>)`, and its fix names the subgraph alone:
 

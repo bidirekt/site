@@ -7,7 +7,7 @@ The broker stores what each service declares it provides and consumes, and befor
 
 ## Participant
 
-A participant is a named service that publishes contracts. The name is the whole identity: it is how the broker files everything the participant publishes, and it is how other participants refer to it. The name is in snake_case: lowercase letters, digits and single underscores. A consumer names the provider it consumes from with this exact string, so a misspelled name publishes and fails at `can-i-deploy` ([REST: Resource breaks](../rest/breaks.md#every-break), [GraphQL: Breaks](../graphql/breaks.md#every-break)). The name can't change once the participant is created, and it can't be the name of a GraphQL [graph](../graphql/graphs.md): participants and graphs share one space of names.
+A participant is a named service that publishes contracts. The name is the whole identity: it is how the broker files everything the participant publishes, and it is how other participants refer to it. The name is in snake_case: lowercase letters, digits and single underscores. A consumer names the provider it consumes from with this exact string, so a misspelled name publishes and fails at `can-i-deploy` ([REST: Resource breaks](../rest/breaks.md#every-break), [GraphQL: Breaks](../graphql/breaks.md#every-break)). The name can't change once the participant is created, and it can't be the name of a GraphQL [graph](../graphql/graphs.md): participants and graphs share one space of names. A participant must be created before it publishes: a publish under a name the broker does not know fails with `participant "petstore_api" not found → create it with: bidirekt create-participant petstore_api` ([publish](../ship/publish.md)).
 
 A participant is not "a provider" or "a consumer". The same participant provides resources to some services and consumes resources from others, and declares both in one contract ([The contract file](../contracts/the-contract-file.md)).
 
@@ -30,13 +30,13 @@ The broker never orders versions. It does not know that `2.0.0` comes after `1.0
 
 ## Snapshot
 
-A snapshot is the stored content of a contract, and it is what a version points at. The broker identifies a snapshot by a checksum of its declarations, not by the text of the file. Formatting, comments, key order, the order of the files, the way the contract is split across files, a schema that nothing names and a `description`, which the broker accepts only as ASCII letters and digits with a single space between words, do not change the checksum. Schema names do: renaming a schema that a resource or a `ref` reaches is a different snapshot, so the same version published with a renamed schema is refused like any other change ([Version](#version)).
+A snapshot is the stored content of a contract, and it is what a version points at. The broker identifies a snapshot by a checksum of its declarations, not by the text of the file. Formatting, comments, key order, the order of the files, the way the contract is split across files, a schema that nothing names and a `description` ([Types and their keys](../schemas/types.md#types-and-their-keys)) do not change the checksum. Schema names do: renaming a schema that a resource or a `ref` reaches is a different snapshot, so the same version published with a renamed schema is refused like any other change ([Version](#version)).
 
 Publishing a new version with the same declarations as one already published makes the new version an alias: it points at the same snapshot. The broker compares snapshots, never versions, so the two versions are the same contract for every check. You never name a snapshot yourself; you always name a version, and the broker resolves it.
 
 ## Counterpart
 
-A counterpart is a participant on the other side of an integration: a provider the participant consumes from, or a consumer of what the participant provides. In a check, each counterpart is read as the version currently deployed in the environment.
+A counterpart is a participant on the other side of an integration: a provider the participant consumes from, or a consumer of what the participant provides. In a check, each counterpart is read as the version currently deployed in the environment. A provider the participant consumes from that has no deployment in the environment is reported as not deployed, whatever it published, as in `petstore_web calls GET /pets/*, but petstore_api is not deployed in production` ([REST: Resource breaks](../rest/breaks.md#every-break), [GraphQL: Breaks](../graphql/breaks.md#every-break)).
 
 A GraphQL graph is a counterpart too, though not a participant: a consumer of the graph is compared with the graph composed from the subgraphs deployed in the environment, and the report names the version of each one ([Graphs](../graphql/graphs.md)).
 

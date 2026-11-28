@@ -34,6 +34,8 @@ The property blocks that follow name each place where a break happens with one o
 · <METHOD> <endpoint> request at "<property>" (<counterpart>: <counterpart field>)
 ```
 
+When the break is on the body itself rather than on a property in it, the place reads `at the body` instead of `at "<property>"`.
+
 An endpoint and method removed entirely are reported once in each consumer's block, right below `<METHOD> <endpoint>`, not under each request and response status that consumer uses ([what counts as removed](#participant-removed-method-endpoint-but-counterpart-still-calls-it)). A status or request body dropped from an endpoint and method that stay is reported under its own `response <status>:` or `request:`. Any other break of that endpoint stays under its body or in its block:
 
 ```error title="can-i-deploy output"

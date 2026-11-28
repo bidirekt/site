@@ -35,7 +35,7 @@ A list that breaks these rules is rejected at publish:
 
 ## Unions
 
-`members` maps the key of each member to the schema it has, with `ref`. Here a payment is a card or a pix:
+`members` maps the key of each member to the schema it has, with `ref`. Here a payment is a card or cash:
 
 ```yaml
 Order:
@@ -46,18 +46,18 @@ Order:
       members:
         card:
           ref: CardPayment
-        pix:
-          ref: PixPayment
+        cash:
+          ref: CashPayment
 CardPayment:
   type: object
   properties:
     number:
       type: string
-PixPayment:
+CashPayment:
   type: object
   properties:
-    key:
-      type: string
+    amount:
+      type: number
 ```
 
 describes a card payment such as
@@ -66,7 +66,7 @@ describes a card payment such as
 { "payment": { "method": "card", "number": "4111 1111 1111 1111" } }
 ```
 
-The key of a member, `card` or `pix`, is its identity in the body: in REST, the value of the field that tells the members apart, here `method`. There is no `discriminator` key: when the code reads that field, it is a property of each member's schema like any other.
+The key of a member, `card` or `cash`, is its identity in the body: in REST, the value of the field that tells the members apart, here `method`. There is no `discriminator` key: when the code reads that field, it is a property of each member's schema like any other.
 
 `members` is a map of at least one key, and each member holds only a `ref` to a schema declared under `schemas`. A member key follows the rule of a property name ([Names](objects.md#names)). A report writes a member as `(<key>)` right after its union: `$.payment(card).number` in a property, `Order.payment(card)` in a field, and `Payment(card)` when the union is the whole schema `Payment` ([Reading a property block](../ship/can-i-deploy.md#reading-a-property-block)).
 
@@ -83,7 +83,7 @@ Any other key in a member, such as `type`, is an unknown key, and a `ref` to a n
 
 Two rules decide ([Which side decides](../contracts/the-contract-file.md#which-side-decides)):
 
-- **The side that reads a body decides if what it receives fits.** A `string` reader accepts an `enum`, and an `enum` reader of a `string` is a type mismatch. An enum against any other type, and a union against anything but a union, is a type mismatch too. A report prints their types as `enum` and `union`, without their values or members.
+- **The side that reads a body decides if what it receives fits.** A `string` reader accepts an `enum`, and an `enum` reader of a `string` is a type mismatch. An enum against any other type is a type mismatch too, and in REST so is a union against anything but a union. In GraphQL, an `object` reader also accepts a union that declares `properties`, the fields of an interface ([Unions and interfaces](../graphql/resources.md#unions-and-interfaces)), and any union when it reads only `__typename`. A report prints their types as `enum` and `union`, without their values or members.
 - **The provider owns how a property is provided.** Every value and member that the consumer declares must be declared by the provider, whichever side produces the body. A value or a member that only the provider declares never breaks.
 
 When the consumer produces the body (in REST, a request):
@@ -104,6 +104,6 @@ When the provider produces the body (in REST, a response):
 | enum `pending`, `adopted` | enum `pending` | break: `adopted` is missing in the provider |
 | enum `pending` | enum `pending`, `adopted` | compatible |
 
-Between two unions, every member key that the consumer declares must exist in the provider, and a member that both sides declare compares as any schema: a property inside it breaks as any property, at `$.payment(card).number`. A provider that adds `pix` to `payment` breaks no consumer, and a consumer that reads `pix` from a provider without it gets `petstore_web reads "pix", but petstore_api doesn't provide it`.
+Between two unions, every member key that the consumer declares must exist in the provider, and a member that both sides declare compares as any schema: a property inside it breaks as any property, at `$.payment(card).number`. A provider that adds `cash` to `payment` breaks no consumer, and a consumer that reads `cash` from a provider without it gets `petstore_web reads "cash", but petstore_api doesn't provide it`.
 
 Each value or member missing in the provider is a break of its own, with the fixes of each side in [Property breaks](../ship/property-breaks.md#enum-values-and-union-members).

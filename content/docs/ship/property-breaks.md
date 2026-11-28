@@ -134,14 +134,13 @@ Pet.status — petstore_web reads "adopted", but petstore_api doesn't provide it
   → petstore_web: stop reading "adopted"
   → petstore_api: provide "adopted" there
     · GET /pets response 200 at "$[].status" (petstore_api: Pet.status)
-
 Pet.status — petstore_web sends "sold", but petstore_api doesn't accept it
   → petstore_web: stop sending "sold"
   → petstore_api: accept "sold" there
     · POST /pets request at "$.status" (petstore_api: Pet.status)
 ```
 
-A value missing in two places is one block with `(2 places)`, and two values missing from the same field are two blocks. A member of a union reads the same way, as in `Order.payment — petstore_web reads "pix", but petstore_api doesn't provide it`.
+A value missing in two places is one block with `(2 places)`, and two values missing from the same field are two blocks. A member of a union reads the same way, as in `Order.payment — petstore_web reads "cash", but petstore_api doesn't provide it`.
 
 ### `<participant> reads "<member>", but <counterpart> doesn't provide it`
 

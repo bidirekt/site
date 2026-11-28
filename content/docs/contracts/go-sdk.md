@@ -3,7 +3,7 @@ title: Go SDK
 description: How to write a service's contract from its Go code with the Go SDK: installation, an example with declarations and struct tags, the generate command and the flow to publish. The full reference is the SDK's README.
 ---
 
-The Go SDK writes the [contract file](the-contract-file.md) of a service from its Go code. You declare in Go code the resources the service provides or consumes, mark the fields of each schema with the `bidirekt` struct tag, run `generate`, and get `contracts/generated.yaml`, which [`validate`](../ship/validate.md) and [`publish`](../ship/publish.md) take like any other contract file. It reads the source code and never runs your app.
+The Go SDK writes the [contract file](the-contract-file.md) of a service from its Go code. You declare in Go code the resources the service provides or consumes, mark the fields of each schema with the `bidirekt` struct tag, run `generate`, and get `contracts/generated.yaml`, which [`validate`](../ship/validate.md) and [`publish`](../ship/publish.md) take like any other contract file. It reads the source code and never runs your app. It writes `rest` resources only; for GraphQL, see [GraphQL: Resources](../graphql/resources.md).
 
 This page shows how it reads. Every declaration, tag option, type and error is in the [SDK's README](https://github.com/bidirekt/go-sdk#readme).
 
@@ -17,11 +17,11 @@ $ go get -tool github.com/bidirekt/go-sdk/cmd/go-sdk
 $ go mod tidy
 ```
 
-Installing the command changes your `go.mod`: the `go` line goes up to `1.26.0` when it is older, and the `golang.org/x` modules your app already uses move up to the versions the command needs. [Installation](https://github.com/bidirekt/go-sdk#installation) in the README lists every change, and how to keep the runtime defaults of the Go version you had.
+Installing the command changes your `go.mod`: the `go` line goes up to `1.26.0` when it is older, and the `golang.org/x` modules your app already uses move up to the versions the command needs. In a `go.work` workspace, the `go` line of `go.work` goes up to `1.26.0` too. An app that vendors its dependencies stops with `inconsistent vendoring` on `go build` and `generate` until you run `go mod vendor`. [Installation](https://github.com/bidirekt/go-sdk#installation) in the README lists every change, and how to keep the runtime defaults of the Go version you had.
 
 ## Example
 
-`petstore_go` is a `net/http` service in the module `example.com/petstore`. It provides `GET /pets/*` and consumes `GET /ratings/*` from `petstore_reviews`. A struct with a field marked `bidirekt:"field"` is a schema, and only its marked fields are in the contract; a field without the tag, like `CreatedBy`, stays out. `Pet` uses each kind of field:
+`petstore_go` is a `net/http` service in the module `example.com/petstore`. It provides `GET /pets`, `GET /pets/*` and `POST /pets`, and consumes `GET /ratings/*` from `petstore_reviews`. A struct with a field marked `bidirekt:"field"` is a schema, and only its marked fields are in the contract; a field without the tag, like `CreatedBy`, stays out. `Pet` uses each kind of field:
 
 ```go
 // pets/pet.go
@@ -74,9 +74,13 @@ type Pet struct {
 
 	CreatedBy string `json:"-"`
 }
+
+type NewPet struct {
+	Name string `json:"name" bidirekt:"field"`
+}
 ```
 
-`bidirekt.Provides` declares a resource the service provides, next to the handler that serves it. The mux routes `/pets/{id}` to `getPet`, and the path is declared `/pets/*`: a `*` for each dynamic segment, never the router's placeholder. A body is a value of its type, or `nil` for no body:
+`bidirekt.Provides` declares a resource the service provides, next to the handler that serves it. The mux routes `/pets/{id}` to `getPet`, and the path is declared `/pets/*`: a `*` for each dynamic segment, never the router's placeholder. `bidirekt.Request` declares the body the handler reads, and `bidirekt.Response` each status. A body is a value of its type, `[]pets.Pet{}` for a list of it, or `nil` for no body:
 
 ```go
 // main.go
@@ -91,6 +95,21 @@ import (
 )
 
 var store = map[string]pets.Pet{}
+
+var _ = bidirekt.Provides(
+	http.MethodGet,
+	"/pets",
+	bidirekt.Response(http.StatusOK, []pets.Pet{}),
+)
+
+func listPets(w http.ResponseWriter, r *http.Request) {
+	list := []pets.Pet{}
+	for _, pet := range store {
+		list = append(list, pet)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(list)
+}
 
 var _ = bidirekt.Provides(
 	http.MethodGet,
@@ -109,9 +128,31 @@ func getPet(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(pet)
 }
 
+var _ = bidirekt.Provides(
+	http.MethodPost,
+	"/pets",
+	bidirekt.Request(pets.NewPet{}),
+	bidirekt.Response(http.StatusCreated, pets.Pet{}),
+	bidirekt.Response(http.StatusBadRequest, nil),
+)
+
+func createPet(w http.ResponseWriter, r *http.Request) {
+	var request pets.NewPet
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	pet := pets.Pet{Name: request.Name, Status: pets.PetStatusAvailable}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(pet)
+}
+
 func main() {
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /pets", listPets)
 	mux.HandleFunc("GET /pets/{id}", getPet)
+	mux.HandleFunc("POST /pets", createPet)
 	http.ListenAndServe(":8080", mux)
 }
 ```
@@ -164,12 +205,21 @@ Run `generate` in the project folder, the one with `go.mod`:
 $ go tool go-sdk generate
 ```
 
-It writes `contracts/generated.yaml`:
+It writes `contracts/generated.yaml`. The list `[]pets.Pet{}` becomes the `PetList` schema:
 
 ```yaml
 # Generated by github.com/bidirekt/go-sdk. Do not edit.
 provides:
   rest:
+    /pets:
+      get:
+        responses:
+          200: PetList
+      post:
+        request: NewPet
+        responses:
+          201: Pet
+          400: ~
     /pets/*:
       get:
         responses:
@@ -184,6 +234,11 @@ consumes:
             200: Rating
             404: ~
 schemas:
+  NewPet:
+    type: object
+    properties:
+      name:
+        type: string
   Owner:
     type: object
     properties:
@@ -224,6 +279,10 @@ schemas:
       nickname:
         type: string
         optional: true
+  PetList:
+    type: array
+    items:
+      ref: Pet
   PetStatus:
     type: enum
     members: ["available", "adopted"]
@@ -241,7 +300,7 @@ schemas:
         type: string
 ```
 
-A named string type with `bidirekt.Enum` is a `ref` to an `enum` schema, a schema struct is a `ref`, a pointer is `nullable`, a slice is an `array` and a map a `map`. `weight` is a `number` because `encoding/json` writes the `float64` `50.0` as `50` ([What `encoding/json` writes](https://github.com/bidirekt/go-sdk#what-encodingjson-writes)). A field of an interface type is a union when its tag names the schema of each member in `union`. A `description` with a space goes between single quotes, since the whole tag is already a Go string in double quotes.
+A named string type with `bidirekt.Enum` is a `ref` to an `enum` schema, a schema struct is a `ref`, a pointer is `nullable`, a slice is an `array` and a map a `map`. Without `bidirekt.Request` a resource has no `request` key, and `bidirekt.Request(nil)` writes `request: ~`. `weight` is a `number` because `encoding/json` writes the `float64` `50.0` as `50` ([What `encoding/json` writes](https://github.com/bidirekt/go-sdk#what-encodingjson-writes)). A field of an interface type is a union when its tag names the schema of each member in `union`. A `description` with a space goes between single quotes, since the whole tag is already a Go string in double quotes.
 
 [Unions, embedded and anonymous structs](https://github.com/bidirekt/go-sdk#unions-embedded-and-anonymous-structs) in the README shows embedded and anonymous structs, and how `bidirekt.Named` and `bidirekt.Schema` name a schema.
 
@@ -264,9 +323,9 @@ $ bidirekt can-i-deploy petstore_go --version 1.4.0 --environment production
 $ bidirekt record-deployment petstore_go --version 1.4.0 --environment production
 ```
 
-[`validate`](../ship/validate.md) without `--participant` and `--environment` checks only the file; with them, it also compares the file with what is deployed in that environment. Deploy between `can-i-deploy` and `record-deployment`. In CI, `go tool go-sdk generate --check` fails the build when the committed file is out of date.
+[`validate`](../ship/validate.md) without `--participant` and `--environment` checks only the file; with them, it also compares the file with what is deployed in that environment. Deploy between `can-i-deploy` and `record-deployment`. In CI, `go tool go-sdk generate --check` fails the build when the committed file is out of date. `generate --project <folder>` reads another project and writes to its folder, so a module with `cmd/api` and `cmd/worker` generates one contract per service (`go tool go-sdk generate --project cmd/worker`); `--out <file>` writes to another file.
 
-The broker reads every file of one publish as one contract ([Several files](the-contract-file.md#several-files)), but the SDK cannot see a hand-written file: a tag cannot name a schema declared only there, and a schema or a provided resource declared both in the code and in a hand-written file is rejected at publish as declared twice. To adopt the SDK, declare every resource and schema the service provides or consumes, generate, check that the new file declares what the old files did, and delete the old files.
+The broker reads every file of one publish as one contract ([Several files](the-contract-file.md#several-files)), but the SDK cannot see a hand-written file: a tag cannot name a schema declared only there, and a schema or a provided resource declared both in the code and in a hand-written file is rejected at publish as declared twice. A consumed resource declared in both is merged, like the fragments of one consumer ([Several files](the-contract-file.md#several-files)). To adopt the SDK, declare every resource and schema the service provides or consumes, generate, check that the new file declares what the old files did, and delete the old files.
 
 When [`can-i-deploy`](../ship/can-i-deploy.md) reports a break, fix the declaration or the tag in the code and generate again. Never edit `contracts/generated.yaml`: the next `generate` writes over it.
 

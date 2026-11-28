@@ -56,6 +56,8 @@ petstore_reviews (0.9.0, deployed):
 
 Each break is one line, written from the side of `<participant>`, the participant under check, against `<counterpart>`, the counterpart it breaks. Below it come the fixes, one line per side, the fix of `<participant>` first. The breaks of a resource come first, under the resource they are about ([REST: Resource breaks](../rest/breaks.md), [GraphQL: Breaks](../graphql/breaks.md)).
 
+A participant that calls a provider with no deployment in the environment gets `petstore_web calls GET /pets/*, but petstore_api is not deployed in production`, with the fix `petstore_api: deploy it to production first` ([REST: Every break](../rest/breaks.md#every-break), [GraphQL: Every break](../graphql/breaks.md#every-break)).
+
 Then the breaks of a property, one block per field, break and fix, in alphabetical order of the field. A block holds one break: the break and its fixes once, then every place where it happens, one line per resource and property. ` (<N> places)` is left out when there is one place:
 
 ```
