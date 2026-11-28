@@ -184,7 +184,7 @@ export function Sdks() {
         tabs={[
           ...SDKS.map((sdk) => ({
             name: sdk.name,
-            icon: <BrandIcon brand={sdk.brand} />,
+            icon: <BrandIcon brand={sdk.brand} className="h-5" />,
             panel: <SdkPanel sdk={sdk} />,
           })),
           {
@@ -283,7 +283,7 @@ function PromptIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
       style={{ aspectRatio: PROMPT_BOX.aspectRatio }}
-      className="h-4 w-auto shrink-0"
+      className="h-5 w-auto shrink-0"
     >
       <path
         d="M3 4.5 6.5 8 3 11.5M8.5 12H13"

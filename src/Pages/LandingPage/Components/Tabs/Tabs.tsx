@@ -10,7 +10,7 @@ const NEXT_KEYS = ['ArrowRight', 'ArrowDown']
 const PREVIOUS_KEYS = ['ArrowLeft', 'ArrowUp']
 
 const tab = tv({
-  base: 'pressable inline-flex cursor-pointer items-center gap-2 rounded-[8px] px-3 py-1.5 text-[14px] font-medium whitespace-nowrap',
+  base: 'pressable inline-flex cursor-pointer items-center gap-2.5 rounded-[8px] px-3 py-1.5 text-[14px] font-medium whitespace-nowrap',
   variants: {
     selected: {
       true: 'bg-raised text-primary',
