@@ -90,9 +90,9 @@ export function PrivacyPage() {
               choice is saved only in your browser.
             </p>
             <p className={PANE_TEXT}>
-              The site is hosted on GitHub Pages, and the footer asks GitHub for
-              the latest releases, so GitHub receives your IP address, which it
-              logs for security.
+              The site is hosted on GitHub Pages and served through Cloudflare,
+              and the footer asks GitHub for the latest releases, so Cloudflare
+              and GitHub receive your IP address, which they log for security.
             </p>
           </Pane>
           <Pane bodyClassName="flex flex-1 flex-col gap-3">
