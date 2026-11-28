@@ -15,11 +15,13 @@ Both packages need Node.js 22.12 or later. `@bidirekt/typescript-sdk-cli` is the
 $ npm install --save-dev @bidirekt/typescript-sdk-cli
 ```
 
-`@bidirekt/typescript-sdk` holds the decorators, which your app imports at runtime, so with decorators it is a regular dependency too. With tags only, the command is all you need:
+`@bidirekt/typescript-sdk` holds the decorators. The command depends on it, but a dev dependency is left out of a production install, and your app imports the decorators at runtime, so with decorators install it as a regular dependency too:
 
 ```
 $ npm install @bidirekt/typescript-sdk
 ```
+
+With tags only, the command is all you need.
 
 ## Example
 

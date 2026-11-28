@@ -138,16 +138,6 @@ The property breaks of GraphQL follow [Property breaks](../ship/property-breaks.
 - Fix of `<participant>`: `provide it`
 - Fix of `<counterpart>`: `stop reading it`
 
-#### `<participant> requires it, but <counterpart> only sometimes provides it`
-
-- Fix of `<participant>`: `handle its absence in the code, then mark it optional`
-- Fix of `<counterpart>`: `always provide it`
-
-#### `<participant> provides it only sometimes, but <counterpart> requires it`
-
-- Fix of `<participant>`: `always provide it`
-- Fix of `<counterpart>`: `handle its absence in the code, then mark it optional`
-
 #### `<participant> reads it as <type>, but <counterpart> provides <counterpart type>`
 
 - Fix of `<participant>`: `read it as <counterpart type>`
