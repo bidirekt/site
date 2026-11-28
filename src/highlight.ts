@@ -9,6 +9,8 @@ export type TokenKind =
   | 'comment'
   | 'plain'
 export type Token = { kind: TokenKind; text: string }
+export type YamlTone = 'key' | 'colon' | 'value' | 'plain'
+export type Segment<TTone extends string> = { text: string; tone: TTone }
 
 export const TOKEN_CLASS: Record<TokenKind, string> = {
   keyword: 'text-syntax-keyword',
@@ -135,10 +137,21 @@ const YAML_TYPE_WORDS = new Set(
   ),
 )
 
-export function yamlSegmentKind(
-  tone: 'key' | 'colon' | 'value' | 'plain',
-  text: string,
-): TokenKind {
+const YAML_KEY_LINE = /^(\s*)(-\s+)?("?[^:"]+"?)(:)(.*)$/
+
+export function yamlLine(line: string): Array<Segment<YamlTone>> {
+  const match = YAML_KEY_LINE.exec(line)
+  if (match === null) return nonEmpty([{ text: line, tone: 'plain' }])
+  const [, indent, dash = '', key, colon, value] = match
+  return nonEmpty([
+    { text: indent + dash, tone: 'plain' },
+    { text: key, tone: 'key' },
+    { text: colon, tone: 'colon' },
+    { text: value, tone: 'value' },
+  ])
+}
+
+export function yamlSegmentKind(tone: YamlTone, text: string): TokenKind {
   const trimmed = text.trim()
   if (tone === 'plain' && trimmed.startsWith('#')) return 'comment'
   if (tone === 'key' && /^\d+$/.test(trimmed)) return 'number'
@@ -149,4 +162,10 @@ export function yamlSegmentKind(
   if (/^\d+(\.\d+)?$/.test(trimmed)) return 'number'
   if (/^[A-Z]\w*$/.test(trimmed)) return 'type'
   return 'string'
+}
+
+function nonEmpty<TTone extends string>(
+  segments: Array<Segment<TTone>>,
+): Array<Segment<TTone>> {
+  return segments.filter((segment) => segment.text !== '')
 }

@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { OVERVIEW_PATH, docsHref, docsMarkdownUrl } from '#/docs'
 import type { DocsPageContent } from '#/docs'
 import { renderDocsMarkdown } from '#/markdown'
-import { pageHead } from '#/site'
 import { DocsTopBar } from '#/Contextual/DocsTopBar'
 import { DocsSidebar } from '#/Contextual/DocsSidebar'
 import { DocsToc } from '#/Contextual/DocsToc'
@@ -11,21 +9,6 @@ import { Article } from './Components/Article'
 type DocsPageProps = { page: DocsPageContent }
 
 const SIDEBAR_ID = 'docs-sidebar'
-
-export function docsPageHead(page: DocsPageContent | undefined) {
-  if (page === undefined) return {}
-  const head = pageHead(
-    docsHref(page.path),
-    docsPageTitle(page),
-    page.description,
-  )
-  head.links.push({
-    rel: 'alternate',
-    type: 'text/markdown',
-    href: docsMarkdownUrl(page.path),
-  })
-  return head
-}
 
 export function DocsPage({ page }: DocsPageProps) {
   const [navOpen, setNavOpen] = useState(false)
@@ -77,11 +60,6 @@ export function DocsPage({ page }: DocsPageProps) {
       </div>
     </div>
   )
-}
-
-function docsPageTitle(page: DocsPageContent): string {
-  if (page.path === OVERVIEW_PATH) return 'Documentation · Bidirekt'
-  return `${page.title} · Bidirekt docs`
 }
 
 function scrimState(navOpen: boolean): string {

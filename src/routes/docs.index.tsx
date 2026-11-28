@@ -1,8 +1,10 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { loadDocsPage } from '#/docs'
-import { DocsPage, docsPageHead } from '#/Pages/DocsPage'
+import { docsPageHead } from '#/docsHead'
+import { DocsPage } from '#/Pages/DocsPage'
 
 export const Route = createFileRoute('/docs/')({
+  codeSplitGroupings: [['loader', 'component']],
   loader: () => {
     const page = loadDocsPage('README.md')
     if (page === null) throw notFound()

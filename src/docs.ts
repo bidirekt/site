@@ -3,7 +3,12 @@ import type { Token } from 'marked'
 import { parse } from 'yaml'
 import { parseFrontmatter } from '#/frontmatter'
 import { headingIdsOfPage } from '#/headings'
-import { SITE_URL } from '#/site'
+import {
+  OVERVIEW_PATH,
+  docsHref,
+  docsMarkdownUrl,
+  stripMarkdownExtension,
+} from '#/docsPaths'
 import navSource from '../content/docs/nav.yaml?raw'
 
 export type DocsLeaf = { label: string; path: string; isPlaceholder: boolean }
@@ -30,7 +35,6 @@ type DocsLinkProps =
 
 type NavFields = { label?: unknown; path?: unknown; items?: unknown }
 
-export const OVERVIEW_PATH = 'README.md'
 const PLACEHOLDER_BODY = '> Not written yet.'
 const EDIT_BASE_URL = 'https://github.com/bidirekt/site/edit/main/content/docs/'
 const GLOB_PREFIX = '../content/docs/'
@@ -58,11 +62,6 @@ export const DOCS_ENTRIES: Array<DocsEntry> = DOCS_TREE.flatMap(entriesOf)
 // Only the dev server and the prerender check: a browser would lex every page.
 if (import.meta.env.SSR) assertDocsAnchorsResolve()
 
-export function docsHref(path: string): string {
-  if (path === OVERVIEW_PATH) return '/docs/'
-  return `/docs/${stripMarkdownExtension(path)}/`
-}
-
 export function docsLinkProps(path: string): DocsLinkProps {
   if (path === OVERVIEW_PATH) return { to: '/docs/' } as const
   return {
@@ -81,14 +80,6 @@ export function resolveDocsLink(fromPath: string, href: string): string {
   if (href.startsWith('#') || href.startsWith('http')) return href
   const { target, anchor } = targetAndAnchorFromHref(href)
   return docsHref(resolveRelativePath(fromPath, target)) + anchor
-}
-
-export function docsMarkdownHref(path: string): string {
-  return `/docs/${path}`
-}
-
-export function docsMarkdownUrl(path: string): string {
-  return SITE_URL + docsMarkdownHref(path)
 }
 
 export function docsMarkdownFromPath(path: string): string | null {
@@ -197,10 +188,6 @@ function entriesOf(node: DocsNode): Array<DocsEntry> {
 function entryAt(index: number): DocsEntry | null {
   if (index < 0 || index >= DOCS_ENTRIES.length) return null
   return DOCS_ENTRIES[index]
-}
-
-function stripMarkdownExtension(path: string): string {
-  return path.replace(/\.md$/, '')
 }
 
 function resolveRelativePath(fromPath: string, relative: string): string {

@@ -1,8 +1,10 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { docsMarkdownFromPath, docsPathFromSplat, loadDocsPage } from '#/docs'
-import { DocsPage, docsPageHead } from '#/Pages/DocsPage'
+import { docsPageHead } from '#/docsHead'
+import { DocsPage } from '#/Pages/DocsPage'
 
 export const Route = createFileRoute('/docs/$')({
+  codeSplitGroupings: [['loader', 'component']],
   loader: ({ params }) => {
     const path = docsPathFromSplat(params._splat)
     if (path === null) throw notFound()
