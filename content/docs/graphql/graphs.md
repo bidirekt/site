@@ -75,7 +75,7 @@ petstore_graph (petstore_api 1.4.0 + petstore_reviews 2.0.0, deployed):
       · query pet returns at "$.age" (petstore_graph: Pet.age)
 ```
 
-A field the composed graph does not resolve is `calls query pet, but petstore_graph doesn't provide it`. A graph with no subgraph deployed in the environment is `calls query pet, but petstore_graph is not deployed in production`, under `petstore_graph:`, and a graph whose deployed subgraphs do not compose is `calls query pet, but petstore_graph can't be built in production: <cause>` ([Breaks](breaks.md#every-break)).
+A field the composed graph does not resolve is `calls query pet, but petstore_graph doesn't provide it`. A graph with no subgraph deployed in the environment is `calls query pet, but petstore_graph is not deployed in production`, under `petstore_graph:`, and a graph whose deployed subgraphs do not compose is `calls query pet, but petstore_graph can't be built in production`, followed by every composition error and `deployed graph: /graphs/petstore_graph` ([Breaks](breaks.md#every-break)).
 
 A subgraph may consume its own graph. In its check, the graph is composed with the version under check, marked `candidate`: `petstore_graph (petstore_api 1.5.0 candidate + petstore_reviews 2.0.0, deployed):`. [`validate`](../ship/validate.md) has no version, so it prints `petstore_api candidate`. The participant's own deployed version is never one of its counterparts.
 
@@ -154,7 +154,7 @@ These Apollo rules are not checked, so a graph that breaks only one of them comp
 
 ## Known gaps
 
-- The graph page composes only the deployed subgraphs. The `see /graphs/<graph>` of a subgraph's check opens a page that can say the graph composes, while the error comes from the version under check, which only the check composes.
+- The graph page composes only the deployed subgraphs. The `deployed graph: /graphs/<graph>` of a subgraph's check opens a page that can say the graph composes, while the error comes from the version under check, which only the check composes.
 - A subgraph's name in the graph is its participant name. An `@override(from:)` that uses another name, such as the subgraph name of an Apollo router configuration, names no subgraph and is ignored.
 - One graph that Apollo composes fails in Bidirekt: a shared field returns a union in one subgraph (`item: Result`, with `union Result = Book | Movie`) and one of its members in another (`item: Book`), and a field of the other member exists only in the second subgraph, with no `@key` to reach it (`Movie.year`). The check gives `query holder.item.year can't be resolved`.
 - Composition follows Apollo Federation 2 only in part: the rules above that it does not check let a graph compose that Apollo would refuse.
