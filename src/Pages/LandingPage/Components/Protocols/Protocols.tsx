@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
 import { BrandIcon } from '#/Components/BrandIcon'
+import { opticalBox } from '#/opticalBox'
 
 type Protocol = { name: string; icon: ReactNode; href?: string }
 
-const ICON = 'size-7'
+const ICON = 'h-7'
 
 const PROTOCOLS: Array<Protocol> = [
   { name: 'REST', icon: <RestIcon />, href: '/docs/rest/resources/' },
@@ -64,19 +65,25 @@ function ProtocolItem({ protocol }: { protocol: Protocol }) {
   )
 }
 
+const REST_BOX = opticalBox([2, 3, 20, 18])
+
 function RestIcon() {
   return (
     <svg
       aria-hidden="true"
-      viewBox="0 0 24 24"
+      viewBox={REST_BOX.viewBox}
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.75"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={`shrink-0 ${ICON}`}
+      style={{ aspectRatio: REST_BOX.aspectRatio }}
+      className={`w-auto shrink-0 ${ICON}`}
     >
-      <path d="M3 8h15M14 4l4 4-4 4M21 16H6M10 12l-4 4 4 4" />
+      <path
+        d="M3 8h15M14 4l4 4-4 4M21 16H6M10 12l-4 4 4 4"
+        vectorEffect="non-scaling-stroke"
+      />
     </svg>
   )
 }

@@ -4,6 +4,7 @@ import type { Brand } from '#/Components/BrandIcon'
 import { pane } from '#/Components/Pane'
 import { CodeBlock } from '../CodeBlock'
 import type { Language } from '#/highlight'
+import { opticalBox } from '#/opticalBox'
 import { SectionHeading } from '../SectionHeading'
 import { Tabs } from '../Tabs'
 import { YamlBlock } from '../YamlBlock'
@@ -13,6 +14,7 @@ type Sdk = {
   brand: Brand
   language: Language
   docsHref: string
+  docsLabel: string
   file: string
   code: string
   install: Array<string>
@@ -28,6 +30,7 @@ const SDKS: Array<Sdk> = [
     brand: 'typescript',
     language: 'typescript',
     docsHref: '/docs/contracts/typescript-sdk/',
+    docsLabel: 'TypeScript SDK docs',
     file: 'pets.controller.ts',
     code: `import {
   BidirektField,
@@ -60,10 +63,39 @@ export class PetsController {
     idField: 'petId',
   },
   {
+    name: 'JavaScript',
+    brand: 'javascript',
+    language: 'typescript',
+    docsHref: '/docs/contracts/typescript-sdk/#tags',
+    docsLabel: 'Tags in the TypeScript SDK docs',
+    file: 'pets.controller.js',
+    code: `/** @bidirekt schema */
+export class Pet {
+  /** @bidirekt field type=integer */
+  petId
+
+  /** @bidirekt field type=string */
+  name
+}
+
+export class PetsController {
+  /**
+   * @bidirekt rest provides GET /pets/*
+   * @bidirekt response 200 Pet
+   * @bidirekt response 404
+   */
+  find(petId) { … }
+}`,
+    install: ['npm install --save-dev @bidirekt/typescript-sdk-cli'],
+    generate: 'npx @bidirekt/typescript-sdk-cli generate',
+    idField: 'petId',
+  },
+  {
     name: 'PHP',
     brand: 'php',
     language: 'php',
     docsHref: '/docs/contracts/php-sdk/',
+    docsLabel: 'PHP SDK docs',
     file: 'src/PetController.php',
     code: `#[BidirektSchema]
 final class Pet
@@ -99,6 +131,7 @@ final class PetController
     brand: 'go',
     language: 'go',
     docsHref: '/docs/contracts/go-sdk/',
+    docsLabel: 'Go SDK docs',
     file: 'pets/pet.go',
     code: `type Pet struct {
 	ID int64 \`json:"id" bidirekt:"field"\`
@@ -189,7 +222,7 @@ function SdkPanel({ sdk }: { sdk: Sdk }) {
           </span>
         ))}
         <a href={sdk.docsHref} className={`mt-1 w-fit font-sans ${LINK}`}>
-          {sdk.name} SDK docs
+          {sdk.docsLabel}
           <Arrow direction="right" />
         </a>
       </div>
@@ -237,19 +270,25 @@ schemas:
         type: string`
 }
 
+const PROMPT_BOX = opticalBox([2.25, 3.75, 11.5, 9])
+
 function PromptIcon() {
   return (
     <svg
       aria-hidden="true"
-      viewBox="0 0 16 16"
+      viewBox={PROMPT_BOX.viewBox}
       fill="none"
       stroke="currentColor"
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="size-4 shrink-0"
+      style={{ aspectRatio: PROMPT_BOX.aspectRatio }}
+      className="h-4 w-auto shrink-0"
     >
-      <path d="M3 4.5 6.5 8 3 11.5M8.5 12H13" />
+      <path
+        d="M3 4.5 6.5 8 3 11.5M8.5 12H13"
+        vectorEffect="non-scaling-stroke"
+      />
     </svg>
   )
 }
