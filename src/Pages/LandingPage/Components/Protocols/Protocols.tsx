@@ -6,11 +6,11 @@ type Protocol = { name: string; icon: ReactNode; href?: string }
 const ICON = 'size-7'
 
 const PROTOCOLS: Array<Protocol> = [
-  { name: 'REST', icon: <RestIcon />, href: '/docs/rest/resources' },
+  { name: 'REST', icon: <RestIcon />, href: '/docs/rest/resources/' },
   {
     name: 'GraphQL',
     icon: <BrandIcon brand="graphql" className={ICON} />,
-    href: '/docs/graphql/resources',
+    href: '/docs/graphql/resources/',
   },
   {
     name: 'OpenAPI',

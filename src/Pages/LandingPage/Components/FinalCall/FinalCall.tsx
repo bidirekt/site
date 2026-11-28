@@ -20,7 +20,7 @@ export function FinalCall() {
         <p className="text-[15px] text-secondary">
           Then point it at your own services:{' '}
           <a
-            href="/docs/start/try"
+            href="/docs/start/try/"
             className="pressable text-primary underline decoration-muted underline-offset-[3px] hover:decoration-primary"
           >
             Try on your project

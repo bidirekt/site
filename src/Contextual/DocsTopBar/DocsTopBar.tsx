@@ -52,7 +52,7 @@ export function DocsTopBar({
             bidirekt
           </a>
           <a
-            href="/docs"
+            href="/docs/"
             className="pressable text-muted hover:text-primary max-[820px]:hidden"
           >
             / docs
@@ -60,7 +60,7 @@ export function DocsTopBar({
         </div>
         <DocsSearch />
         <a
-          href="/contact"
+          href="/contact/"
           className="pressable hidden text-[14px] whitespace-nowrap text-secondary hover:text-primary min-[821px]:block"
         >
           contact

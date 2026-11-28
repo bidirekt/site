@@ -1,12 +1,14 @@
-import { readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { SITE_URL, canonicalUrl, isSiteLaunched } from '../src/site.ts'
 
 const CLIENT_DIR = 'dist/client'
 const PAGE_FILE = 'index.html'
 const SITEMAP_URL = `${SITE_URL}/sitemap.xml`
 const TITLE = /<title>([^<]*)<\/title>/
+const INTERNAL_HREF = /href="(\/[^"#?]*)/g
 
 assertTitlesUnique(pageFiles())
+assertPageLinksCanonical(pageFiles())
 writeFileSync(`${CLIENT_DIR}/robots.txt`, robotsTxt())
 writeFileSync(`${CLIENT_DIR}/sitemap.xml`, sitemapXml(pageUrls()))
 
@@ -43,6 +45,23 @@ function assertTitlesUnique(files: Array<string>): void {
     }
     pathByTitle.set(title, path)
   }
+}
+
+function assertPageLinksCanonical(files: Array<string>): void {
+  for (const file of files) {
+    const html = readFileSync(`${CLIENT_DIR}/${file}`, 'utf8')
+    for (const [, href] of html.matchAll(INTERNAL_HREF)) {
+      if (!href.endsWith('/') && isPage(href)) {
+        throw new Error(
+          `${pagePath(file)} links to ${href}, which redirects: write ${href}/`,
+        )
+      }
+    }
+  }
+}
+
+function isPage(path: string): boolean {
+  return existsSync(`${CLIENT_DIR}${path}/${PAGE_FILE}`)
 }
 
 function pageTitle(file: string): string {

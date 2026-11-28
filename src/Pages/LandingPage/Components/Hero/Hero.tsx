@@ -33,7 +33,7 @@ export function Hero() {
           catching it, and the fix.
         </p>
         <a
-          href="/docs"
+          href="/docs/"
           className="pressable text-[15px] text-secondary hover:text-primary"
         >
           Read the docs
