@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { TOKEN_CLASS, highlightLines } from '#/highlight'
 import type { Language, Token } from '#/highlight'
 
@@ -5,6 +6,8 @@ type CodeBlockProps = { code: string; language: Language }
 
 const TAB_WIDTH = 8
 const HANGING_INDENT = 2
+const BREAK_CHARS = '.,(/'
+const BREAK_AFTER = /(?<=[.,(/])/
 
 export function CodeBlock({ code, language }: CodeBlockProps) {
   return (
@@ -19,11 +22,11 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
                 paddingLeft: `${indent + HANGING_INDENT}ch`,
                 textIndent: `-${HANGING_INDENT}ch`,
               }}
-              className="block min-h-[1.75em] whitespace-pre-wrap [overflow-wrap:anywhere]"
+              className="block min-h-[1.75em] whitespace-pre-wrap [overflow-wrap:break-word]"
             >
               {rest.map((token, index) => (
                 <span key={index} className={TOKEN_CLASS[token.kind]}>
-                  {token.text}
+                  {withBreaks(token.text)}
                 </span>
               ))}
             </span>
@@ -32,6 +35,17 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
       )}
     </pre>
   )
+}
+
+// A long call wraps after a dot, comma, parenthesis or slash, as
+// `http.` + `StatusOK`, before it ever splits a name.
+function withBreaks(text: string) {
+  return text.split(BREAK_AFTER).map((part, index) => (
+    <Fragment key={index}>
+      {part}
+      {BREAK_CHARS.includes(part.at(-1) ?? '') && <wbr />}
+    </Fragment>
+  ))
 }
 
 function expandLeadingTabs(code: string): string {
