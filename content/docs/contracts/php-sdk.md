@@ -15,7 +15,7 @@ The SDK needs PHP 8.0 or later and Composer 2.2 or later. Install it as a dev de
 $ composer require --dev bidirekt/php-sdk
 ```
 
-An attribute runs nothing, so a production install with `composer install --no-dev`, which leaves the package out, still runs your app. `new BidirektField(...)` inside an attribute needs PHP 8.1 to run your app, and `Enum::Case->value` as an attribute argument PHP 8.2; [Installation](https://github.com/bidirekt/php-sdk#installation) in the README has the details.
+An attribute runs nothing, so a production install with `composer install --no-dev`, which leaves the package out, still runs your app. `new BidirektField(...)` inside an attribute needs PHP 8.1 to run your app, as does an enum, and `Enum::Case->value` as an attribute argument PHP 8.2; [Installation](https://github.com/bidirekt/php-sdk#installation) in the README has the details.
 
 ## Example
 
@@ -298,7 +298,7 @@ $ bidirekt record-deployment petstore_php --version 1.4.0 --environment producti
 
 [`validate`](../ship/validate.md) without `--participant` and `--environment` checks only the file; with them, it also compares the file with what is deployed in that environment. Run `record-deployment` once the deploy is done. In CI, `vendor/bin/php-sdk generate --check` fails the build when the committed file is out of date.
 
-The broker reads every file of one publish as one contract ([Several files](the-contract-file.md#several-files)), but the SDK cannot see a hand-written file: a tag or an attribute cannot name a schema declared only there, and a resource or schema declared both in the code and in a hand-written file is rejected at publish as declared twice. To adopt the SDK, annotate every resource and schema the service provides or consumes, generate, check that the new file declares what the old files did, and delete the old files.
+The broker reads every file of one publish as one contract ([Several files](the-contract-file.md#several-files)), but the SDK cannot see a hand-written file: a tag or an attribute cannot name a schema declared only there, and a schema or a provided resource declared both in the code and in a hand-written file is rejected at publish as declared twice. A consumed resource declared in both is merged, like the fragments of one consumer ([Several files](the-contract-file.md#several-files)). To adopt the SDK, annotate every resource and schema the service provides or consumes, generate, check that the new file declares what the old files did, and delete the old files.
 
 When [`can-i-deploy`](../ship/can-i-deploy.md) reports a break, fix the annotation or the type in the code and generate again. Never edit `contracts/generated.yaml`: the next `generate` writes over it.
 

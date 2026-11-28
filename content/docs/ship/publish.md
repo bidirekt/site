@@ -11,14 +11,14 @@ petstore_api contract publish successful
 ## Arguments
 
 - `file or folder...`: one or more contract files, YAML (`.yaml` or `.yml`) or GraphQL schemas (`.graphql`, `.graphqls` or `.gql`), or folders that hold them. All of them publish together as one contract ([Several files](../contracts/the-contract-file.md#several-files)); the shell expands globs.
-- `--participant`: the participant the contract belongs to. It must exist, or the publish fails with `participant "petstore_api" not found → create it with: bidirekt create-participant petstore_api`, before any file is checked.
+- `--participant`: the participant the contract belongs to. It must exist, or the publish fails with `participant "petstore_api" not found → create it with: bidirekt create-participant petstore_api`, before the broker checks any file.
 - `--version`: any label, usually a commit hash or a release tag. Publish from a commit that holds the contract files: a version never changes, so files that are not committed yet should not take the hash of the commit before them. Commit first, then publish.
 
 ## Folders
 
 A folder is read with its subfolders, and only its `.yaml`, `.yml`, `.graphql`, `.graphqls` and `.gql` files count; a folder without any fails with `no contract files (.yaml, .yml, .graphql, .graphqls, .gql) in folder: "./docs"`. Files and folders can be mixed in one command, in any order. The files are read in alphabetical order, and a file reached twice, such as a file passed on its own and again through its folder, is read once, under the name the first argument gives it. A file found in a folder is named by the folder and its path inside it, so `./contracts/` gives `contracts/rest/pets.yaml`; a file passed on its own keeps the name you typed.
 
-Every GraphQL file a folder holds is published as part of the participant's schema. A file of client queries or fragments in the folder is refused with `<file>: holds client operations; publish expects the GraphQL schema`, and the schema of an API the service calls, kept in the folder, would be published as the participant's own API: keep such files out of the contract folder, or pass the contract files one by one ([GraphQL: Resources](../graphql/resources.md#the-provider-publishes-its-schema)).
+Every GraphQL file a folder holds is published as part of the participant's schema. A file of client queries or fragments in the folder is refused with `cannot post contract to broker: <file>: holds client operations; publish expects the GraphQL schema`, and the schema of an API the service calls, kept in the folder, would be published as the participant's own API: keep such files out of the contract folder, or pass the contract files one by one ([GraphQL: Resources](../graphql/resources.md#the-provider-publishes-its-schema)).
 
 ## Limits
 

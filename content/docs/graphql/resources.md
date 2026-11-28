@@ -233,7 +233,7 @@ Each line below is printed after the file's name, as in [publish](../ship/publis
 - `scalar schema without name at schemas Pet properties bornAt`: `type: scalar` without `name`.
 - `"name" is not allowed on an object schema at schemas Pet properties bornAt, use it with "type: scalar" (GraphQL contracts only)`: `name` on a type other than `scalar`.
 - `missing "returns" at consumes petstore_api graphql query pet`: a field called without `returns`.
-- `invalid GraphQL field name "pets(first: 10)" at consumes petstore_api graphql query, write the field name only; arguments go in "arguments"`: a key under `query` or `mutation` that is not a GraphQL name.
+- `invalid GraphQL field name "pets(first: 10)" at consumes petstore_api graphql query, write the field name only; arguments go in "arguments"`: a key under `query` or `mutation` that is not a GraphQL name, such as `"pets(first: 10)": {returns: PetList}`.
 
 The errors of a subgraph's `graph` are in [Graphs](graphs.md#declaring-the-graph).
 

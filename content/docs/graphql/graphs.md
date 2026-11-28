@@ -69,9 +69,9 @@ The graph of an environment is the composition of the subgraphs deployed there, 
 petstore_web 2.3.0 cannot be deployed to production
 
 petstore_graph (petstore_api 1.4.0 + petstore_reviews 2.0.0, deployed):
-  Pet.age — petstore_web reads it as String, but petstore_graph provides Int
-    → petstore_web: read it as Int
-    → petstore_graph: provide it as String there
+  Pet.age — petstore_web reads it as String!, but petstore_graph provides Int!
+    → petstore_web: read it as Int!
+    → petstore_graph: provide it as String! there
       · query pet returns at "$.age" (petstore_graph: Pet.age)
 ```
 

@@ -121,7 +121,7 @@ An `enum` key beside `type: string`, as OpenAPI writes it, is an unknown key too
 
 A change in any of the items below never makes `can-i-deploy` fail:
 
-- **`description`.** On any node but a [union member](../schemas/enums-and-unions.md#unions). It holds ASCII letters and digits, with a single space between words, and the broker rejects any other text at publish with `schema.description_syntax` ([Types and their keys](../schemas/types.md#types-and-their-keys)).
+- **`description`.** On any node but a [union member](../schemas/enums-and-unions.md#unions). It holds ASCII letters and digits, with a single space between words, and the broker rejects any other text at publish: `description: A pet!` on `Pet` fails with `invalid description "A pet!" at schemas Pet, must be ASCII letters and digits, with single spaces between words` ([Types and their keys](../schemas/types.md#types-and-their-keys)).
 - **A schema that no resource, `ref` or `arguments` names.** It is accepted and never compared, so a file with only `schemas` publishes too.
 - **A property the reader does not declare.** It is not checked ([Which side decides](#which-side-decides)).
 - **A value or a member that only the provider declares.** A provider that adds `adopted` to the values of `status` breaks no consumer ([How they compare](../schemas/enums-and-unions.md#how-they-compare)).
