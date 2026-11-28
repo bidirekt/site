@@ -1,6 +1,6 @@
 import type { MouseEvent } from 'react'
 import { Link, useRouter } from '@tanstack/react-router'
-import { docsMarkdownHref } from '#/docs'
+import { docsMarkdownHref } from '#/docsPaths'
 import type { DocsPageContent } from '#/docs'
 import { COPY_CODE_ATTRIBUTE, COPY_LABEL } from '#/markdown'
 import type { TocEntry } from '#/markdown'

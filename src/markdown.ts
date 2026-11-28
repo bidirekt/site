@@ -6,14 +6,14 @@ import {
   LANGUAGE_BY_FENCE,
   TOKEN_CLASS,
   highlightLines,
+  yamlLine,
   yamlSegmentKind,
 } from '#/highlight'
+import type { Segment } from '#/highlight'
 import { headingIdsOfPage } from '#/headings'
 
 export type TocEntry = { id: string; text: string; level: 2 | 3 }
-export type YamlTone = 'key' | 'colon' | 'value' | 'plain'
 export type ShellTone = 'prompt' | 'command' | 'output'
-export type Segment<TTone extends string> = { text: string; tone: TTone }
 
 type RenderOptions = { pagePath: string; title: string }
 type RenderResult = { html: string; toc: Array<TocEntry> }
@@ -101,7 +101,6 @@ const CAN_I_DEPLOY_TITLE = 'can-i-deploy output'
 const LOCAL_ADDRESS = /^https?:\/\/(localhost|127\.0\.0\.1)([:/?#]|$)/
 const CODE_INFO = /^(\S*)(.*)$/
 const CODE_TITLE_ATTRIBUTE = /title="([^"]*)"/
-const YAML_KEY_LINE = /^(\s*)(-\s+)?("?[^:"]+"?)(:)(.*)$/
 const HTML_ESCAPES: Record<string, string> = {
   '&': '&amp;',
   '<': '&lt;',
@@ -201,18 +200,6 @@ export function renderDocsMarkdown(
 
   const html = marked.parse(body, { async: false })
   return { html, toc }
-}
-
-export function yamlLine(line: string): Array<Segment<YamlTone>> {
-  const match = YAML_KEY_LINE.exec(line)
-  if (match === null) return nonEmpty([{ text: line, tone: 'plain' }])
-  const [, indent, dash = '', key, colon, value] = match
-  return nonEmpty([
-    { text: indent + dash, tone: 'plain' },
-    { text: key, tone: 'key' },
-    { text: colon, tone: 'colon' },
-    { text: value, tone: 'value' },
-  ])
 }
 
 export function shellLine(line: string): Array<Segment<ShellTone>> {
@@ -364,12 +351,6 @@ function classedHtml(text: string, classes: string): string {
 function newlineUnlessLast(index: number, last: number): string {
   if (index === last) return ''
   return '\n'
-}
-
-function nonEmpty<TTone extends string>(
-  segments: Array<Segment<TTone>>,
-): Array<Segment<TTone>> {
-  return segments.filter((segment) => segment.text !== '')
 }
 
 function resolveDocsHref(pagePath: string, href: string): string {

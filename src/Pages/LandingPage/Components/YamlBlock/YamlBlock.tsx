@@ -1,5 +1,4 @@
-import { yamlLine } from '#/markdown'
-import { TOKEN_CLASS, yamlSegmentKind } from '#/highlight'
+import { TOKEN_CLASS, yamlLine, yamlSegmentKind } from '#/highlight'
 
 export function YamlBlock({ yaml }: { yaml: string }) {
   return (
