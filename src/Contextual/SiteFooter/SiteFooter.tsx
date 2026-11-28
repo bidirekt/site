@@ -6,6 +6,7 @@ import type { LatestRelease, Repo } from './useLatestReleases'
 
 const GITHUB_URL = 'https://github.com/bidirekt'
 const FOOTER_LINK = 'pressable text-secondary hover:text-primary'
+const FOOTER_INLINE_LINK = `${FOOTER_LINK} underline decoration-muted underline-offset-[3px] hover:decoration-primary`
 const SEPARATOR = ' · '
 
 export function SiteFooter() {
@@ -21,7 +22,12 @@ export function SiteFooter() {
             {REPOS.map((repo, index) => (
               <Fragment key={repo}>
                 {index > 0 && SEPARATOR}
-                <ExternalLink href={releasesUrl(repo)}>{repo}</ExternalLink>
+                <ExternalLink
+                  href={releasesUrl(repo)}
+                  className={FOOTER_INLINE_LINK}
+                >
+                  {repo}
+                </ExternalLink>
               </Fragment>
             ))}
           </span>
@@ -36,7 +42,9 @@ export function SiteFooter() {
           <a href="/contact" className={FOOTER_LINK}>
             contact
           </a>
-          <ExternalLink href={GITHUB_URL}>github</ExternalLink>
+          <ExternalLink href={GITHUB_URL} className={FOOTER_LINK}>
+            github
+          </ExternalLink>
           <a href="/privacy" className={FOOTER_LINK}>
             privacy
           </a>
@@ -57,7 +65,9 @@ function LatestReleases({ releases }: { releases: Array<LatestRelease> }) {
         <Fragment key={release.repo}>
           {index > 0 && SEPARATOR}
           {release.repo}{' '}
-          <ExternalLink href={release.url}>{release.tag}</ExternalLink>
+          <ExternalLink href={release.url} className={FOOTER_INLINE_LINK}>
+            {release.tag}
+          </ExternalLink>
         </Fragment>
       ))}
     </span>
@@ -66,13 +76,15 @@ function LatestReleases({ releases }: { releases: Array<LatestRelease> }) {
 
 function ExternalLink({
   href,
+  className,
   children,
 }: {
   href: string
+  className: string
   children: ReactNode
 }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer" className={FOOTER_LINK}>
+    <a href={href} target="_blank" rel="noreferrer" className={className}>
       {children}
     </a>
   )
