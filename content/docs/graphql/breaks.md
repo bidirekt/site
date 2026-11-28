@@ -1,5 +1,5 @@
 ---
-title: Breaks
+title: GraphQL breaks
 description: How the report shows a GraphQL break, the breaks of a field that come before any property is compared, the property breaks of GraphQL, and the fixes of each.
 ---
 
@@ -87,34 +87,34 @@ petstore_web (2.3.0, deployed):
 
 ## Every break
 
-#### `<participant> calls <operation> <field>, but <counterpart> doesn't provide it`
+### `<participant> calls <operation> <field>, but <counterpart> doesn't provide it`
 
 The participant calls a field that the provider's version deployed in the environment does not declare, or, for a graph, that the graph composed in the environment does not resolve.
 
 - Fix of `<participant>`: `stop calling it`
 - Fix of `<counterpart>`: `publish it`
 
-#### `<participant> calls <operation> <field>, but <counterpart> is not deployed in <environment>`
+### `<participant> calls <operation> <field>, but <counterpart> is not deployed in <environment>`
 
 The provider has no deployment in the target environment, whatever it published. A provider name misspelled under `consumes` publishes fine and fails here. When `<counterpart>` is a graph, no subgraph of it is deployed in the environment, and its block has no version: `petstore_graph:`.
 
 - Fix of `<participant>`: none
 - Fix of `<counterpart>`: `deploy it to <environment> first`, or `deploy a subgraph of it to <environment> first` for a graph
 
-#### `<participant> calls <operation> <field>, but <graph> can't be built in <environment>: <cause>`
+### `<participant> calls <operation> <field>, but <graph> can't be built in <environment>: <cause>`
 
 The subgraphs of the graph deployed in the environment do not compose. `<cause>` is the first composition error, such as `petstore_api 1.4.0 and petstore_reviews 2.0.0 both resolve Pet.name without @shareable` ([Composition](graphs.md#composition)). One line per field the participant calls.
 
 - Fix: `<graph> subgraphs: make it compose (see /graphs/<graph>)`
 
-#### `<participant> removed <operation> <field>, but <counterpart> still calls it`
+### `<participant> removed <operation> <field>, but <counterpart> still calls it`
 
 The participant no longer declares the field, and a consumer deployed in the environment still calls it. In the check of a subgraph, `<participant> (via <graph>) removed <operation> <field>, but <counterpart> still calls it` says that the field left the graph because of the participant, and the consumer calls it through the graph.
 
 - Fix of `<participant>`: `keep it until <counterpart> stops calling it`
 - Fix of `<counterpart>`: `stop calling it`
 
-#### `<participant> (via <graph>) makes <graph> fail to compose in <environment>: <cause>, and <counterpart> calls <operation> <field>`
+### `<participant> (via <graph>) makes <graph> fail to compose in <environment>: <cause>, and <counterpart> calls <operation> <field>`
 
 The subgraph under check makes the graph fail to compose in the environment, where it composes with the subgraph's deployed version, or without it. A consumer deployed there calls the graph. `<cause>` is the composition error, as above.
 

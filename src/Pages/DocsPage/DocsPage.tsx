@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { docsHref, docsMarkdownUrl } from '#/docs'
+import { OVERVIEW_PATH, docsHref, docsMarkdownUrl } from '#/docs'
 import type { DocsPageContent } from '#/docs'
 import { renderDocsMarkdown } from '#/markdown'
 import { pageHead } from '#/site'
@@ -16,7 +16,7 @@ export function docsPageHead(page: DocsPageContent | undefined) {
   if (page === undefined) return {}
   const head = pageHead(
     docsHref(page.path),
-    `${page.title} · bidirekt docs`,
+    docsPageTitle(page),
     page.description,
   )
   head.links.push({
@@ -77,6 +77,11 @@ export function DocsPage({ page }: DocsPageProps) {
       </div>
     </div>
   )
+}
+
+function docsPageTitle(page: DocsPageContent): string {
+  if (page.path === OVERVIEW_PATH) return 'Documentation · Bidirekt'
+  return `${page.title} · Bidirekt docs`
 }
 
 function scrimState(navOpen: boolean): string {

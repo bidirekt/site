@@ -24,6 +24,8 @@ User:
       nullable: true
 ```
 
+## Where optional is rejected
+
 `optional` on a named schema, on array items or on map values is rejected at publish, `optional: false` too. A named schema is not optional by itself: the property that uses it is, with `optional: true` beside its `ref`:
 
 ```error title="publish error"
@@ -32,5 +34,7 @@ contract validation failed
 ```
 
 In the same way, when an array or a map may be missing, the property that holds it is optional, and an element or a value that may be `null` takes `nullable: true` on `items` or `values`; [Arrays](arrays-and-maps.md#arrays) and [Maps](arrays-and-maps.md#maps) show their error lines.
+
+## How each side writes them
 
 How each side writes the flags from what its code does is in [Describe what the code does](../contracts/the-contract-file.md#describe-what-the-code-does), and what they mean for a break is in [Which side decides](../contracts/the-contract-file.md#which-side-decides).
