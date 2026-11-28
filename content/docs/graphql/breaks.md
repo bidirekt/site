@@ -33,7 +33,7 @@ The property blocks that follow name each place where a break happens with one o
 · <operation> <field> returns at "<property>" (argument "<argument>") (<counterpart>: <counterpart field>)
 ```
 
-`<property>` is written from the root of what the field returns, as in REST, and the root itself is `"$"`. `<argument>` is the argument, or the path inside it for a field of an input, as `filter.minStars`. A field of the provider's schema is named by its GraphQL coordinate: `Pet.name`, `Query.pet(id:)` for the argument `id` of `pet`, `Pet.reviews(first:)` for the argument `first` of `reviews`, and `Query.pet` at the root of what `pet` returns.
+`<property>` is written from the root of what the field returns, as in REST, and the root itself is `"$"`. `<argument>` is the argument, or the path inside it for a field of an input, as `filter.minStars`. A field of the provider's schema is named by its GraphQL coordinate: `Pet.name`, `Query.pet(id:)` for the argument `id` of `pet`, `Pet.reviews(first:)` for the argument `first` of `reviews`, and `Query.pet` at the root of what `pet` returns. A field of the consumer's schema is named the same way at a root field, `Query.pet(owner:)` for an argument of `pet` and `Query.pet` for what `pet` returns, and by its schema below it: `Pet.name`, `ReviewsArgs.first`.
 
 Types are written as GraphQL writes them, with the nullability: `[String!]!`, `Int`, `ID`, `DateTime!`. A type the consumer reads is written with the name of its schema when it is an object, a union, a map or an enum, as `PetRead!`, and one written in place, without a schema of its own, with its values: `enum (AVAILABLE | SOLD)!`. A primitive the consumer writes takes its GraphQL name: `string` is `String`, `integer` is `Int`, `number` is `Float`.
 
@@ -45,7 +45,7 @@ petstore_api (1.4.0, deployed):
     - petstore_web calls query owner, but petstore_api doesn't provide it
       → petstore_web: stop calling it
       → petstore_api: publish it
-  PetArgs.owner — petstore_web sends it, but petstore_api doesn't accept it
+  Query.pet(owner:) — petstore_web sends it, but petstore_api doesn't accept it
     → petstore_web: stop sending it
     → petstore_api: accept it
       · query pet arguments (argument "owner")
@@ -70,7 +70,7 @@ petstore_web (2.3.0, deployed):
   Query.pet(id:) — petstore_api expects it as String, but petstore_web sends ID
     → petstore_api: accept ID
     → petstore_web: send String there
-      · query pet arguments (argument "id") (petstore_web: PetArgs.id)
+      · query pet arguments (argument "id") (petstore_web: Query.pet(id:))
 ```
 
 The last block is a change of a named input type ([How types compare](resources.md#how-types-compare)): `petstore_web` sends `id` as `ID`, the type the deployed `petstore_api` declares, and the new version declares it as `String`: a named input type that changes is a different type, even when it accepts the same values. This break prints the bare type names, `ID` and `String`, without `!`.
@@ -101,11 +101,19 @@ The provider has no deployment in the target environment, whatever it published.
 - Fix of `<participant>`: none
 - Fix of `<counterpart>`: `deploy it to <environment> first`, or `deploy a subgraph of it to <environment> first` for a graph
 
-### `<participant> calls <operation> <field>, but <graph> can't be built in <environment>: <cause>`
+### `<participant> calls <operation> <field>, but <graph> can't be built in <environment>`
 
-The subgraphs of the graph deployed in the environment do not compose. `<cause>` is the first composition error, such as `petstore_api 1.4.0 and petstore_reviews 2.0.0 both resolve Pet.name without @shareable` ([Composition](graphs.md#composition)). One line per field the participant calls.
+The subgraphs of the graph deployed in the environment do not compose. The lines under the break list every composition error, one per line, such as `petstore_api 1.4.0 and petstore_reviews 2.0.0 both resolve Pet.name without @shareable` ([Composition](graphs.md#composition)), and the last one links the graph page. One break per field the participant calls:
 
-- Fix: `<graph> subgraphs: make it compose (see /graphs/<graph>)`
+```error title="can-i-deploy output"
+    - petstore_web calls query pet, but petstore_graph can't be built in production
+      petstore_api 1.4.0 and petstore_orders 1.0.0 both resolve Money.amount without @shareable
+      petstore_api 1.4.0 and petstore_orders 1.0.0 both resolve Money.currency without @shareable
+      → petstore_graph subgraphs: make it compose
+      deployed graph: /graphs/petstore_graph
+```
+
+- Fix: `<graph> subgraphs: make it compose`
 
 ### `<participant> removed <operation> <field>, but <counterpart> still calls it`
 
@@ -114,11 +122,11 @@ The participant no longer declares the field, and a consumer deployed in the env
 - Fix of `<participant>`: `keep it until <counterpart> stops calling it`
 - Fix of `<counterpart>`: `stop calling it`
 
-### `<participant> (via <graph>) makes <graph> fail to compose in <environment>: <cause>, and <counterpart> calls <operation> <field>`
+### `<participant> (via <graph>) makes <graph> fail to compose in <environment>, and <counterpart> calls <operation> <field>`
 
-The subgraph under check makes the graph fail to compose in the environment, where it composes with the subgraph's deployed version, or without it. A consumer deployed there calls the graph. `<cause>` is the composition error, as above.
+The subgraph under check makes the graph fail to compose in the environment, where it composes with the subgraph's deployed version, or without it. A consumer deployed there calls the graph. The lines under the break list every composition error and link the graph page, as above.
 
-- Fix of `<participant>`: `make <graph> compose (see /graphs/<graph>)`
+- Fix of `<participant>`: `make <graph> compose`
 
 ## Property breaks
 

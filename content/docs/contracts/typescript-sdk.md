@@ -445,6 +445,8 @@ schemas:
         type: integer
 ```
 
+A primitive returned as a bare string, `'integer'`, is always written as `Integer`. To name it, write `{ type: 'integer', name: 'PetCount' }` in the decorator or `integer as PetCount` in the tag, and both write `PetCount: {type: integer}`.
+
 With tags, `@bidirekt graphql consumes <provider> query|mutation <name>` goes above the handler, followed by `@bidirekt arguments <schema>` and `@bidirekt returns <type>`, and `@bidirekt graphql field` takes the place of `@bidirekt field`:
 
 ```ts
