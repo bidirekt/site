@@ -45,7 +45,7 @@ export function Tabs({ label, tabs, className }: TabsProps) {
       <div
         role="tablist"
         aria-label={label}
-        className="flex flex-wrap gap-1 border-b border-line p-2"
+        className="flex flex-wrap gap-1 border-b border-line p-2 max-[479px]:grid max-[479px]:grid-cols-2 max-[479px]:[&>:last-child:nth-child(odd)]:col-span-2"
       >
         {tabs.map(({ name, icon }, index) => {
           const isSelected = index === selected

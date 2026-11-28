@@ -269,7 +269,7 @@ Quiet, compact, label-sized.
 
 ### Tabs
 
-- **Style:** a wrap-able strip of 14px/500 labels in a hairline-bottomed bar with 8px padding; unselected Ash, hover Ink; selected Raised Graphite fill with Ink text, 8px radius. Arrow keys move selection with roving focus.
+- **Style:** a wrap-able strip of 14px/500 labels in a hairline-bottomed bar with 8px padding; unselected Ash, hover Ink; selected Raised Graphite fill with Ink text, 8px radius. Below 480px the strip becomes a two-column grid, an odd last tab spanning both. Arrow keys move selection with roving focus.
 - **Panel change:** the new panel settles in over 220ms (from 40% opacity and 2px blur, `cubic-bezier(0.23, 1, 0.32, 1)`); off under reduced motion.
 
 ### YAML Block
