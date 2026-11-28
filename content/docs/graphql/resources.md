@@ -209,7 +209,7 @@ The rules of [Which side decides](../contracts/the-contract-file.md#which-side-d
 - **Custom scalars** match by name.
 - **Enums and unions** compare as in [How they compare](../schemas/enums-and-unions.md#how-they-compare): every value and member the consumer declares must be declared by the provider.
 - **Input coercion.** In an argument or an input field, an `integer` or a `number` sent to a `Float` passes, and so does an `integer` sent to an `ID`. A single value sent to a list passes too: a `string` sent to `[String!]`. An `integer` sent to a `String` still breaks.
-- **Named input types.** A client declares each variable by the name of its type, as `$id: ID!`. So a provider whose new version changes the named type of an argument or an input field that a deployed consumer sends, such as `ID` to `String`, or a renamed input or enum, breaks that consumer, even with the same shape. The consumer does not write these names: they come from the provider's deployed version, compared with the new one, so the break appears only in the provider's check, and once the provider deploys the change, the consumer's own check no longer sees it. When the change also breaks the shape, as `ID` to `Int`, only the break of the shape is reported.
+- **Named input types.** An argument or an input field is typed by name in the schema, and two named types are two types even when they accept the same values. So a provider whose new version changes the named type of an argument or an input field that a deployed consumer sends, such as `ID` to `String`, or a renamed input or enum, breaks that consumer, even with the same shape. The consumer does not write these names: they come from the provider's deployed version, compared with the new one, so the break appears only in the provider's check, and once the provider deploys the change, the consumer's own check no longer sees it. When the change also breaks the shape, as `ID` to `Int`, only the break of the shape is reported.
 - **Output type names** are not compared: renaming an output type that keeps its shape breaks no consumer.
 
 A provider that changes an output field from `Float` to `Int` breaks a consumer that reads it as `float`, but not one that reads it as `number`.
@@ -233,6 +233,7 @@ Each line below is printed after the file's name, as in [publish](../ship/publis
 - `scalar schema without name at schemas Pet properties bornAt`: `type: scalar` without `name`.
 - `"name" is not allowed on an object schema at schemas Pet properties bornAt, use it with "type: scalar" (GraphQL contracts only)`: `name` on a type other than `scalar`.
 - `missing "returns" at consumes petstore_api graphql query pet`: a field called without `returns`.
+- `"properties" is not allowed on a union schema at schemas Pet properties node, use it with "type: object"`: a union with `properties` in a schema that a REST resource reaches.
 - `invalid GraphQL field name "pets(first: 10)" at consumes petstore_api graphql query, write the field name only; arguments go in "arguments"`: a key under `query` or `mutation` that is not a GraphQL name, such as `"pets(first: 10)": {returns: PetList}`.
 
 The errors of a subgraph's `graph` are in [Graphs](graphs.md#declaring-the-graph).
@@ -243,7 +244,8 @@ A change in any of the items below never makes `can-i-deploy` fail. The items th
 
 - **Descriptions** in the schema.
 - **Default values.** A default only makes an argument or an input field optional; its value is not stored.
-- **Directives that are behavior**: custom directives, access directives such as `@authenticated`, `@requiresScopes` and `@policy`, `@deprecated` and `@specifiedBy`. They are accepted and ignored. Only the federation directives of a subgraph count ([Graphs](graphs.md#composition)).
+- **Directives that are behavior**: custom directives, access directives such as `@authenticated`, `@requiresScopes` and `@policy`, `@deprecated` and `@specifiedBy`. They are accepted and ignored once the schema defines them or imports them through `@link`; one it does neither is refused by GraphQL: `petstore_api.graphqls:3:22: Undefined directive authenticated.`. Only the federation directives of a subgraph count ([Graphs](graphs.md#composition)).
+- **Arguments marked `@fromContext`.** The router fills them, and a client never sends them, so they are left out of the contract.
 - **Subscriptions.** A `Subscription` in the schema is ignored, and `subscription` in the YAML is rejected.
 - **`@oneOf`.** An input marked `@oneOf` publishes and is read as a plain input, with every field optional and nullable: a consumer that sends two of its fields, or a `null` one, passes.
 - **The client's operations.** Bidirekt compares schema against schema, never a query against the schema, so `@defer`, `@stream`, fragments and variables have no place in a contract.

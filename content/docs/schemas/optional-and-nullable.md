@@ -9,20 +9,22 @@ Two flags, `true` or `false`, say what a value may lack, and they are independen
 - `nullable: true` says the key is there and its value may be `null` or the declared type. It is accepted on a property, `items`, `values` and the root of a schema, but not on a [union member](enums-and-unions.md#unions), which holds only its `ref`.
 
 ```yaml
-User:
+Owner:
   type: object
   properties:
-    avatar:          # always there, may be null
+    photoUrl:        # always there, may be null
       type: string
       nullable: true
-    nickname:        # may be missing
+    email:           # may be missing
       type: string
       optional: true
-    bio:             # may be missing, may be null
+    phone:           # may be missing, may be null
       type: string
       optional: true
       nullable: true
 ```
+
+`nullable: true` on the root of a named schema makes every `ref` to it nullable, as if each `ref` carried `nullable: true` beside it.
 
 ## Where optional is rejected
 

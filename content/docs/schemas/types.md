@@ -52,7 +52,7 @@ Each type takes only its own keys:
 | `union` | `members`, a map of `ref`s | `properties` outside GraphQL, `items`, `values` |
 | `scalar` | `name`, the scalar's GraphQL name | `properties`, `items`, `values`, `members` |
 | `string`, `integer`, `float`, `number`, `boolean` | none | `properties`, `items`, `values`, `members` |
-| none, with `ref` | none | `type`, `properties`, `items`, `values`, `members` |
+| none, with `ref` | none | `type`, `properties`, `items`, `values`, `members`, `name` |
 
 A union with `properties` is how GraphQL reads an interface on its own fields and on its types at once ([Unions and interfaces](../graphql/resources.md#unions-and-interfaces)). In GraphQL a property may also carry `arguments` ([Fields with arguments](../graphql/resources.md#fields-with-arguments)).
 

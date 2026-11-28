@@ -31,7 +31,7 @@ The endpoint is part of a resource's identity, so a consumer's endpoint matches 
 - A dynamic segment is `*`, one per segment: `/pets/*`, `/owners/*/pets/*`. Any other form is rejected at publish:
   - `/pets/{petId}`, `/pets/:petId`, `/pets/<petId>`, `/pets/[petId]`, `/pets/p*` → `dynamic path segments must use *`
   - `/pets//photos`, `/pets;v=2`, `/pets/a b` → `malformed path`
-- A trailing slash is removed: `/pets/` is `/pets`, and a provider that writes both has declared the same resources twice.
+- A trailing slash is removed: `/pets/` is `/pets`, and a provider that writes both has declared the same resources twice, rejected at publish with `duplicate resource "provides GET /pets 200", declared twice`.
 - The methods are `get`, `post`, `put`, `patch` and `delete`, in lowercase. Any other key under an endpoint is rejected.
 
 An endpoint copied from an OpenAPI document keeps its named parameter and is rejected. When each dynamic segment is one whole parameter, the report gives the endpoint to write:
@@ -102,7 +102,7 @@ provides:
           204:
 ```
 
-The resource still exists, so a consumer that calls `DELETE /pets/*` matches it. Against a counterpart, with the consumer under check (a provider under check that drops a `request` while still declaring the endpoint and method gets the `dropped the request body` break of [Resource breaks](breaks.md#every-break)):
+The resource still exists, so a consumer that calls `DELETE /pets/*` matches it. Against a counterpart, with the consumer under check:
 
 | Provider | Consumer | Result |
 |---|---|---|
@@ -111,6 +111,8 @@ The resource still exists, so a consumer that calls `DELETE /pets/*` matches it.
 | `200: ~` | `200: ~` | compatible |
 | `200: Pet` | `200: ~` | compatible |
 | `200: ~` | `200: Pet` | break: `Pet — petstore_web reads it, but petstore_api doesn't provide it`, at the body |
+
+A provider under check that drops a `request` while still declaring the endpoint and method gets the `dropped the request body` break of [Resource breaks](breaks.md#every-break).
 
 ## In several files
 

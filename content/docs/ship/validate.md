@@ -12,7 +12,7 @@ contract is valid; add --participant and --environment to compare it with what i
 
 - `file or folder...`: one or more contract files or folders, the same ones [`publish`](publish.md) takes.
 
-Without `--participant` and `--environment`, it only checks the files, as `publish` checks them: it compares nothing and stores nothing. When they pass, it prints the line above on stdout and exits `0`. When a file breaks the [contract format](../contracts/the-contract-file.md#file-rules), it prints the violations on stderr, as [`publish`](publish.md) does, and exits `1`.
+Without `--participant` and `--environment`, it only checks the files, as `publish` checks them: it compares nothing and stores nothing. The broker checks them, so a broker must be configured even then; without one it fails with `no broker configured — run "bidirekt login" or set BIDIREKT_BROKER_URL and BIDIREKT_API_KEY`. When they pass, it prints the line above on stdout and exits `0`. When a file breaks the [contract format](../contracts/the-contract-file.md#file-rules), it prints the violations on stderr, as [`publish`](publish.md) does, and exits `1`.
 
 ## Comparing with an environment
 

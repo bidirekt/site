@@ -95,7 +95,7 @@ A subgraph that leaves the graph, with a version without `graph`, is checked aga
 
 ## Composition
 
-The broker composes the graph with the rules of Apollo Federation 2. Only `@key`, `@shareable`, `@inaccessible`, `@external`, `@override`, `@provides` and `@interfaceObject` count; every other directive is accepted and ignored. The definitions that a subgraph library prints next to the `@link`, such as `_service`, `_entities`, `_Any`, `_Entity`, `_Service`, `FieldSet` and `link__*`, are not part of the contract nor of the graph.
+The broker composes the graph with the rules of Apollo Federation 2. Only `@key`, `@shareable`, `@inaccessible`, `@external`, `@override`, `@provides` and `@interfaceObject` count; every other directive is accepted and ignored, except `@fromContext`: an argument marked with it is left out of the contract, since the router fills it and a client never sends it. The definitions that a subgraph library prints next to the `@link`, such as `_service`, `_entities`, `_Any`, `_Entity`, `_Service`, `FieldSet` and `link__*`, are not part of the contract nor of the graph.
 
 What composes:
 

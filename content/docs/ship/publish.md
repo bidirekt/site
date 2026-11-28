@@ -22,7 +22,7 @@ Every GraphQL file a folder holds is published as part of the participant's sche
 
 ## Limits
 
-One publish sends at most 8 MiB to the broker, the text of every file included; a larger one is refused before any file is checked. [`validate`](validate.md) has the same limit.
+One publish sends at most 8 MiB to the broker, the text of every file included; a larger one is refused before any file is checked, with `cannot post contract to broker: Request Entity Too Large`. [`validate`](validate.md) has the same limit, and refuses with `cannot validate contract on broker: Request Entity Too Large`.
 
 ## What publishing stores
 
