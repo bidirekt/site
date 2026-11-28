@@ -75,6 +75,12 @@ export function highlightLines(
   code: string,
   language: Language,
 ): Array<Array<Token>> {
+  return tokenizeLines(code, language).map((tokens) =>
+    tokens.flatMap(withDocTags),
+  )
+}
+
+function tokenizeLines(code: string, language: Language): Array<Array<Token>> {
   let inBlockComment = false
   return code.split('\n').map((line) => {
     if (inBlockComment) {
@@ -98,6 +104,21 @@ export function highlightLines(
     }
     return tokens
   })
+}
+
+const DOC_TAG = /((?<=^|[\s*])@[A-Za-z]\w*)/
+
+function withDocTags(token: Token): Array<Token> {
+  if (token.kind !== 'comment' || /^(\/\/|#)/.test(token.text)) return [token]
+  return token.text
+    .split(DOC_TAG)
+    .filter((text) => text !== '')
+    .map((text) => ({ kind: docTokenKind(text), text }))
+}
+
+function docTokenKind(text: string): TokenKind {
+  if (text.startsWith('@')) return 'decorator'
+  return 'comment'
 }
 
 function highlightLine(line: string, language: Language): Array<Token> {

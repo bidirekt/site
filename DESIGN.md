@@ -182,7 +182,7 @@ A neutral grey ladder on pure black, one white accent, and a green/red pair rese
 
 **The Verdict-Only Color Rule.** Green and red appear only where a deploy verdict, an exit code, or a contract diff says pass or break. They never decorate a heading, an icon, a button or a status that is not a verdict.
 
-**The Syntax Pastel Rule.** Source code and YAML on the home page and in the docs (TypeScript, PHP, Go, JSON, GraphQL, YAML) are highlighted by one shared tokenizer (`src/highlight.ts`) with five pastel tokens: keywords lavender (`syntax-keyword`), types and schema references blue (`syntax-type`), strings pale yellow (`syntax-string`), decorators and attributes pink (`syntax-decorator`), numbers peach (`syntax-number`); identifiers stay Ink, YAML and JSON keys Smoke, comments Ash. Pastels live only inside code panes; never green or red, which stay with verdicts.
+**The Syntax Pastel Rule.** Source code and YAML on the home page and in the docs (TypeScript, JavaScript, PHP, Go, JSON, GraphQL, YAML) are highlighted by one shared tokenizer (`src/highlight.ts`) with five pastel tokens: keywords lavender (`syntax-keyword`), types and schema references blue (`syntax-type`), strings pale yellow (`syntax-string`), decorators and attributes pink (`syntax-decorator`), numbers peach (`syntax-number`); identifiers stay Ink, YAML and JSON keys Smoke, comments Ash, with the `@` tags of a `/** */` comment (`@bidirekt`, `@type`) pink like decorators. Pastels live only inside code panes; never green or red, which stay with verdicts.
 
 **The One White Rule.** The only accent is white. Emphasis comes from moving up the grey ladder (muted, secondary, primary, accent), never from adding a hue.
 
@@ -282,7 +282,7 @@ The hero's product panel: a Pane headed by the working folder, the current exit 
 
 ### Protocol Strip and Brand Icons
 
-A slim row under the hero: "Contracts for" in Ash, then REST, GraphQL and OpenAPI at 22px Bricolage, each led by a 28px icon. Supported protocols are Ink links to their docs; an upcoming one is Ash with a "Soon" pill. Third-party logos (GraphQL, OpenAPI, TypeScript, PHP, Go) come from simple-icons and are always single-color `currentColor`, never their brand colors; REST and the agent skill use drawn 1.5–1.75px stroke icons. SDK tabs lead each label with its 16px icon.
+A slim row under the hero: "Contracts for" in Ash, then REST, GraphQL and OpenAPI at 22px Bricolage, each led by a 28px icon. Supported protocols are Ink links to their docs; an upcoming one is Ash with a "Soon" pill. Third-party logos (GraphQL, OpenAPI, TypeScript, JavaScript, PHP, Go) come from simple-icons and are always single-color `currentColor`, never their brand colors; REST and the agent skill use drawn 1.5–2px stroke icons. SDK tabs lead each label with its 16px icon. Every icon's viewBox is cropped to its glyph, with a height of √(width × height) (`src/opticalBox.ts`), so at one CSS height a square logo and a wide one (the PHP oval, the Go wordmark) cover the same area.
 
 ### Flow Diagram (signature)
 
