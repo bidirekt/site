@@ -26,7 +26,7 @@ export type DocsPageContent = {
 }
 
 type DocsLinkProps =
-  { to: '/docs' } | { to: '/docs/$'; params: { _splat: string } }
+  { to: '/docs/' } | { to: '/docs/$/'; params: { _splat: string } }
 
 type NavFields = { label?: unknown; path?: unknown; items?: unknown }
 
@@ -59,14 +59,14 @@ export const DOCS_ENTRIES: Array<DocsEntry> = DOCS_TREE.flatMap(entriesOf)
 if (import.meta.env.SSR) assertDocsAnchorsResolve()
 
 export function docsHref(path: string): string {
-  if (path === OVERVIEW_PATH) return '/docs'
-  return `/docs/${stripMarkdownExtension(path)}`
+  if (path === OVERVIEW_PATH) return '/docs/'
+  return `/docs/${stripMarkdownExtension(path)}/`
 }
 
 export function docsLinkProps(path: string): DocsLinkProps {
-  if (path === OVERVIEW_PATH) return { to: '/docs' } as const
+  if (path === OVERVIEW_PATH) return { to: '/docs/' } as const
   return {
-    to: '/docs/$',
+    to: '/docs/$/',
     params: { _splat: stripMarkdownExtension(path) },
   } as const
 }

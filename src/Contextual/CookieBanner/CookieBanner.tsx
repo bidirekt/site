@@ -38,7 +38,7 @@ export function CookieBanner() {
       <p className="min-w-[240px] flex-1 text-[15px] leading-[1.6] text-secondary text-pretty">
         Allow Google Analytics cookies to count visits and see where they come
         from? More on the{' '}
-        <a href="/privacy" className={LINK}>
+        <a href="/privacy/" className={LINK}>
           privacy
         </a>{' '}
         page.

@@ -33,19 +33,19 @@ export function SiteFooter() {
           </span>
         </div>
         <div className="flex flex-wrap gap-5">
-          <a href="/docs" className={FOOTER_LINK}>
+          <a href="/docs/" className={FOOTER_LINK}>
             docs
           </a>
           <a href="/llms.txt" className={FOOTER_LINK}>
             llms.txt
           </a>
-          <a href="/contact" className={FOOTER_LINK}>
+          <a href="/contact/" className={FOOTER_LINK}>
             contact
           </a>
           <ExternalLink href={GITHUB_URL} className={FOOTER_LINK}>
             github
           </ExternalLink>
-          <a href="/privacy" className={FOOTER_LINK}>
+          <a href="/privacy/" className={FOOTER_LINK}>
             privacy
           </a>
           <CookieSettingsButton variant="ghost" className={FOOTER_LINK}>

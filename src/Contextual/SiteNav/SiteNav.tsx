@@ -18,7 +18,7 @@ export function SiteNav() {
         </a>
         <div className="flex items-center gap-4 min-[721px]:gap-6">
           <div className="flex gap-4 text-[14px] min-[721px]:gap-6">
-            <a href="/docs" className={NAV_LINK}>
+            <a href="/docs/" className={NAV_LINK}>
               docs
             </a>
             <a href="/#sdks" className={`${NAV_LINK} max-[480px]:hidden`}>

@@ -9,7 +9,7 @@ const CLONE_COMMAND = 'git clone https://github.com/bidirekt/petstore-example'
 const RUN_COMMAND = 'cd petstore-example && ./demo.sh'
 const TRY_COMMAND = 'curl -sL bidirekt.com/try | sh'
 const TRY_SCRIPT_URL = 'https://github.com/bidirekt/site/blob/main/public/try'
-const TRY_DOCS_URL = '/docs/start/try'
+const TRY_DOCS_URL = '/docs/start/try/'
 
 const LINK =
   'pressable text-[14px] text-secondary underline decoration-muted underline-offset-[3px] hover:text-primary hover:decoration-primary'

@@ -27,7 +27,7 @@ const SDKS: Array<Sdk> = [
     name: 'TypeScript',
     brand: 'typescript',
     language: 'typescript',
-    docsHref: '/docs/contracts/typescript-sdk',
+    docsHref: '/docs/contracts/typescript-sdk/',
     file: 'pets.controller.ts',
     code: `import {
   BidirektField,
@@ -63,7 +63,7 @@ export class PetsController {
     name: 'PHP',
     brand: 'php',
     language: 'php',
-    docsHref: '/docs/contracts/php-sdk',
+    docsHref: '/docs/contracts/php-sdk/',
     file: 'src/PetController.php',
     code: `#[BidirektSchema]
 final class Pet
@@ -98,7 +98,7 @@ final class PetController
     name: 'Go',
     brand: 'go',
     language: 'go',
-    docsHref: '/docs/contracts/go-sdk',
+    docsHref: '/docs/contracts/go-sdk/',
     file: 'pets/pet.go',
     code: `type Pet struct {
 	ID int64 \`json:"id" bidirekt:"field"\`
